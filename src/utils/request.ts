@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
+import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from 'axios';
 import { toast } from 'vue-sonner';
 import type { ApiResponse } from '@/api/types';
 
@@ -7,7 +7,7 @@ import type { ApiResponse } from '@/api/types';
  * 配置基础 URL 和超时时间
  */
 const service: AxiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+    baseURL: '',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
@@ -51,36 +51,76 @@ service.interceptors.response.use(
             return res.data;
         }
 
-        // 业务失败处理
-        const errorMessage = res.message || '系统错误';
+        // 业务失败处理（理论上不会走到这里，因为后端错误会返回非 2xx 状态码）
+        const errorMessage = res.message || '操作失败';
         toast.error(errorMessage);
-
-        // 特殊状态码处理
-        if (res.code === 401) {
-            // Token 过期或未登录
-            localStorage.removeItem('token');
-            window.location.href = '/login';
-        }
-
         return Promise.reject(new Error(errorMessage));
     },
-    (error) => {
-        // HTTP 状态码错误（如 404, 500, 网络断开）
+    (error: AxiosError) => {
         console.error('Response Error:', error);
 
-        let message = '网络连接异常，请稍后重试';
-        if (error.response) {
-            switch (error.response.status) {
-                case 404:
-                    message = '请求的资源不存在';
+        // 如果有响应数据，优先使用后端返回的错误信息
+        if (error.response?.data) {
+            const res = error.response.data as ApiResponse;
+            const message = res.message || '请求失败';
+            const code = res.code || error.response.status;
+
+            // 根据状态码进行不同处理
+            switch (code) {
+                case 401:
+                    // 未认证：用户名或密码错误 / Token 过期
+                    toast.error(message);
+                    localStorage.removeItem('token');
+                    // 延迟跳转，让用户看到错误提示
+                    setTimeout(() => {
+                        if (window.location.pathname !== '/login') {
+                            window.location.href = '/login';
+                        }
+                    }, 1000);
                     break;
-                case 500:
-                    message = '服务器内部错误';
-                    break;
+
                 case 403:
-                    message = '没有权限访问';
+                    // 权限不足
+                    toast.error(message);
                     break;
+
+                case 404:
+                    // 资源不存在
+                    toast.error(message);
+                    break;
+
+                case 400:
+                    // 请求参数错误 / JSON 解析失败 / 参数校验失败
+                    toast.error(message);
+                    break;
+
+                case 405:
+                    // 请求方法不支持
+                    toast.error(message);
+                    break;
+
+                case 500:
+                    // 服务器内部错误
+                    toast.error(message);
+                    break;
+
+                default:
+                    // 其他错误
+                    toast.error(message);
             }
+
+            return Promise.reject(error);
+        }
+
+        // 网络错误或其他异常（无响应数据）
+        let message = '网络连接异常，请稍后重试';
+
+        if (error.message === 'Network Error') {
+            message = '网络连接失败，请检查网络设置';
+        } else if (error.code === 'ECONNABORTED') {
+            message = '请求超时，请稍后重试';
+        } else if (error.message) {
+            message = error.message;
         }
 
         toast.error(message);
