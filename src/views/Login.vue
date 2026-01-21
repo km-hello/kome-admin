@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { toast } from 'vue-sonner';
-import { Loader2, User, Lock, Eye, EyeOff } from 'lucide-vue-next';
+import { Loader2, User, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-vue-next';
 
 // Shadcn 组件
 import { Button } from '@/components/ui/button';
@@ -28,9 +28,24 @@ const showPassword = ref(false);
 // ========== 方法 ==========
 
 /**
- * 处理登录逻辑
+ * 异步处理用户登录的回调函数。
+ *
+ * 此函数主要负责表单验证、调用用户登录接口，并根据登录结果更新页面状态。
+ *
+ * 核心逻辑：
+ * 1. 验证表单是否填写用户名和密码，若未填写则提示警告信息并停止执行。
+ * 2. 设置加载状态为 `true`，以显示页面加载效果。
+ * 3. 调用用户状态管理的 `login` 方法，传递登录凭据和附加选项（如记住登录状态）。
+ * 4. 根据登录结果：
+ *    - 成功：提示用户登录成功，并跳转到首页。
+ *    - 失败：错误处理已在拦截器中实现，此处仅打印错误日志并重置状态。
+ * 5. 无论成功或失败，重置页面加载状态。
+ *
+ * @async
+ * @function handleLogin
+ * @returns {Promise<void>} 返回一个 Promise，并在异步操作完成时结束。
  */
-const handleLogin = async () => {
+const handleLogin = async (): Promise<void> => {
   // 表单验证
   if (!form.value.username || !form.value.password) {
     toast.warning('请输入用户名和密码');
@@ -40,11 +55,14 @@ const handleLogin = async () => {
   isLoading.value = true;
 
   try {
-    // 调用 Store 的登录方法
-    await userStore.login({
-      username: form.value.username,
-      password: form.value.password,
-    });
+    // 调用 store 的 login 方法，传入 remember 参数
+    await userStore.login(
+        {
+          username: form.value.username,
+          password: form.value.password
+        },
+        form.value.remember
+    );
 
     toast.success('登录成功！');
 
@@ -85,7 +103,7 @@ const handleLogin = async () => {
                 id="username"
                 v-model="form.username"
                 placeholder="Enter your username"
-                class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10"
+                class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 placeholder:text-slate-400"
                 :disabled="isLoading"
                 @keyup.enter="handleLogin"
             />
@@ -102,14 +120,14 @@ const handleLogin = async () => {
                 :type="showPassword ? 'text' : 'password'"
                 v-model="form.password"
                 placeholder="Enter your password"
-                class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 pr-10"
+                class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 pr-10 placeholder:text-slate-400"
                 :disabled="isLoading"
                 @keyup.enter="handleLogin"
             />
             <button
                 type="button"
                 @click="showPassword = !showPassword"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
                 :disabled="isLoading"
             >
               <Eye v-if="!showPassword" class="h-4 w-4" />
@@ -120,16 +138,12 @@ const handleLogin = async () => {
 
         <!-- 记住我 -->
         <div class="flex items-center space-x-2 py-1">
-          <Checkbox
-              id="remember"
-              :checked="form.remember"
-              @update:checked="(val: boolean) => form.remember = val as boolean"
-          />
+          <Checkbox id="remember" v-model="form.remember" />
           <label
               for="remember"
-              class="text-sm text-slate-600 font-medium cursor-pointer select-none"
+              class="text-sm text-slate-700 font-medium cursor-pointer select-none"
           >
-            Remember me
+            Remember me for 7 days
           </label>
         </div>
 
@@ -143,13 +157,18 @@ const handleLogin = async () => {
           {{ isLoading ? 'Signing in...' : 'Sign In' }}
         </Button>
 
-            <!-- 底部提示 -->
-            <p class="text-center text-xs text-slate-400 mt-4">
-              Powered by Kome Blog System ·
-              <a href="https://your-blog-url.com" target="_blank" class="text-slate-600 hover:text-slate-900 underline transition-colors">
-                Visit My Blog
-              </a>
-            </p>
+
+        <!-- 底部提示 -->
+        <div class="text-center">
+          <a
+              href="https://your-blog-url.com"
+              target="_blank"
+              class="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-800 transition-colors group"
+          >
+            <ArrowLeft class="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
+            Back to Blog
+          </a>
+        </div>
       </CardContent>
     </Card>
   </div>
