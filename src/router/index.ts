@@ -1,5 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import {createRouter, createWebHistory, type Router} from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
+import {useUserStore} from "@/stores/user.ts";
 
 // 路由懒加载
 const Login = () => import('@/views/Login.vue');
@@ -7,7 +8,16 @@ const AdminLayout = () => import('@/layout/AdminLayout.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
 
 /**
- * 路由配置
+ * 定义应用的路由配置。
+ * 该配置包含多个路由规则，具体包括访客页面、需要认证的页面，以及通用的 404 重定向。
+ *
+ * 路由结构说明：
+ * 1. `path`：路由的路径。
+ * 2. `name`：可选，路由的名称，用于标识具体的路由。
+ * 3. `component`：对应路径加载的组件。
+ * 4. `meta`：元信息，用于存储路由相关的附加信息（如标题、权限控制等）。
+ * 5. `children`：嵌套路由，用于表示子页面结构。
+ * 6. `redirect`：重定向规则，用于路径跳转。
  */
 const routes: RouteRecordRaw[] = [
     {
@@ -46,28 +56,31 @@ const routes: RouteRecordRaw[] = [
 ];
 
 /**
- * 创建路由实例
+ * 创建并配置一个路由器实例。
+ *
+ * 该路由器使用 Web 历史模式，并注册了一组预定义的路由。
+ *
+ * @constant
+ * @type {Router}
  */
-const router = createRouter({
+const router: Router = createRouter({
     history: createWebHistory(),
     routes,
 });
 
-/**
- * 全局前置守卫
- * 功能：检查登录状态，未登录则跳转到登录页
- */
-router.beforeEach((to, _from, next) => {
-    const token = localStorage.getItem('token');
 
-    // 需要登录但未登录
-    if (to.meta.requiresAuth && !token) {
+
+router.beforeEach((to, _from, next) => {
+    const userStore = useUserStore();
+
+    // 1. 需要登录 但 未登录 -> 去登录页
+    if (to.meta.requiresAuth && !userStore.isLoggedIn) {
         next('/login');
         return;
     }
 
-    // 已登录访问登录页，重定向到首页
-    if (to.path === '/login' && token) {
+    // 2. 已登录 但 访问登录页 -> 去首页
+    if (to.path === '/login' && userStore.isLoggedIn) {
         next('/');
         return;
     }
@@ -79,5 +92,6 @@ router.beforeEach((to, _from, next) => {
 
     next();
 });
+
 
 export default router;
