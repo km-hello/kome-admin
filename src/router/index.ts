@@ -42,13 +42,13 @@ const routes: RouteRecordRaw[] = [
                 path: 'dashboard',
                 name: 'Dashboard',
                 component: Dashboard,
-                meta: { title: '仪表盘' },
+                meta: { title: 'Dashboard' },
             },
             {
                 path: 'tags',
                 name: 'Tags',
                 component: Tag,
-                meta: { title: '标签' },
+                meta: { title: 'Tags' },
             },
             // 后续可以在这里添加更多子路由
             // { path: 'posts', component: PostList, meta: { title: '文章管理' } },

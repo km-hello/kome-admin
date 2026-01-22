@@ -15,14 +15,14 @@ import {
   Code2,
   LogOut,
   Search,
-  Plus,
-  Menu
+  Sun
 } from 'lucide-vue-next';
 
 // 组件
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import NavItem from '@/components/NavItem.vue';
+import Breadcrumb from "@/components/Breadcrumb.vue";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -118,14 +118,7 @@ const handleLogout = async () => {
 
       <!-- 顶部导航栏 -->
       <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 flex items-center justify-between shrink-0 z-10">
-        <div class="flex items-center gap-2 text-sm">
-          <button class="md:hidden p-2 hover:bg-slate-100 rounded-lg">
-            <Menu class="w-5 h-5" />
-          </button>
-          <span class="text-slate-500">Home</span>
-          <span class="text-slate-300">/</span>
-          <span class="text-slate-900 font-medium">Dashboard</span>
-        </div>
+        <Breadcrumb />
 
         <div class="flex items-center gap-3">
           <div class="relative hidden sm:block">
@@ -137,15 +130,21 @@ const handleLogout = async () => {
             />
           </div>
 
-          <Button variant="ghost" size="icon" class="relative">
-            <Bell class="w-4 h-4" />
-            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" hidden></span>
-          </Button>
+          <!-- 快捷操作按钮组 -->
+          <div class="flex items-center gap-1 border-l border-slate-200 pl-3">
+            <Button variant="ghost" size="icon" class="relative" title="Notifications">
+              <Bell class="w-4 h-4" />
+              <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" hidden></span>
+            </Button>
 
-          <Button class="bg-slate-900 hover:bg-slate-800 gap-2 h-9">
-            <Plus class="w-4 h-4" />
-            <span class="hidden sm:inline">New Post</span>
-          </Button>
+            <Button variant="ghost" size="icon" title="Themes">
+              <Sun class="w-4 h-4" />
+            </Button>
+
+            <Button variant="ghost" size="icon" title="Settings">
+              <Settings class="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
