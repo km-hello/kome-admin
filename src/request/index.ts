@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from 'axios';
 import { toast } from 'vue-sonner';
-import type { ApiResponse } from '@/api/types';
+import type { Result } from '@/types/api.ts';
 
 /**
  * 定义 Axios 服务实例，用于执行 HTTP 请求。
@@ -27,10 +27,17 @@ const service: AxiosInstance = axios.create({
  */
 service.interceptors.request.use(
     (config) => {
-        // 直接从 storage 读取，避免循环依赖
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        // 直接从 storage 读取 userInfo，避免循环依赖
+        const userInfoStr = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
+        if(userInfoStr) {
+            try{
+                const userInfo = JSON.parse(userInfoStr);
+                if(userInfo.token) {
+                    config.headers.Authorization = `Bearer ${userInfo.token}`;
+                }
+            } catch (e) {
+                console.error('Failed to parse userInfo:', e);
+            }
         }
         return config;
     },
@@ -55,7 +62,7 @@ service.interceptors.request.use(
  */
 service.interceptors.response.use(
     (response: AxiosResponse) => {
-        const res = response.data as ApiResponse;
+        const res = response.data as Result;
 
         // 业务成功
         if (res.code === 200) {
@@ -71,14 +78,14 @@ service.interceptors.response.use(
         let message = '请求失败';
 
         if (error.response?.data) {
-            const res = error.response.data as ApiResponse;
+            const res = error.response.data as Result;
             message = res.message || message;
 
             // 401 未授权处理
             if (res.code === 401 || error.response.status === 401) {
                 // 清除所有可能的 token
-                localStorage.removeItem('token');
-                sessionStorage.removeItem('token');
+                localStorage.removeItem('userInfo');
+                sessionStorage.removeItem('userInfo');
 
                 // 强制跳转登录页（避免路由守卫死循环）
                 if (window.location.pathname !== '/login') {
@@ -96,4 +103,30 @@ service.interceptors.response.use(
     }
 );
 
-export default service;
+/**
+ * Request 类封装了常见的 HTTP 请求方法，以便于进行网络请求操作。
+ * 提供了对 GET、POST、PUT、DELETE 和 PATCH 方法的支持，均基于服务实例 service 实现。
+ */
+class Request {
+    get<T = any>(url: string, config?: any): Promise<T> {
+        return service.get(url, config);
+    }
+
+    post<T = any>(url: string, data?: any, config?: any): Promise<T> {
+        return service.post(url, data, config);
+    }
+
+    put<T = any>(url: string, data?: any, config?: any): Promise<T> {
+        return service.put(url, data, config);
+    }
+
+    delete<T = any>(url: string, config?: any): Promise<T> {
+        return service.delete(url, config);
+    }
+
+    patch<T = any>(url: string, data?: any, config?: any): Promise<T> {
+        return service.patch(url, data, config);
+    }
+}
+
+export default new Request();
