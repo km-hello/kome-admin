@@ -1,31 +1,42 @@
-import request from '@/utils/request';
+import request from '@/request';
 
 // ==================== 类型定义 ====================
 
 /**
  * 登录请求参数
  */
-export interface LoginParams {
+export interface UserLoginRequest {
     username: string;
     password?: string;
 }
 
 /**
+ * 修改用户信息请求参数
+ */
+export interface UserUpdateRequest {
+    username?: string;
+    nickname?: string;
+    avatar?: string;
+    email?: string;
+    description?: string;
+}
+
+/**
  * 用户信息
  */
-export interface UserInfo {
+export interface UserInfoResponse {
     id?: number;
     username: string;
     nickname: string;
     avatar: string;
-    email?: string;
+    email: string;
     description?: string;
 }
 
 /**
  * 登录响应数据
  */
-export interface LoginResult extends UserInfo {
+export interface UserLoginResponse extends UserInfoResponse {
     token: string;        // JWT Token
     expiresIn: number;    // 过期时间（秒）
 }
@@ -33,27 +44,35 @@ export interface LoginResult extends UserInfo {
 // ==================== API 接口 ====================
 
 /**
- * 用户登录
- * @param data 登录表单数据
- * @returns Promise<LoginResult>
+ * 执行用户登录请求的函数。
+ *
+ * @param {UserLoginRequest} req 包含用户登录所需的请求数据。
+ * @returns {Promise<UserLoginResponse>} 返回一个包含用户登录结果的 Promise。
  */
-export const loginApi = (data: LoginParams) => {
-    return request.post<any, LoginResult>('/api/user/login', data);
+export const loginApi = (req: UserLoginRequest): Promise<UserLoginResponse> => {
+    return request.post<UserLoginResponse>('/api/user/login', req);
 };
 
 /**
- * 获取当前登录用户信息
- * @returns Promise<UserInfo>
+ * 获取用户信息的 API 请求方法。
+ *
+ * 此方法通过发送 GET 请求到指定的用户信息接口，获取并返回用户信息数据。
+ *
+ * @returns {Promise<UserInfoResponse>} 返回包含用户信息的响应数据。
  */
-export const getUserInfoApi = () => {
-    return request.get<any, UserInfo>('/api/admin/user');
+export const getUserInfoApi = (): Promise<UserInfoResponse> => {
+    return request.get<UserInfoResponse>('/api/admin/user');
 };
 
 /**
- * 更新用户信息
- * @param data 要更新的字段
- * @returns Promise<UserInfo>
+ * 更新用户信息的 API 调用函数。
+ *
+ * @param {Partial<UserUpdateRequest>} req - 包含用户更新信息的部分请求对象。
+ * @returns {Promise<UserInfoResponse>} 返回一个包含用户信息的响应对象的 Promise。
+ *
+ * 此函数通过 HTTP PUT 请求将用户更新数据发送到后端接口 "/api/admin/user"，
+ * 并返回服务器处理后的用户信息。
  */
-export const updateUserInfoApi = (data: Partial<UserInfo>) => {
-    return request.put<any, UserInfo>('/api/admin/user', data);
+export const updateUserInfoApi = (req: Partial<UserUpdateRequest>): Promise<UserInfoResponse> => {
+    return request.put<UserInfoResponse>('/api/admin/user', req);
 };
