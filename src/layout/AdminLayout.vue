@@ -10,23 +10,31 @@ import {
   PenTool,
   StickyNote,
   Hash,
-  Image as ImageIcon,
+  Link as LinkIcon,
   Settings,
   Code2,
   LogOut,
   Search,
-  Plus,
-  Menu
+  Sun
 } from 'lucide-vue-next';
 
 // 组件
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import NavItem from '@/components/NavItem.vue';
+import Breadcrumb from "@/components/Breadcrumb.vue";
 
 const router = useRouter();
 const userStore = useUserStore();
 
+/**
+ * 异步函数，用于处理用户登出逻辑。
+ *
+ * 功能描述：
+ * 1. 调用用户存储模块的登出方法以清除用户状态。
+ * 2. 显示成功退出的提示消息。
+ * 3. 重定向用户到登录页面。
+ */
 const handleLogout = async () => {
   userStore.logout();
   toast.success('已退出登录');
@@ -58,20 +66,16 @@ const handleLogout = async () => {
         <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Overview
         </div>
-
-        <!-- ★ 使用封装的组件，代码更简洁 -->
         <NavItem to="/dashboard" :icon="LayoutDashboard" label="Dashboard" />
-        <NavItem :icon="Bell" label="Notifications" badge="3" />
 
         <!-- Content 分组 -->
         <div class="px-3 mt-6 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Content
         </div>
-
         <NavItem :icon="PenTool" label="Posts" />
         <NavItem :icon="StickyNote" label="Memos" />
-        <NavItem :icon="Hash" label="Tags" />
-        <NavItem :icon="ImageIcon" label="Media" />
+        <NavItem to="/tags" :icon="Hash" label="Tags" />
+        <NavItem :icon="LinkIcon" label="Links" />
 
         <!-- System 分组 -->
         <div class="px-3 mt-6 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -86,7 +90,7 @@ const handleLogout = async () => {
       <div class="p-4 border-t border-slate-100 shrink-0">
         <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
           <img
-              src="https://api.dicebear.com/7.x/notionists/svg?seed=Admin"
+              :src="userStore.userInfo.avatar || 'https://api.dicebear.com/7.x/notionists/svg?seed=Admin'"
               class="w-10 h-10 rounded-full bg-white border-2 border-slate-200"
               alt="User Avatar"
           >
@@ -95,7 +99,7 @@ const handleLogout = async () => {
               {{ userStore.userInfo.nickname || 'Administrator' }}
             </div>
             <div class="text-xs text-slate-500 truncate">
-              {{ userStore.userInfo.username || 'admin@kome.com' }}
+              {{ userStore.userInfo.email || 'admin@example.com' }}
             </div>
           </div>
           <button
@@ -114,14 +118,7 @@ const handleLogout = async () => {
 
       <!-- 顶部导航栏 -->
       <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 flex items-center justify-between shrink-0 z-10">
-        <div class="flex items-center gap-2 text-sm">
-          <button class="md:hidden p-2 hover:bg-slate-100 rounded-lg">
-            <Menu class="w-5 h-5" />
-          </button>
-          <span class="text-slate-500">Home</span>
-          <span class="text-slate-300">/</span>
-          <span class="text-slate-900 font-medium">Dashboard</span>
-        </div>
+        <Breadcrumb />
 
         <div class="flex items-center gap-3">
           <div class="relative hidden sm:block">
@@ -133,15 +130,21 @@ const handleLogout = async () => {
             />
           </div>
 
-          <Button variant="ghost" size="icon" class="relative">
-            <Bell class="w-4 h-4" />
-            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-          </Button>
+          <!-- 快捷操作按钮组 -->
+          <div class="flex items-center gap-1 border-l border-slate-200 pl-3">
+            <Button variant="ghost" size="icon" class="relative" title="Notifications">
+              <Bell class="w-4 h-4" />
+              <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" hidden></span>
+            </Button>
 
-          <Button class="bg-slate-900 hover:bg-slate-800 gap-2 h-9">
-            <Plus class="w-4 h-4" />
-            <span class="hidden sm:inline">New Post</span>
-          </Button>
+            <Button variant="ghost" size="icon" title="Themes">
+              <Sun class="w-4 h-4" />
+            </Button>
+
+            <Button variant="ghost" size="icon" title="Settings">
+              <Settings class="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 

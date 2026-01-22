@@ -2,7 +2,7 @@
  * 后端统一响应结构
  * 所有接口都会包装在这个结构中
  */
-export interface ApiResponse<T = any> {
+export interface Result<T = any> {
     code: number;        // 业务状态码（200 表示成功）
     message: string;     // 提示信息
     data: T;             // 实际业务数据

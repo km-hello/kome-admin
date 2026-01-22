@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { getSiteInfoApi, type SiteStats } from '@/api/site';
+import {ref, onMounted, computed} from 'vue';
+import { getAdminSiteInfoApi, type SiteStats } from '@/api/site';
 import { getAdminPostsApi, type PostSimple } from '@/api/post';
 
 // 图标
-import { Eye, FileText, Hash, Link as LinkIcon, Activity, TrendingUp } from 'lucide-vue-next';
+import { Eye, FileText, Hash, Link as LinkIcon, Activity } from 'lucide-vue-next';
 
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,25 +13,39 @@ import { Badge } from '@/components/ui/badge';
 
 // ========== 状态定义 ==========
 
-/**
- * 站点统计数据
- */
+// 站点统计数据
 const stats = ref<SiteStats>({
-  postCount: 0,
-  tagCount: 0,
-  memoCount: 0,
-  linkCount: 0,
+  publishedPostCount: 0,
+  draftPostCount: 0,
+  usedTagCount: 0,
+  unusedTagCount: 0,
+  publishedMemoCount: 0,
+  draftMemoCount: 0,
+  publishedLinkCount: 0,
+  draftLinkCount: 0,
 });
 
-/**
- * 最近文章列表
- */
+// 最近文章列表
 const recentPosts = ref<PostSimple[]>([]);
 
-/**
- * 加载状态
- */
+//加载状态
 const loading = ref(true);
+
+// ========== 计算属性 ==========
+
+//文章总数
+const totalPosts = computed(() => stats.value.publishedPostCount + stats.value.draftPostCount);
+
+//标签总数
+const totalTags = computed(() => stats.value.usedTagCount + stats.value.unusedTagCount);
+
+//备忘录总数
+const totalMemos = computed(() => stats.value.publishedMemoCount + stats.value.draftMemoCount);
+
+//友链总数
+const totalLinks = computed(() => stats.value.publishedLinkCount + stats.value.draftLinkCount);
+
+
 
 // ========== 生命周期 ==========
 
@@ -42,7 +56,7 @@ onMounted(async () => {
   try {
     // 并行请求多个接口，提高加载速度
     const [siteInfo, postsData] = await Promise.all([
-      getSiteInfoApi(),
+      getAdminSiteInfoApi(),
       getAdminPostsApi({ pageNum: 1, pageSize: 5 }),
     ]);
 
@@ -103,72 +117,98 @@ const formatDate = (dateString: string) => {
     <!-- ========== 统计卡片网格 ========== -->
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <!-- 文章统计 -->
-      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
           <CardTitle class="text-sm font-medium text-slate-600">Total Posts</CardTitle>
-          <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-blue-600" />
+          <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+            <FileText class="h-5 w-5 text-blue-600" />
           </div>
         </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ stats.postCount }}</div>
-          <p class="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-            <TrendingUp class="w-3 h-3 text-emerald-500" />
-            <span class="text-emerald-600 font-medium">+12.5%</span>
-            <span class="text-slate-400">from last month</span>
-          </p>
+        <CardContent class="relative z-10">
+          <div class="text-3xl font-bold text-slate-900">{{ totalPosts }}</div>
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Published:</span>
+              <span class="text-xs font-semibold text-blue-600">{{ stats.publishedPostCount }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Draft:</span>
+              <span class="text-xs font-semibold text-slate-600">{{ stats.draftPostCount }}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       <!-- 标签统计 -->
-      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Active Tags</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <Hash class="h-4 w-4 text-emerald-600" />
+      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+          <CardTitle class="text-sm font-medium text-slate-600">Total Tags</CardTitle>
+          <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+            <Hash class="h-5 w-5 text-emerald-600" />
           </div>
         </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ stats.tagCount }}</div>
-          <p class="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-            <TrendingUp class="w-3 h-3 text-emerald-500" />
-            <span class="text-emerald-600 font-medium">+8.2%</span>
-            <span class="text-slate-400">from last month</span>
-          </p>
+        <CardContent class="relative z-10">
+          <div class="text-3xl font-bold text-slate-900">{{ totalTags }}</div>
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Used:</span>
+              <span class="text-xs font-semibold text-emerald-600">{{ stats.usedTagCount }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Unused:</span>
+              <span class="text-xs font-semibold text-slate-600">{{ stats.unusedTagCount }}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       <!-- 备忘录统计 -->
-      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
           <CardTitle class="text-sm font-medium text-slate-600">Total Memos</CardTitle>
-          <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-            <Activity class="h-4 w-4 text-amber-600" />
+          <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+            <Activity class="h-5 w-5 text-amber-600" />
           </div>
         </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ stats.memoCount }}</div>
-          <p class="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-            <TrendingUp class="w-3 h-3 text-emerald-500" />
-            <span class="text-emerald-600 font-medium">+5.1%</span>
-            <span class="text-slate-400">from last month</span>
-          </p>
+        <CardContent class="relative z-10">
+          <div class="text-3xl font-bold text-slate-900">{{ totalMemos }}</div>
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Published:</span>
+              <span class="text-xs font-semibold text-amber-600">{{ stats.publishedMemoCount }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Draft:</span>
+              <span class="text-xs font-semibold text-slate-600">{{ stats.draftMemoCount }}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       <!-- 友链统计 -->
-      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
           <CardTitle class="text-sm font-medium text-slate-600">Friend Links</CardTitle>
-          <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-            <LinkIcon class="h-4 w-4 text-purple-600" />
+          <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+            <LinkIcon class="h-5 w-5 text-purple-600" />
           </div>
         </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ stats.linkCount }}</div>
-          <p class="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-            <span class="text-slate-400">Stable connections</span>
-          </p>
+        <CardContent class="relative z-10">
+          <div class="text-3xl font-bold text-slate-900">{{ totalLinks }}</div>
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Published:</span>
+              <span class="text-xs font-semibold text-purple-600">{{ stats.publishedLinkCount }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Draft:</span>
+              <span class="text-xs font-semibold text-slate-600">{{ stats.draftLinkCount }}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

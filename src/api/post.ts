@@ -1,5 +1,5 @@
-import request from '@/utils/request';
-import type { PageResult, BaseQuery } from './types';
+import request from '@/request';
+import type { PageResult, BaseQuery } from '../types/api.ts';
 
 // ==================== 类型定义 ====================
 
@@ -37,7 +37,7 @@ export interface PostQuery extends BaseQuery {
  * @returns Promise<PageResult<PostSimple>>
  */
 export const getAdminPostsApi = (params: PostQuery) => {
-    return request.get<any, PageResult<PostSimple>>('/api/admin/posts', { params });
+    return request.get<PageResult<PostSimple>>('/api/admin/posts', { params });
 };
 
 /**
@@ -46,7 +46,7 @@ export const getAdminPostsApi = (params: PostQuery) => {
  * @returns Promise<PostSimple>
  */
 export const getPostByIdApi = (id: number) => {
-    return request.get<any, PostSimple>(`/api/admin/posts/${id}`);
+    return request.get<PostSimple>(`/api/admin/posts/${id}`);
 };
 
 /**
@@ -55,5 +55,5 @@ export const getPostByIdApi = (id: number) => {
  * @returns Promise<void>
  */
 export const deletePostApi = (id: number) => {
-    return request.delete<any, void>(`/api/admin/posts/${id}`);
+    return request.delete<void>(`/api/admin/posts/${id}`);
 };
