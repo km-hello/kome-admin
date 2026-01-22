@@ -10,7 +10,7 @@ import {
   PenTool,
   StickyNote,
   Hash,
-  Image as ImageIcon,
+  Link as LinkIcon,
   Settings,
   Code2,
   LogOut,
@@ -27,6 +27,14 @@ import NavItem from '@/components/NavItem.vue';
 const router = useRouter();
 const userStore = useUserStore();
 
+/**
+ * 异步函数，用于处理用户登出逻辑。
+ *
+ * 功能描述：
+ * 1. 调用用户存储模块的登出方法以清除用户状态。
+ * 2. 显示成功退出的提示消息。
+ * 3. 重定向用户到登录页面。
+ */
 const handleLogout = async () => {
   userStore.logout();
   toast.success('已退出登录');
@@ -58,20 +66,16 @@ const handleLogout = async () => {
         <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Overview
         </div>
-
-        <!-- ★ 使用封装的组件，代码更简洁 -->
         <NavItem to="/dashboard" :icon="LayoutDashboard" label="Dashboard" />
-        <NavItem :icon="Bell" label="Notifications" badge="3" />
 
         <!-- Content 分组 -->
         <div class="px-3 mt-6 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Content
         </div>
-
         <NavItem :icon="PenTool" label="Posts" />
         <NavItem :icon="StickyNote" label="Memos" />
-        <NavItem :icon="Hash" label="Tags" />
-        <NavItem :icon="ImageIcon" label="Media" />
+        <NavItem to="/tags" :icon="Hash" label="Tags" />
+        <NavItem :icon="LinkIcon" label="Links" />
 
         <!-- System 分组 -->
         <div class="px-3 mt-6 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -86,7 +90,7 @@ const handleLogout = async () => {
       <div class="p-4 border-t border-slate-100 shrink-0">
         <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
           <img
-              src="https://api.dicebear.com/7.x/notionists/svg?seed=Admin"
+              :src="userStore.userInfo.avatar || 'https://api.dicebear.com/7.x/notionists/svg?seed=Admin'"
               class="w-10 h-10 rounded-full bg-white border-2 border-slate-200"
               alt="User Avatar"
           >
@@ -95,7 +99,7 @@ const handleLogout = async () => {
               {{ userStore.userInfo.nickname || 'Administrator' }}
             </div>
             <div class="text-xs text-slate-500 truncate">
-              {{ userStore.userInfo.username || 'admin@kome.com' }}
+              {{ userStore.userInfo.email || 'admin@example.com' }}
             </div>
           </div>
           <button
@@ -135,7 +139,7 @@ const handleLogout = async () => {
 
           <Button variant="ghost" size="icon" class="relative">
             <Bell class="w-4 h-4" />
-            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" hidden></span>
           </Button>
 
           <Button class="bg-slate-900 hover:bg-slate-800 gap-2 h-9">
