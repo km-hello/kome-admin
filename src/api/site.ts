@@ -1,4 +1,4 @@
-import request from '@/utils/request';
+import request from '@/request';
 
 // ==================== 类型定义 ====================
 
@@ -6,22 +6,32 @@ import request from '@/utils/request';
  * 站点统计数据
  */
 export interface SiteStats {
-    postCount: number;    // 文章总数
-    tagCount: number;     // 标签总数
-    memoCount: number;    // 备忘录总数
-    linkCount: number;    // 友链总数
+    publishedPostCount: number;    // 已发布文章数
+    draftPostCount: number;        // 草稿文章数
+    usedTagCount: number;          // 已使用标签数
+    unusedTagCount: number;        // 未使用标签数
+    publishedMemoCount: number;    // 已发布备忘录数
+    draftMemoCount: number;        // 草稿备忘录数
+    publishedLinkCount: number;    // 已发布友链数
+    draftLinkCount: number;        // 草稿友链数
+}
+
+
+/**
+ * 站点所有者信息
+ */
+export interface SiteOwner {
+    nickname: string;
+    avatar: string;
+    description: string;
 }
 
 /**
  * 站点信息响应
  */
-export interface SiteInfoResult {
+export interface SiteInfoResponse {
     stats: SiteStats;
-    owner?: {
-        nickname: string;
-        avatar: string;
-        description: string;
-    };
+    owner: SiteOwner;
 }
 
 // ==================== API 接口 ====================
@@ -31,6 +41,6 @@ export interface SiteInfoResult {
  * 用于 Dashboard 页面展示统计数据
  * @returns Promise<SiteInfoResult>
  */
-export const getSiteInfoApi = () => {
-    return request.get<any, SiteInfoResult>('/api/site/info');
+export const getAdminSiteInfoApi = () => {
+    return request.get<SiteInfoResponse>('/api/admin/site/info');
 };
