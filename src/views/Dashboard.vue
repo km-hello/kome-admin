@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {ref, onMounted, computed} from 'vue';
-import { getAdminSiteInfoApi, type SiteStats } from '@/api/site';
+import { ref, onMounted } from 'vue';
+import { useSiteStore } from '@/stores/site';
 import { getAdminPostsApi, type PostSimple } from '@/api/post';
 
 // 图标
@@ -13,39 +13,14 @@ import { Badge } from '@/components/ui/badge';
 
 // ========== 状态定义 ==========
 
-// 站点统计数据
-const stats = ref<SiteStats>({
-  publishedPostCount: 0,
-  draftPostCount: 0,
-  usedTagCount: 0,
-  unusedTagCount: 0,
-  publishedMemoCount: 0,
-  draftMemoCount: 0,
-  publishedLinkCount: 0,
-  draftLinkCount: 0,
-});
+// 使用站点统计 Store
+const siteStore = useSiteStore();
 
 // 最近文章列表
 const recentPosts = ref<PostSimple[]>([]);
 
-//加载状态
+// 加载状态
 const loading = ref(true);
-
-// ========== 计算属性 ==========
-
-//文章总数
-const totalPosts = computed(() => stats.value.publishedPostCount + stats.value.draftPostCount);
-
-//标签总数
-const totalTags = computed(() => stats.value.usedTagCount + stats.value.unusedTagCount);
-
-//备忘录总数
-const totalMemos = computed(() => stats.value.publishedMemoCount + stats.value.draftMemoCount);
-
-//友链总数
-const totalLinks = computed(() => stats.value.publishedLinkCount + stats.value.draftLinkCount);
-
-
 
 // ========== 生命周期 ==========
 
@@ -55,16 +30,10 @@ const totalLinks = computed(() => stats.value.publishedLinkCount + stats.value.d
 onMounted(async () => {
   try {
     // 并行请求多个接口，提高加载速度
-    const [siteInfo, postsData] = await Promise.all([
-      getAdminSiteInfoApi(),
-      getAdminPostsApi({ pageNum: 1, pageSize: 5 }),
+    await Promise.all([
+      siteStore.fetchStats(), // 使用 Store 获取统计数据
+      fetchRecentPosts(),
     ]);
-
-    // 更新统计数据
-    stats.value = siteInfo.stats;
-
-    // 更新文章列表
-    recentPosts.value = postsData.records;
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
   } finally {
@@ -72,7 +41,15 @@ onMounted(async () => {
   }
 });
 
-// ========== 辅助方法 ==========
+// ========== 方法 ==========
+
+/**
+ * 获取最近文章
+ */
+const fetchRecentPosts = async () => {
+  const postsData = await getAdminPostsApi({ pageNum: 1, pageSize: 5 });
+  recentPosts.value = postsData.records;
+};
 
 /**
  * 根据文章状态返回对应的 Badge 样式
@@ -126,15 +103,15 @@ const formatDate = (dateString: string) => {
           </div>
         </CardHeader>
         <CardContent class="relative z-10">
-          <div class="text-3xl font-bold text-slate-900">{{ totalPosts }}</div>
+          <div class="text-3xl font-bold text-slate-900">{{ siteStore.totalPosts }}</div>
           <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Published:</span>
-              <span class="text-xs font-semibold text-blue-600">{{ stats.publishedPostCount }}</span>
+              <span class="text-xs font-semibold text-blue-600">{{ siteStore.stats.publishedPostCount }}</span>
             </div>
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Draft:</span>
-              <span class="text-xs font-semibold text-slate-600">{{ stats.draftPostCount }}</span>
+              <span class="text-xs font-semibold text-slate-600">{{ siteStore.stats.draftPostCount }}</span>
             </div>
           </div>
         </CardContent>
@@ -150,15 +127,15 @@ const formatDate = (dateString: string) => {
           </div>
         </CardHeader>
         <CardContent class="relative z-10">
-          <div class="text-3xl font-bold text-slate-900">{{ totalTags }}</div>
+          <div class="text-3xl font-bold text-slate-900">{{ siteStore.totalTags }}</div>
           <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Used:</span>
-              <span class="text-xs font-semibold text-emerald-600">{{ stats.usedTagCount }}</span>
+              <span class="text-xs font-semibold text-emerald-600">{{ siteStore.stats.usedTagCount }}</span>
             </div>
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Unused:</span>
-              <span class="text-xs font-semibold text-slate-600">{{ stats.unusedTagCount }}</span>
+              <span class="text-xs font-semibold text-slate-600">{{ siteStore.stats.unusedTagCount }}</span>
             </div>
           </div>
         </CardContent>
@@ -174,15 +151,15 @@ const formatDate = (dateString: string) => {
           </div>
         </CardHeader>
         <CardContent class="relative z-10">
-          <div class="text-3xl font-bold text-slate-900">{{ totalMemos }}</div>
+          <div class="text-3xl font-bold text-slate-900">{{ siteStore.totalMemos }}</div>
           <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Published:</span>
-              <span class="text-xs font-semibold text-amber-600">{{ stats.publishedMemoCount }}</span>
+              <span class="text-xs font-semibold text-amber-600">{{ siteStore.stats.publishedMemoCount }}</span>
             </div>
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Draft:</span>
-              <span class="text-xs font-semibold text-slate-600">{{ stats.draftMemoCount }}</span>
+              <span class="text-xs font-semibold text-slate-600">{{ siteStore.stats.draftMemoCount }}</span>
             </div>
           </div>
         </CardContent>
@@ -198,15 +175,15 @@ const formatDate = (dateString: string) => {
           </div>
         </CardHeader>
         <CardContent class="relative z-10">
-          <div class="text-3xl font-bold text-slate-900">{{ totalLinks }}</div>
+          <div class="text-3xl font-bold text-slate-900">{{ siteStore.totalLinks }}</div>
           <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Published:</span>
-              <span class="text-xs font-semibold text-purple-600">{{ stats.publishedLinkCount }}</span>
+              <span class="text-xs font-semibold text-purple-600">{{ siteStore.stats.publishedLinkCount }}</span>
             </div>
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Draft:</span>
-              <span class="text-xs font-semibold text-slate-600">{{ stats.draftLinkCount }}</span>
+              <span class="text-xs font-semibold text-slate-600">{{ siteStore.stats.draftLinkCount }}</span>
             </div>
           </div>
         </CardContent>
