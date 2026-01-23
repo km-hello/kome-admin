@@ -38,8 +38,8 @@ export interface TagUpdateRequest {
 /**
  * Tag 查询请求
  */
-export interface TagQueryRequest extends BaseQuery {
-    // 可以扩展其他查询参数
+export interface TagQuery extends BaseQuery {
+    keyword?: string;  // 搜索关键词
 }
 
 // ========== API 函数 ==========
@@ -47,15 +47,8 @@ export interface TagQueryRequest extends BaseQuery {
 /**
  * 获取管理端 Tag 分页列表
  */
-export const getAdminTagsApi = (params: TagQueryRequest) => {
+export const getAdminTagsApi = (params: TagQuery) => {
     return request.get<PageResult<TagPostCountResponse>>('/api/admin/tags', { params });
-};
-
-/**
- * 获取公开 Tag 列表（无分页）
- */
-export const getPublicTagsApi = () => {
-    return request.get<TagPostCountResponse[]>('/api/tags');
 };
 
 /**

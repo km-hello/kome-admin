@@ -72,10 +72,10 @@ const handleLogout = async () => {
         <div class="px-3 mt-6 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Content
         </div>
-        <NavItem :icon="PenTool" label="Posts" />
-        <NavItem :icon="StickyNote" label="Memos" />
+        <NavItem to="/posts" :icon="PenTool" label="Posts" />
+        <NavItem to="/memos" :icon="StickyNote" label="Memos" />
         <NavItem to="/tags" :icon="Hash" label="Tags" />
-        <NavItem :icon="LinkIcon" label="Links" />
+        <NavItem to="/links" :icon="LinkIcon" label="Links" />
 
         <!-- System 分组 -->
         <div class="px-3 mt-6 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">

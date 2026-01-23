@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
+import { useSiteStore } from '@/stores/site';
 import {
   getAdminTagsApi,
   createTagApi,
@@ -41,6 +42,9 @@ import {
 
 // ========== 状态定义 ==========
 
+// 使用站点统计 Store
+const siteStore = useSiteStore();
+
 const tags = ref<TagPostCountResponse[]>([]);
 const loading = ref(true);
 const searchKeyword = ref('');
@@ -68,23 +72,18 @@ const deleteDialogVisible = ref(false);
 const deleteTarget = ref<TagPostCountResponse | null>(null);
 const deleteLoading = ref(false);
 
-// ========== 计算属性 ==========
-
-/**
- * 过滤后的标签列表
- */
-const filteredTags = computed(() => {
-  if (!searchKeyword.value.trim()) {
-    return tags.value;
-  }
-  const keyword = searchKeyword.value.toLowerCase();
-  return tags.value.filter(tag => tag.name.toLowerCase().includes(keyword));
-});
-
 // ========== 生命周期 ==========
 
-onMounted(() => {
-  fetchTags();
+onMounted(async () => {
+  try {
+    // 并行请求统计数据和标签列表
+    await Promise.all([
+      siteStore.fetchStats(),
+      fetchTags(),
+    ]);
+  } catch (error) {
+    console.error('Failed to fetch data:', error);
+  }
 });
 
 // ========== 方法 ==========
@@ -98,6 +97,7 @@ const fetchTags = async () => {
     const data = await getAdminTagsApi({
       pageNum: pagination.value.current,
       pageSize: pagination.value.pageSize,
+      keyword: searchKeyword.value || undefined,
     });
 
     tags.value = data.records;
@@ -107,6 +107,14 @@ const fetchTags = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+/**
+ * 搜索处理
+ */
+const handleSearch = () => {
+  pagination.value.current = 1;
+  fetchTags();
 };
 
 /**
@@ -156,7 +164,12 @@ const handleSubmit = async () => {
     }
 
     dialogVisible.value = false;
-    await fetchTags();
+
+    // 刷新列表和统计数据
+    await Promise.all([
+      fetchTags(),
+      siteStore.refreshStats(),
+    ]);
   } catch (error) {
     console.error('Failed to submit tag:', error);
   } finally {
@@ -190,7 +203,11 @@ const handleDelete = async () => {
       pagination.value.current--;
     }
 
-    await fetchTags();
+    // 刷新列表和统计数据
+    await Promise.all([
+      fetchTags(),
+      siteStore.refreshStats(),
+    ]);
   } catch (error) {
     console.error('Failed to delete tag:', error);
   } finally {
@@ -231,38 +248,34 @@ const handlePageChange = (page: number) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ pagination.total }}</div>
-          <p class="text-xs text-slate-400 mt-1">Active classification tags</p>
+          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalTags }}</div>
+          <p class="text-xs text-slate-400 mt-1">All classification tags</p>
         </CardContent>
       </Card>
 
       <Card class="border-slate-200">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Posts</CardTitle>
+          <CardTitle class="text-sm font-medium text-slate-600">Used Tags</CardTitle>
           <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-blue-600" />
+            <Hash class="h-4 w-4 text-blue-600" />
           </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-slate-900">
-            {{ tags.reduce((sum, tag) => sum + tag.postCount, 0) }}
-          </div>
-          <p class="text-xs text-slate-400 mt-1">Tagged articles</p>
+          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.usedTagCount }}</div>
+          <p class="text-xs text-slate-400 mt-1">With published posts</p>
         </CardContent>
       </Card>
 
       <Card class="border-slate-200">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Avg Posts/Tag</CardTitle>
-          <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-            <Hash class="h-4 w-4 text-purple-600" />
+          <CardTitle class="text-sm font-medium text-slate-600">Unused Tags</CardTitle>
+          <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
+            <Hash class="h-4 w-4 text-slate-600" />
           </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-slate-900">
-            {{ tags.length > 0 ? (tags.reduce((sum, tag) => sum + tag.postCount, 0) / tags.length).toFixed(1) : 0 }}
-          </div>
-          <p class="text-xs text-slate-400 mt-1">Average distribution</p>
+          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.unusedTagCount }}</div>
+          <p class="text-xs text-slate-400 mt-1">No published posts</p>
         </CardContent>
       </Card>
     </div>
@@ -275,13 +288,20 @@ const handlePageChange = (page: number) => {
             <CardTitle class="text-lg font-bold text-slate-800">All Tags</CardTitle>
             <CardDescription class="mt-1">Manage and organize your content tags</CardDescription>
           </div>
-          <div class="relative w-64">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-                v-model="searchKeyword"
-                placeholder="Search tags..."
-                class="pl-9 bg-slate-50 border-slate-200"
-            />
+          <div class="flex items-center gap-3">
+            <!-- 搜索框 -->
+            <div class="relative w-64">
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                  v-model="searchKeyword"
+                  placeholder="Search tags..."
+                  class="pl-9 bg-slate-50 border-slate-200"
+                  @keyup.enter="handleSearch"
+              />
+            </div>
+            <Button @click="handleSearch" variant="outline" size="sm">
+              Search
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -300,7 +320,7 @@ const handlePageChange = (page: number) => {
           <TableBody>
             <!-- 标签列表 -->
             <TableRow
-                v-for="tag in filteredTags"
+                v-for="tag in tags"
                 :key="tag.id"
                 class="hover:bg-slate-50/50 transition-colors"
             >
@@ -354,7 +374,7 @@ const handlePageChange = (page: number) => {
             </TableRow>
 
             <!-- 空状态 -->
-            <TableRow v-if="!loading && filteredTags.length === 0">
+            <TableRow v-if="!loading && tags.length === 0">
               <TableCell colspan="4" class="h-32 text-center">
                 <div class="flex flex-col items-center justify-center text-slate-400">
                   <Hash class="w-12 h-12 mb-2 opacity-20" />
