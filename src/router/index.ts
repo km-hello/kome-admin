@@ -7,6 +7,7 @@ const Login = () => import('@/views/Login.vue');
 const AdminLayout = () => import('@/layout/AdminLayout.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
 const Tag = () => import('@/views/Tag.vue');
+const Link = () => import('@/views/Link.vue');
 /**
  * 定义应用的路由配置。
  * 该配置包含多个路由规则，具体包括访客页面、需要认证的页面，以及通用的 404 重定向。
@@ -49,6 +50,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'Tags',
                 component: Tag,
                 meta: { title: 'Tags' },
+            },
+            {
+                path: 'links',
+                name: 'Links',
+                component: Link,
+                meta: { title: 'Links' },
             },
             // 后续可以在这里添加更多子路由
             // { path: 'posts', component: PostList, meta: { title: '文章管理' } },
