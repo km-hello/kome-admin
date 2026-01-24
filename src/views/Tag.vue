@@ -15,6 +15,9 @@ import {
 // 图标
 import { Plus, Search, Edit, Trash2, Hash, FileText, Loader2 } from 'lucide-vue-next';
 
+// 自定义组件
+import Pagination from '@/components/Pagination.vue';
+
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -222,6 +225,15 @@ const handlePageChange = (page: number) => {
   pagination.value.current = page;
   fetchTags();
 };
+
+/**
+ * 每页数量变化
+ */
+const handlePageSizeChange = (size: number) => {
+  pagination.value.pageSize = size;
+  pagination.value.current = 1; // 重置到第一页
+  fetchTags();
+};
 </script>
 
 <template>
@@ -310,7 +322,7 @@ const handlePageChange = (page: number) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent">
-              <TableHead class="w-[60px]">ID</TableHead>
+              <TableHead class="w-15">ID</TableHead>
               <TableHead class="w-[40%]">Tag Name</TableHead>
               <TableHead>Post Count</TableHead>
               <TableHead class="text-right">Actions</TableHead>
@@ -401,38 +413,21 @@ const handlePageChange = (page: number) => {
       </CardContent>
 
       <!-- 分页 -->
-      <div v-if="pagination.total > pagination.pageSize" class="border-t border-slate-100 px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div class="text-sm text-slate-500">
-            Showing {{ (pagination.current - 1) * pagination.pageSize + 1 }} to
-            {{ Math.min(pagination.current * pagination.pageSize, pagination.total) }} of
-            {{ pagination.total }} tags
-          </div>
-          <div class="flex gap-2">
-            <Button
-                @click="handlePageChange(pagination.current - 1)"
-                :disabled="pagination.current === 1"
-                variant="outline"
-                size="sm"
-            >
-              Previous
-            </Button>
-            <Button
-                @click="handlePageChange(pagination.current + 1)"
-                :disabled="pagination.current * pagination.pageSize >= pagination.total"
-                variant="outline"
-                size="sm"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+      <div class="border-t border-slate-100 px-6 py-4">
+        <Pagination
+            :current="pagination.current"
+            :page-size="pagination.pageSize"
+            :total="pagination.total"
+            item-name="tags"
+            @change="handlePageChange"
+            @page-size-change="handlePageSizeChange"
+        />
       </div>
     </Card>
 
     <!-- ========== 创建/编辑对话框 ========== -->
     <Dialog v-model:open="dialogVisible">
-      <DialogContent class="sm:max-w-[425px]">
+      <DialogContent class="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>{{ dialogMode === 'create' ? 'Create New Tag' : 'Edit Tag' }}</DialogTitle>
           <DialogDescription>
