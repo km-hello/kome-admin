@@ -1,35 +1,29 @@
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { toast } from 'vue-sonner';
+import {computed, onMounted, ref} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {toast} from 'vue-sonner';
 import {
-  getPostByIdApi,
   createPostApi,
-  updatePostApi,
+  getPostByIdApi,
   type PostCreateRequest,
   type PostUpdateRequest,
+  updatePostApi,
 } from '@/api/post';
-import { getAdminTagListApi, type TagResponse } from '@/api/tag';
+import {getAdminTagListApi, type TagResponse} from '@/api/tag';
 
 // 图标
-import { Save, ArrowLeft, Loader2, Pin, Eye, FileText, Tag as TagIcon, Image as ImageIcon } from 'lucide-vue-next';
+import {ArrowLeft, Eye, FileText, Image as ImageIcon, Loader2, Pin, Save, Tag as TagIcon} from 'lucide-vue-next';
 
 // Shadcn 组件
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
+import {Badge} from '@/components/ui/badge';
+import {Checkbox} from '@/components/ui/checkbox';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 
 // 自定义组件
 import TagSelector from '@/components/TagSelector.vue';
@@ -110,7 +104,7 @@ const loadPost = async () => {
   } catch (error) {
     console.error('Failed to load post:', error);
     toast.error('Failed to load post');
-    router.push('/posts');
+    await router.push('/posts');
   }
 };
 
@@ -200,7 +194,7 @@ const handleSave = async () => {
     }
 
     // 返回列表页
-    router.push('/posts');
+    await router.push('/posts');
   } catch (error) {
     console.error('Failed to save post:', error);
     toast.error('Failed to save post');
@@ -222,14 +216,12 @@ const handleBack = () => {
 const generateSlug = () => {
   if (!formData.value.title) return;
 
-  const slug = formData.value.title
+  formData.value.slug = formData.value.title
       .toLowerCase()
       .trim()
       .replace(/[^\w\s-]/g, '')
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '');
-
-  formData.value.slug = slug;
 };
 
 /**
@@ -250,6 +242,37 @@ const getStatusLabel = (status: number) => {
     2: 'Review',
   };
   return labels[status as keyof typeof labels] || 'Draft';
+};
+
+/**
+ * 从 Markdown 内容中提取第一张图片的 URL
+ */
+const extractFirstImage = (markdown: string): string | null => {
+  // 匹配 Markdown 图片语法: ![alt](url)
+  const mdImageRegex = /!\[.*?]\((.*?)\)/;
+  // 匹配 HTML img 标签: <img src="url" />
+  const htmlImageRegex = /<img[^>]+src=["']([^"']+)["']/i;
+
+  const mdMatch = markdown.match(mdImageRegex);
+  if (mdMatch) return mdMatch[1] ?? null;
+
+  const htmlMatch = markdown.match(htmlImageRegex);
+  if (htmlMatch) return htmlMatch[1] ?? null;
+
+  return null;
+};
+
+/**
+ * 使用内容中的第一张图片作为封面
+ */
+const useFirstImageAsCover = () => {
+  const imageUrl = extractFirstImage(formData.value.content);
+  if (imageUrl) {
+    formData.value.coverImage = imageUrl;
+    toast.success('Cover image set from content');
+  } else {
+    toast.warning('No image found in content');
+  }
 };
 </script>
 
@@ -438,8 +461,7 @@ const getStatusLabel = (status: number) => {
               <div class="flex items-center space-x-2 pt-2">
                 <Checkbox
                     id="isPinned"
-                    :checked="formData.isPinned"
-                    @update:checked="(val) => formData.isPinned = val"
+                    v-model="formData.isPinned"
                 />
                 <Label
                     for="isPinned"
@@ -466,6 +488,16 @@ const getStatusLabel = (status: number) => {
                   placeholder="https://example.com/image.jpg"
                   maxlength="255"
               />
+              <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  @click="useFirstImageAsCover"
+                  class="w-full"
+              >
+                <ImageIcon class="w-4 h-4 mr-2" />
+                Use first image from content
+              </Button>
               <div
                   v-if="formData.coverImage"
                   class="relative aspect-video rounded-lg overflow-hidden bg-slate-100 border border-slate-200"
