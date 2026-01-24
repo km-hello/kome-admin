@@ -12,6 +12,7 @@ const Link = () => import('@/views/Link.vue');
 const Memo = () => import('@/views/Memo.vue');
 const Post = () => import('@/views/Post.vue');
 const PostEditor = () => import('@/views/PostEditor.vue');
+const Settings = () => import('@/views/Settings.vue');
 
 /**
  * 需要刷新统计数据的页面路径
@@ -88,6 +89,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'Links',
                 component: Link,
                 meta: { title: 'Links' },
+            },
+            {
+                path: 'settings',
+                name: 'Settings',
+                component: Settings,
+                meta: { title: 'Settings' },
             },
         ],
     },
