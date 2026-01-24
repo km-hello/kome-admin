@@ -12,7 +12,6 @@ import {
   Hash,
   Link as LinkIcon,
   Settings,
-  Code2,
   LogOut,
   Search,
   Sun
@@ -82,8 +81,7 @@ const handleLogout = async () => {
           System
         </div>
 
-        <NavItem :icon="Settings" label="Settings" />
-        <NavItem :icon="Code2" label="Logs" />
+        <NavItem to="/settings" :icon="Settings" label="Settings" />
       </nav>
 
       <!-- 用户信息区域 -->
@@ -141,7 +139,12 @@ const handleLogout = async () => {
               <Sun class="w-4 h-4" />
             </Button>
 
-            <Button variant="ghost" size="icon" title="Settings">
+            <Button
+                variant="ghost"
+                size="icon"
+                title="Settings"
+                @click="router.push('/settings')"
+            >
               <Settings class="w-4 h-4" />
             </Button>
           </div>
