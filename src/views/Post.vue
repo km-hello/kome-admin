@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
 import { useSiteStore } from '@/stores/site';
@@ -10,6 +10,7 @@ import {
   type PostSimpleResponse,
 } from '@/api/post';
 import { getAdminTagListApi, type TagResponse } from '@/api/tag';
+import Pagination from '@/components/Pagination.vue';
 
 // 图标
 import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Eye } from 'lucide-vue-next';
@@ -207,6 +208,15 @@ const handlePageChange = (page: number) => {
 };
 
 /**
+ * 每页数量变化
+ */
+const handlePageSizeChange = (size: number) => {
+  pagination.value.pageSize = size;
+  pagination.value.current = 1;
+  fetchPosts();
+};
+
+/**
  * 获取状态配置
  */
 const getStatusConfig = (status: number) => {
@@ -238,12 +248,6 @@ const truncateText = (text: string, maxLength: number = 60) => {
   return text.substring(0, maxLength) + '...';
 };
 
-/**
- * 计算总页数
- */
-const totalPages = computed(() => {
-  return Math.ceil(pagination.value.total / pagination.value.pageSize);
-});
 </script>
 
 <template>
@@ -319,7 +323,7 @@ const totalPages = computed(() => {
           </div>
 
           <Select :model-value="statusFilter?.toString() || 'all'" @update:model-value="handleStatusFilterChange">
-            <SelectTrigger class="w-full md:w-[180px]">
+            <SelectTrigger class="w-full md:w-45">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
@@ -331,7 +335,7 @@ const totalPages = computed(() => {
           </Select>
 
           <Select :model-value="tagFilter?.toString() || 'all'" @update:model-value="handleTagFilterChange">
-            <SelectTrigger class="w-full md:w-[180px]">
+            <SelectTrigger class="w-full md:w-45">
               <SelectValue placeholder="All Tags" />
             </SelectTrigger>
             <SelectContent>
@@ -366,7 +370,7 @@ const totalPages = computed(() => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead class="w-[40px]"></TableHead>
+                <TableHead class="w-10"></TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead class="hidden md:table-cell">Slug</TableHead>
                 <TableHead class="hidden lg:table-cell">Tags</TableHead>
@@ -447,30 +451,14 @@ const totalPages = computed(() => {
         </div>
 
         <!-- 分页 -->
-        <div v-if="posts.length > 0" class="flex items-center justify-between mt-6 pt-6 border-t border-slate-200">
-          <div class="text-sm text-slate-600">
-            Showing {{ (pagination.current - 1) * pagination.pageSize + 1 }} to
-            {{ Math.min(pagination.current * pagination.pageSize, pagination.total) }} of
-            {{ pagination.total }} results
-          </div>
-          <div class="flex gap-2">
-            <Button
-                variant="outline"
-                size="sm"
-                :disabled="pagination.current === 1"
-                @click="handlePageChange(pagination.current - 1)"
-            >
-              Previous
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                :disabled="pagination.current >= totalPages"
-                @click="handlePageChange(pagination.current + 1)"
-            >
-              Next
-            </Button>
-          </div>
+        <div class="mt-6 pt-6 border-t border-slate-200">
+          <Pagination
+              :current="pagination.current"
+              :page-size="pagination.pageSize"
+              :total="pagination.total"
+              @change="handlePageChange"
+              @page-size-change="handlePageSizeChange"
+          />
         </div>
       </CardContent>
     </Card>

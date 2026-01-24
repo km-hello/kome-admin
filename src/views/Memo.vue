@@ -12,6 +12,8 @@ import {
   type MemoUpdateRequest,
 } from '@/api/memo';
 
+import Pagination from '@/components/Pagination.vue';
+
 // 图标
 import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Calendar } from 'lucide-vue-next';
 
@@ -280,6 +282,15 @@ const handlePageChange = (page: number) => {
 };
 
 /**
+ * 每页数量变化
+ */
+const handlePageSizeChange = (size: number) => {
+  pagination.value.pageSize = size;
+  pagination.value.current = 1;
+  fetchMemos();
+};
+
+/**
  * 获取状态配置
  */
 const getStatusConfig = (status: number) => {
@@ -514,44 +525,14 @@ const truncateText = (text: string, maxLength: number = 100) => {
         </Table>
 
         <!-- 分页 -->
-        <div v-if="!loading && memos.length > 0" class="border-t border-slate-100 px-6 py-4">
-          <div class="flex items-center justify-between">
-            <p class="text-sm text-slate-500">
-              Showing {{ (pagination.current - 1) * pagination.pageSize + 1 }} to
-              {{ Math.min(pagination.current * pagination.pageSize, pagination.total) }} of
-              {{ pagination.total }} results
-            </p>
-            <div class="flex items-center gap-2">
-              <Button
-                  @click="handlePageChange(pagination.current - 1)"
-                  :disabled="pagination.current === 1"
-                  variant="outline"
-                  size="sm"
-              >
-                Previous
-              </Button>
-              <div class="flex items-center gap-1">
-                <Button
-                    v-for="page in Math.ceil(pagination.total / pagination.pageSize)"
-                    :key="page"
-                    @click="handlePageChange(page)"
-                    :variant="page === pagination.current ? 'default' : 'outline'"
-                    size="sm"
-                    class="w-8"
-                >
-                  {{ page }}
-                </Button>
-              </div>
-              <Button
-                  @click="handlePageChange(pagination.current + 1)"
-                  :disabled="pagination.current >= Math.ceil(pagination.total / pagination.pageSize)"
-                  variant="outline"
-                  size="sm"
-              >
-                Next
-              </Button>
-            </div>
-          </div>
+        <div class="border-t border-slate-100 px-6 py-4">
+          <Pagination
+              :current="pagination.current"
+              :page-size="pagination.pageSize"
+              :total="pagination.total"
+              @change="handlePageChange"
+              @page-size-change="handlePageSizeChange"
+          />
         </div>
       </CardContent>
     </Card>
