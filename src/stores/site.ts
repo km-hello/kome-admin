@@ -33,6 +33,11 @@ export const useSiteStore = defineStore('site', () => {
      */
     const lastUpdated = ref(0);
 
+    /**
+     * 数据是否已失效（需要在下次获取时强制刷新）
+     */
+    const isStale = ref(false);
+
     // ========== Getters ==========
 
     /**
@@ -64,9 +69,10 @@ export const useSiteStore = defineStore('site', () => {
     );
 
     /**
-     * 检查数据是否需要刷新（超过30秒）
+     * 检查数据是否需要刷新（超过30秒或已标记失效）
      */
     const needsRefresh = computed(() => {
+        if (isStale.value) return true;
         const now = Date.now();
         return !lastUpdated.value || now - lastUpdated.value > 30000;
     });
@@ -78,7 +84,7 @@ export const useSiteStore = defineStore('site', () => {
      * @param forceRefresh 是否强制刷新（忽略缓存）
      */
     const fetchStats = async (forceRefresh = false): Promise<void> => {
-        // 如果数据在 30 秒内更新过，且不是强制刷新，则直接返回缓存
+        // 如果数据在 30 秒内更新过，且不是强制刷新，且数据未失效，则直接返回缓存
         if (!forceRefresh && !needsRefresh.value) {
             return;
         }
@@ -88,6 +94,7 @@ export const useSiteStore = defineStore('site', () => {
             const siteInfo = await getAdminSiteInfoApi();
             stats.value = siteInfo.stats;
             lastUpdated.value = Date.now();
+            isStale.value = false; // 重置失效标记
         } catch (error) {
             console.error('Failed to fetch site stats:', error);
             throw error;
@@ -101,6 +108,14 @@ export const useSiteStore = defineStore('site', () => {
      */
     const refreshStats = async (): Promise<void> => {
         return fetchStats(true);
+    };
+
+    /**
+     * 标记数据已失效（下次 fetchStats 时会强制刷新）
+     * 适用于：在某个页面修改了数据，但不想立即刷新，让其他页面在进入时自动刷新
+     */
+    const invalidateStats = (): void => {
+        isStale.value = true;
     };
 
     /**
@@ -118,6 +133,7 @@ export const useSiteStore = defineStore('site', () => {
             draftLinkCount: 0,
         };
         lastUpdated.value = 0;
+        isStale.value = false;
     };
 
     // ========== Return ==========
@@ -127,6 +143,7 @@ export const useSiteStore = defineStore('site', () => {
         stats,
         loading,
         lastUpdated,
+        isStale,
 
         // Getters
         totalPosts,
@@ -138,6 +155,7 @@ export const useSiteStore = defineStore('site', () => {
         // Actions
         fetchStats,
         refreshStats,
+        invalidateStats,
         resetStats,
     };
 });

@@ -51,6 +51,10 @@ export const getAdminTagsApi = (params: TagQuery) => {
     return request.get<PageResult<TagPostCountResponse>>('/api/admin/tags', { params });
 };
 
+export const getAdminTagListApi = () => {
+    return request.get<TagResponse[]>('/api/admin/tags/all');
+};
+
 /**
  * 创建 Tag
  */

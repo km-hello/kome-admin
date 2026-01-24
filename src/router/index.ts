@@ -1,6 +1,7 @@
-import {createRouter, createWebHistory, type Router} from 'vue-router';
+import { createRouter, createWebHistory, type Router } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
-import {useUserStore} from "@/stores/user.ts";
+import { useUserStore } from "@/stores/user.ts";
+import { useSiteStore } from "@/stores/site.ts";
 
 // 路由懒加载
 const Login = () => import('@/views/Login.vue');
@@ -9,18 +10,16 @@ const Dashboard = () => import('@/views/Dashboard.vue');
 const Tag = () => import('@/views/Tag.vue');
 const Link = () => import('@/views/Link.vue');
 const Memo = () => import('@/views/Memo.vue');
+const Post = () => import('@/views/Post.vue');
+const PostEditor = () => import('@/views/PostEditor.vue');
+
+/**
+ * 需要刷新统计数据的页面路径
+ */
+const STATS_DEPENDENT_ROUTES = ['/dashboard', '/posts', '/tags', '/memos', '/links'];
 
 /**
  * 定义应用的路由配置。
- * 该配置包含多个路由规则，具体包括访客页面、需要认证的页面，以及通用的 404 重定向。
- *
- * 路由结构说明：
- * 1. `path`：路由的路径。
- * 2. `name`：可选，路由的名称，用于标识具体的路由。
- * 3. `component`：对应路径加载的组件。
- * 4. `meta`：元信息，用于存储路由相关的附加信息（如标题、权限控制等）。
- * 5. `children`：嵌套路由，用于表示子页面结构。
- * 6. `redirect`：重定向规则，用于路径跳转。
  */
 const routes: RouteRecordRaw[] = [
     {
@@ -29,17 +28,17 @@ const routes: RouteRecordRaw[] = [
         component: Login,
         meta: {
             title: '登录',
-            guest: true  // 标记为访客页面
+            guest: true
         },
     },
     {
         path: '/',
         component: AdminLayout,
-        meta: { requiresAuth: true },  // 需要登录
+        meta: { requiresAuth: true },
         children: [
             {
                 path: '',
-                redirect: 'dashboard',  // 默认重定向到 dashboard
+                redirect: 'dashboard',
             },
             {
                 path: 'dashboard',
@@ -47,6 +46,31 @@ const routes: RouteRecordRaw[] = [
                 component: Dashboard,
                 meta: { title: 'Dashboard' },
             },
+            {
+                path: 'posts',
+                meta: { title: 'Posts' },
+                children: [
+                    {
+                        path: '',
+                        name: 'Posts',
+                        component: Post,
+                        meta: { breadcrumb: false },  // 不单独显示，使用父级的 title
+                    },
+                    {
+                        path: 'new',
+                        name: 'PostCreate',
+                        component: PostEditor,
+                        meta: { title: 'New Post' },
+                    },
+                    {
+                        path: 'edit/:id',
+                        name: 'PostEdit',
+                        component: PostEditor,
+                        meta: { title: 'Edit Post' },
+                    },
+                ],
+            },
+
             {
                 path: 'memos',
                 name: 'Memos',
@@ -65,31 +89,18 @@ const routes: RouteRecordRaw[] = [
                 component: Link,
                 meta: { title: 'Links' },
             },
-            // 后续可以在这里添加更多子路由
-            // { path: 'posts', component: PostList, meta: { title: '文章管理' } },
         ],
     },
-    // 404 页面（可选）
     {
         path: '/:pathMatch(.*)*',
         redirect: '/',
     },
 ];
 
-/**
- * 创建并配置一个路由器实例。
- *
- * 该路由器使用 Web 历史模式，并注册了一组预定义的路由。
- *
- * @constant
- * @type {Router}
- */
 const router: Router = createRouter({
     history: createWebHistory(),
     routes,
 });
-
-
 
 router.beforeEach((to, _from, next) => {
     const userStore = useUserStore();
@@ -114,5 +125,21 @@ router.beforeEach((to, _from, next) => {
     next();
 });
 
+/**
+ * 路由切换后，检查是否需要刷新统计数据
+ */
+router.afterEach((to) => {
+    // 只在需要统计数据的页面检查刷新
+    if (STATS_DEPENDENT_ROUTES.includes(to.path)) {
+        const siteStore = useSiteStore();
+
+        // 如果数据已失效，自动刷新
+        if (siteStore.needsRefresh) {
+            siteStore.fetchStats().catch(err => {
+                console.error('Failed to refresh stats on route change:', err);
+            });
+        }
+    }
+});
 
 export default router;
