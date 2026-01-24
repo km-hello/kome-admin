@@ -1,3 +1,4 @@
+
 import request from '@/request';
 
 // ==================== 类型定义 ====================
@@ -19,6 +20,14 @@ export interface UserUpdateRequest {
     avatar?: string;
     email?: string;
     description?: string;
+}
+
+/**
+ * 修改密码请求参数
+ */
+export interface UserUpdatePasswordRequest {
+    oldPassword: string;
+    newPassword: string;
 }
 
 /**
@@ -75,4 +84,16 @@ export const getUserInfoApi = (): Promise<UserInfoResponse> => {
  */
 export const updateUserInfoApi = (req: Partial<UserUpdateRequest>): Promise<UserInfoResponse> => {
     return request.put<UserInfoResponse>('/api/admin/user', req);
+};
+
+/**
+ * 更新用户密码的 API 调用函数。
+ *
+ * @param {UserUpdatePasswordRequest} req - 包含旧密码和新密码的请求对象。
+ * @returns {Promise<void>} 返回一个 Promise，操作成功时无返回值。
+ *
+ * 此函数通过 HTTP PUT 请求将密码更新数据发送到后端接口 "/api/admin/user/password"。
+ */
+export const updatePasswordApi = (req: UserUpdatePasswordRequest): Promise<void> => {
+    return request.put<void>('/api/admin/user/password', req);
 };

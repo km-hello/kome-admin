@@ -1,6 +1,15 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { loginApi, type UserLoginRequest, type UserLoginResponse } from '@/api/user';
+import {
+    loginApi,
+    updateUserInfoApi,
+    updatePasswordApi,
+    type UserLoginRequest,
+    type UserLoginResponse,
+    type UserUpdateRequest,
+    type UserUpdatePasswordRequest,
+    type UserInfoResponse,
+} from '@/api/user';
 
 /**
  * 用户数据管理的全局状态存储。
@@ -31,6 +40,11 @@ export const useUserStore = defineStore('user', () => {
      */
     const isLoggedIn = computed(() => !!userInfo.value.token);
 
+    /**
+     * 判断用户信息是否存储在 localStorage（记住登录）
+     */
+    const isRemembered = computed(() => !!localStorage.getItem('userInfo'));
+
 
     // ========== Actions ==========
 
@@ -60,6 +74,43 @@ export const useUserStore = defineStore('user', () => {
      * 清除用户信息和相关的认证令牌，注销后用户需重新登录以恢复会话
      */
     const logout = (): void => {
+        clearUserInfo();
+    };
+
+    /**
+     * 更新用户个人资料
+     *
+     * @param req 更新请求数据
+     * @returns 返回更新后的用户信息
+     */
+    const updateProfile = async (req: Partial<UserUpdateRequest>): Promise<UserInfoResponse> => {
+        const data = await updateUserInfoApi(req);
+
+        // 合并更新后的信息到 userInfo（保留 token 等其他字段）
+        const updatedInfo: Partial<UserLoginResponse> = {
+            ...userInfo.value,
+            username: data.username,
+            nickname: data.nickname,
+            avatar: data.avatar,
+            email: data.email,
+        };
+
+        // 同步到状态和存储
+        setUserInfo(updatedInfo, isRemembered.value);
+
+        return data;
+    };
+
+    /**
+     * 修改用户密码
+     *
+     * @param req 密码修改请求数据
+     * @description 密码修改成功后会自动清除登录状态，需要重新登录
+     */
+    const updatePassword = async (req: UserUpdatePasswordRequest): Promise<void> => {
+        await updatePasswordApi(req);
+
+        // 密码修改成功后清除登录状态
         clearUserInfo();
     };
 
@@ -100,9 +151,12 @@ export const useUserStore = defineStore('user', () => {
 
         // Getters
         isLoggedIn,
+        isRemembered,
 
         // Actions
         login,
-        logout
+        logout,
+        updateProfile,
+        updatePassword,
     };
 });
