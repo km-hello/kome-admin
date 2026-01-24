@@ -48,22 +48,29 @@ const routes: RouteRecordRaw[] = [
             },
             {
                 path: 'posts',
-                name: 'Posts',
-                component: Post,
                 meta: { title: 'Posts' },
+                children: [
+                    {
+                        path: '',
+                        name: 'Posts',
+                        component: Post,
+                        meta: { breadcrumb: false },  // 不单独显示，使用父级的 title
+                    },
+                    {
+                        path: 'new',
+                        name: 'PostCreate',
+                        component: PostEditor,
+                        meta: { title: 'New Post' },
+                    },
+                    {
+                        path: 'edit/:id',
+                        name: 'PostEdit',
+                        component: PostEditor,
+                        meta: { title: 'Edit Post' },
+                    },
+                ],
             },
-            {
-                path: 'posts/new',
-                name: 'PostCreate',
-                component: PostEditor,
-                meta: { title: 'New Post' },
-            },
-            {
-                path: 'posts/edit/:id',
-                name: 'PostEdit',
-                component: PostEditor,
-                meta: { title: 'Edit Post' },
-            },
+
             {
                 path: 'memos',
                 name: 'Memos',
