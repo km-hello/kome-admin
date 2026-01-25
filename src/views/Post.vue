@@ -43,6 +43,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import type {AcceptableValue} from "reka-ui";
 
 // ========== 状态定义 ==========
 
@@ -130,7 +131,7 @@ const handleSearch = () => {
 /**
  * 状态筛选变化
  */
-const handleStatusFilterChange = (value: string | null | undefined) => {
+const handleStatusFilterChange = (value: AcceptableValue) => {
   if (!value || value === 'all') {
     statusFilter.value = undefined;
   } else {
@@ -143,7 +144,7 @@ const handleStatusFilterChange = (value: string | null | undefined) => {
 /**
  * 标签筛选变化
  */
-const handleTagFilterChange = (value: string | null | undefined) => {
+const handleTagFilterChange = (value: AcceptableValue) => {
   if (!value || value === 'all') {
     tagFilter.value = undefined;
   } else {
@@ -323,8 +324,8 @@ const truncateText = (text: string, maxLength: number = 60) => {
           </div>
           <div class="flex items-center gap-3">
             <!-- 状态筛选 -->
-            <Select :model-value="statusFilter?.toString() || 'all'" @update:model-value="handleStatusFilterChange">
-              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
+            <Select @update:model-value="handleStatusFilterChange">
+              <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -335,8 +336,8 @@ const truncateText = (text: string, maxLength: number = 60) => {
             </Select>
 
             <!-- 标签筛选 -->
-            <Select :model-value="tagFilter?.toString() || 'all'" @update:model-value="handleTagFilterChange">
-              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
+            <Select @update:model-value="handleTagFilterChange">
+              <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
                 <SelectValue placeholder="All Tags" />
               </SelectTrigger>
               <SelectContent>
@@ -368,7 +369,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-[60px] pl-6">ID</TableHead>
+              <TableHead class="w-15 pl-6">ID</TableHead>
               <TableHead class="w-[35%]">Title</TableHead>
               <TableHead>Tags</TableHead>
               <TableHead>Views</TableHead>
@@ -453,7 +454,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
                       </PopoverTrigger>
                       <PopoverContent class="w-auto p-3" align="start">
                         <div class="text-xs font-medium text-slate-500 mb-2">All Tags</div>
-                        <div class="flex flex-wrap gap-1 max-w-[200px]">
+                        <div class="flex flex-wrap gap-1 max-w-50">
                           <Badge
                               v-for="tag in post.tags"
                               :key="tag.id"

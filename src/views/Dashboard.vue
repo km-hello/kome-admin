@@ -224,10 +224,10 @@ const truncateText = (text: string, maxLength: number) => {
           <Table>
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
-                <TableHead class="w-[60px] pl-6">ID</TableHead>
+                <TableHead class="w-15 pl-6">ID</TableHead>
                 <TableHead>Title</TableHead>
-                <TableHead class="w-[80px]">Status</TableHead>
-                <TableHead class="w-[100px] text-right pr-6">Date</TableHead>
+                <TableHead class="w-20">Status</TableHead>
+                <TableHead class="w-25 text-right pr-6">Date</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -258,9 +258,9 @@ const truncateText = (text: string, maxLength: number) => {
                   v-else
                   v-for="post in recentPosts"
                   :key="post.id"
-                  class="border-slate-100"
+                  class="transition-colors border-slate-100"
                   :class="[
-                    post.isPinned ? 'bg-amber-50/40' : ''
+                    post.isPinned ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-slate-50/50'
                   ]"
               >
                 <!-- ID 列 -->
@@ -273,7 +273,7 @@ const truncateText = (text: string, maxLength: number) => {
 
                 <!-- 标题列 -->
                 <TableCell>
-                  <span class="font-semibold text-slate-900 truncate max-w-[200px]" :title="post.title">
+                  <span class="font-semibold text-slate-900 truncate max-w-50" :title="post.title">
                     {{ truncateText(post.title, 30) }}
                   </span>
                 </TableCell>
@@ -322,10 +322,10 @@ const truncateText = (text: string, maxLength: number) => {
           <Table>
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
-                <TableHead class="w-[60px] pl-6">ID</TableHead>
+                <TableHead class="w-15 pl-6">ID</TableHead>
                 <TableHead>Content</TableHead>
-                <TableHead class="w-[80px]">Status</TableHead>
-                <TableHead class="w-[100px] text-right pr-6">Date</TableHead>
+                <TableHead class="w-20">Status</TableHead>
+                <TableHead class="w-25 text-right pr-6">Date</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -356,9 +356,9 @@ const truncateText = (text: string, maxLength: number) => {
                   v-else
                   v-for="memo in recentMemos"
                   :key="memo.id"
-                  class="border-slate-100"
+                  class="transition-colors border-slate-100"
                   :class="[
-                    memo.isPinned ? 'bg-amber-50/40' : ''
+                    memo.isPinned ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-slate-50/50'
                   ]"
               >
                 <!-- ID 列 -->

@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -392,7 +391,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
           <div class="flex items-center gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="(value) => handleStatusFilterChange(value as string)">
-              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
+              <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -423,7 +422,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-[60px] pl-6">ID</TableHead>
+              <TableHead class="w-15 pl-6">ID</TableHead>
               <TableHead class="w-[50%]">Content</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
@@ -539,7 +538,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
     <!-- ========== 创建/编辑对话框 ========== -->
     <Dialog v-model:open="dialogVisible">
-      <DialogContent class="sm:max-w-[600px]">
+      <DialogContent class="sm:max-w-150">
         <DialogHeader>
           <DialogTitle>
             {{ dialogMode === 'create' ? 'Create New Memo' : 'Edit Memo' }}
@@ -557,7 +556,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
                 id="content"
                 v-model="formData.content"
                 placeholder="Write your memo here..."
-                class="min-h-[200px] resize-none"
+                class="min-h-50 resize-none"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-400">{{ formData.content.length }} characters</p>

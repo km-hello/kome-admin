@@ -419,7 +419,7 @@ const formatDate = (dateString: string) => {
           <div class="flex items-center gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="(value) => handleStatusFilterChange(value as string)">
-              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
+              <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -450,7 +450,7 @@ const formatDate = (dateString: string) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-[60px] pl-6">ID</TableHead>
+              <TableHead class="w-15 pl-6">ID</TableHead>
               <TableHead class="w-[40%]">Info</TableHead>
               <TableHead class="w-[20%]">Description</TableHead>
               <TableHead>Status</TableHead>
@@ -474,7 +474,7 @@ const formatDate = (dateString: string) => {
               <!-- 名称和URL合并列 -->
               <TableCell>
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
                     <img
                         v-if="link.avatar"
                         :src="link.avatar"
@@ -491,8 +491,8 @@ const formatDate = (dateString: string) => {
                         target="_blank"
                         class="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 hover:underline group"
                     >
-                      <span class="truncate max-w-[250px]">{{ link.url }}</span>
-                      <ExternalLink class="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <span class="truncate max-w-62.5">{{ link.url }}</span>
+                      <ExternalLink class="w-3 h-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
                   </div>
                 </div>
@@ -500,7 +500,7 @@ const formatDate = (dateString: string) => {
 
               <!-- 描述列 -->
               <TableCell>
-                  <span class="text-sm text-slate-600 truncate block max-w-[200px]" :title="link.description">
+                  <span class="text-sm text-slate-600 truncate block max-w-50" :title="link.description">
                     {{ link.description || '-' }}
                   </span>
               </TableCell>
@@ -591,7 +591,7 @@ const formatDate = (dateString: string) => {
 
     <!-- ========== 创建/编辑对话框 ========== -->
     <Dialog v-model:open="dialogVisible">
-      <DialogContent class="sm:max-w-[500px]">
+      <DialogContent class="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>{{ dialogMode === 'create' ? 'Create New Link' : 'Edit Link' }}</DialogTitle>
           <DialogDescription>

@@ -127,7 +127,7 @@ const handleJump = () => {
       <div class="flex items-center gap-2">
         <span class="text-sm text-slate-500">per page</span>
         <Select :model-value="pageSize.toString()" @update:model-value="handlePageSizeChange">
-          <SelectTrigger class="w-[70px] h-8">
+          <SelectTrigger class="w-17.5 h-8">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

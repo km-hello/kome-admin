@@ -283,7 +283,7 @@ const useFirstImageAsCover = () => {
   <div class="min-h-screen bg-slate-50">
     <!-- ========== 顶部操作栏 ========== -->
     <div class="bg-white border-b border-slate-200 sticky top-0 z-10">
-      <div class="max-w-[1600px] mx-auto px-6 py-4">
+      <div class="max-w-400 mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
             <Button
@@ -329,7 +329,7 @@ const useFirstImageAsCover = () => {
     </div>
 
     <!-- ========== 编辑器主体 ========== -->
-    <div v-else class="max-w-[1600px] mx-auto px-6 py-8">
+    <div v-else class="max-w-400 mx-auto px-6 py-8">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- ========== 左侧：内容编辑区 ========== -->
         <div class="lg:col-span-2 space-y-6">
