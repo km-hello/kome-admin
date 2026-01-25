@@ -48,6 +48,8 @@ export interface PostQuery extends BaseQuery {
     keyword?: string;     // 搜索关键词
     tagId?: number;       // 标签筛选
     status?: number;      // 状态筛选 (0: Draft, 1: Published)
+
+    ignorePinned?: boolean; // 是否忽略置顶排序
 }
 
 /**
