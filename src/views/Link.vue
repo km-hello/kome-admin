@@ -15,7 +15,7 @@ import {
 import Pagination from '@/components/Pagination.vue';
 
 // 图标
-import { Plus, Search, Edit, Trash2, Link as LinkIcon, ExternalLink, Image, Loader2, Globe } from 'lucide-vue-next';
+import { Plus, Search, Edit, Trash2, Link as LinkIcon, ExternalLink, Image, Loader2, Globe, Calendar, FileEdit } from 'lucide-vue-next';
 
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -332,10 +331,24 @@ const handlePageSizeChange = (size: number) => {
  */
 const getStatusConfig = (status: number) => {
   const configs = {
-    0: { label: 'Draft', variant: 'secondary' as const },
-    1: { label: 'Published', variant: 'default' as const },
+    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
+    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
   };
   return configs[status as keyof typeof configs] || configs[0];
+};
+
+/**
+ * 格式化日期
+ */
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 </script>
 
@@ -355,7 +368,7 @@ const getStatusConfig = (status: number) => {
 
     <!-- ========== 统计卡片 ========== -->
     <div class="grid gap-4 md:grid-cols-3">
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Total Links</CardTitle>
           <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
@@ -368,7 +381,7 @@ const getStatusConfig = (status: number) => {
         </CardContent>
       </Card>
 
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
           <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
@@ -381,7 +394,7 @@ const getStatusConfig = (status: number) => {
         </CardContent>
       </Card>
 
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Draft</CardTitle>
           <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
@@ -396,8 +409,8 @@ const getStatusConfig = (status: number) => {
     </div>
 
     <!-- ========== 友链列表 ========== -->
-    <Card class="border-slate-200">
-      <CardHeader class="border-b border-slate-100">
+    <Card class="border-slate-200 shadow-sm">
+      <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex items-center justify-between">
           <div>
             <CardTitle class="text-lg font-bold text-slate-800">All Links</CardTitle>
@@ -406,7 +419,7 @@ const getStatusConfig = (status: number) => {
           <div class="flex items-center gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="(value) => handleStatusFilterChange(value as string)">
-              <SelectTrigger class="w-[140px] bg-slate-50 border-slate-200">
+              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -422,11 +435,11 @@ const getStatusConfig = (status: number) => {
               <Input
                   v-model="searchKeyword"
                   placeholder="Search links..."
-                  class="pl-9 bg-slate-50 border-slate-200"
+                  class="pl-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
             </div>
-            <Button @click="handleSearch" variant="outline" size="sm">
+            <Button @click="handleSearch" variant="outline" size="sm" class="h-9">
               Search
             </Button>
           </div>
@@ -436,13 +449,13 @@ const getStatusConfig = (status: number) => {
       <CardContent class="p-0">
         <Table>
           <TableHeader>
-            <TableRow class="hover:bg-transparent">
-              <TableHead class="w-[60px]">ID</TableHead>
-              <TableHead class="w-[25%]">Name</TableHead>
-              <TableHead class="w-[30%]">URL</TableHead>
+            <TableRow class="hover:bg-transparent border-slate-100">
+              <TableHead class="w-[60px] pl-6">ID</TableHead>
+              <TableHead class="w-[40%]">Info</TableHead>
               <TableHead class="w-[20%]">Description</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead class="text-right">Actions</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead class="text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -451,14 +464,14 @@ const getStatusConfig = (status: number) => {
             <TableRow
                 v-for="link in links"
                 :key="link.id"
-                class="hover:bg-slate-50/50 transition-colors"
+                class="hover:bg-slate-50/50 transition-colors border-slate-100"
             >
               <!-- ID 列 -->
-              <TableCell class="font-mono text-xs text-slate-500">
+              <TableCell class="font-mono text-xs text-slate-500 pl-6">
                 #{{ link.id }}
               </TableCell>
 
-              <!-- 名称列 -->
+              <!-- 名称和URL合并列 -->
               <TableCell>
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -471,56 +484,66 @@ const getStatusConfig = (status: number) => {
                     />
                     <Image v-else class="w-5 h-5 text-slate-400" />
                   </div>
-                  <span class="font-semibold text-slate-900 truncate">{{ link.name }}</span>
+                  <div class="flex flex-col">
+                    <span class="font-semibold text-slate-900 truncate">{{ link.name }}</span>
+                    <a
+                        :href="link.url"
+                        target="_blank"
+                        class="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 hover:underline group"
+                    >
+                      <span class="truncate max-w-[250px]">{{ link.url }}</span>
+                      <ExternalLink class="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  </div>
                 </div>
-              </TableCell>
-
-              <!-- URL 列 -->
-              <TableCell>
-                <a
-                    :href="link.url"
-                    target="_blank"
-                    class="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:underline group max-w-[300px]"
-                >
-                  <span class="truncate text-sm">{{ link.url }}</span>
-                  <ExternalLink class="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </a>
               </TableCell>
 
               <!-- 描述列 -->
               <TableCell>
-                <span class="text-sm text-slate-600 truncate block max-w-[200px]" :title="link.description">
-                  {{ link.description || '-' }}
-                </span>
+                  <span class="text-sm text-slate-600 truncate block max-w-[200px]" :title="link.description">
+                    {{ link.description || '-' }}
+                  </span>
               </TableCell>
 
               <!-- 状态列 -->
               <TableCell>
-                <Badge :variant="getStatusConfig(link.status).variant">
+                <div
+                    class="inline-flex items-center gap-1.5 text-xs"
+                    :class="getStatusConfig(link.status).class"
+                >
+                  <component :is="getStatusConfig(link.status).icon" class="w-3 h-3" />
                   {{ getStatusConfig(link.status).label }}
-                </Badge>
+                </div>
+              </TableCell>
+
+              <!-- 创建时间列 -->
+              <TableCell>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Calendar class="w-3 h-3" />
+                  {{ formatDate(link.createTime) }}
+                </div>
               </TableCell>
 
               <!-- 操作列 -->
-              <TableCell class="text-right">
+              <TableCell class="text-right pr-6">
                 <div class="flex items-center justify-end gap-2">
                   <Button
                       @click="openEditDialog(link)"
                       variant="ghost"
                       size="sm"
-                      class="h-8 gap-1.5 text-slate-600 hover:text-slate-900"
+                      class="h-8 w-8 p-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      title="Edit"
                   >
-                    <Edit class="w-3.5 h-3.5" />
-                    Edit
+                    <Edit class="w-4 h-4" />
                   </Button>
                   <Button
                       @click="openDeleteDialog(link)"
                       variant="ghost"
                       size="sm"
-                      class="h-8 gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Delete"
                   >
-                    <Trash2 class="w-3.5 h-3.5" />
-                    Delete
+                    <Trash2 class="w-4 h-4" />
                   </Button>
                 </div>
               </TableCell>
