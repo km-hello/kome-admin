@@ -392,11 +392,15 @@ const truncateText = (text: string, maxLength: number = 60) => {
 
             <!-- 空状态 -->
             <TableRow v-else-if="posts.length === 0">
-              <TableCell colspan="7" class="text-center py-12">
-                <div class="flex flex-col items-center gap-2 text-slate-400">
-                  <FileText class="w-12 h-12" />
-                  <p class="text-sm font-medium">No posts found</p>
-                  <p class="text-xs">Create your first post to get started</p>
+              <TableCell colspan="7" class="h-32 text-center">
+                <div class="flex flex-col items-center justify-center text-slate-400">
+                  <FileText class="w-12 h-12 mb-2 opacity-20" />
+                  <p class="text-sm font-medium">
+                    {{ searchKeyword || statusFilter !== undefined ? 'No posts found' : 'No posts yet' }}
+                  </p>
+                  <p class="text-xs mt-1">
+                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first post to get started' }}
+                  </p>
                 </div>
               </TableCell>
             </TableRow>

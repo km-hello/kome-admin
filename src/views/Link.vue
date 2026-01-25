@@ -558,7 +558,7 @@ const formatDate = (dateString: string) => {
                     {{ searchKeyword || statusFilter !== undefined ? 'No links found' : 'No links yet' }}
                   </p>
                   <p class="text-xs mt-1">
-                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first friendship link' }}
+                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first link to get started' }}
                   </p>
                 </div>
               </TableCell>

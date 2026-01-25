@@ -418,7 +418,7 @@ const formatDate = (dateString: string) => {
                     {{ searchKeyword ? 'No tags found' : 'No tags yet' }}
                   </p>
                   <p class="text-xs mt-1">
-                    {{ searchKeyword ? 'Try a different search term' : 'Create your first tag to get started' }}
+                    {{ searchKeyword ? 'Try adjusting your filters' : 'Create your first tag to get started' }}
                   </p>
                 </div>
               </TableCell>
