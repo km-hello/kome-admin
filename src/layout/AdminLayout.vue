@@ -13,13 +13,11 @@ import {
   Link as LinkIcon,
   Settings,
   LogOut,
-  Search,
+  ExternalLink,
   Sun
 } from 'lucide-vue-next';
 
 // 组件
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import NavItem from '@/components/NavItem.vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 
@@ -118,36 +116,48 @@ const handleLogout = async () => {
       <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 flex items-center justify-between shrink-0 z-10">
         <Breadcrumb />
 
-        <div class="flex items-center gap-3">
-          <div class="relative hidden sm:block">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-                type="search"
-                placeholder="Search..."
-                class="pl-9 w-48 lg:w-64 h-9 bg-slate-50 border-slate-200 focus:w-72 transition-all"
-            />
-          </div>
+        <!-- ... existing code ... -->
 
-          <!-- 快捷操作按钮组 -->
-          <div class="flex items-center gap-1 border-l border-slate-200 pl-3">
-            <Button variant="ghost" size="icon" class="relative" title="Notifications">
-              <Bell class="w-4 h-4" />
-              <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" hidden></span>
-            </Button>
+        <div class="flex items-center gap-1.5">
+          <!-- View Site -->
+          <a
+              href="/"
+              target="_blank"
+              class="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-sm font-medium text-slate-600
+                     hover:bg-slate-100 rounded-lg transition-colors group"
+              title="View Site"
+          >
+            <span class="hidden sm:inline">View Site</span>
+            <ExternalLink class="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </a>
 
-            <Button variant="ghost" size="icon" title="Themes">
-              <Sun class="w-4 h-4" />
-            </Button>
+          <div class="w-px h-5 bg-slate-200 mx-1"></div>
 
-            <Button
-                variant="ghost"
-                size="icon"
-                title="Settings"
-                @click="router.push('/settings')"
-            >
-              <Settings class="w-4 h-4" />
-            </Button>
-          </div>
+          <!-- Notifications -->
+          <button
+              class="relative inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              title="Notifications"
+          >
+            <Bell class="w-4 h-4" />
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" hidden></span>
+          </button>
+
+          <!-- Theme -->
+          <button
+              class="inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              title="Toggle Theme"
+          >
+            <Sun class="w-4 h-4" />
+          </button>
+
+          <!-- Settings -->
+          <button
+              class="inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              title="Settings"
+              @click="router.push('/settings')"
+          >
+            <Settings class="w-4 h-4" />
+          </button>
         </div>
       </header>
 
