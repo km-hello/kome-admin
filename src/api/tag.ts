@@ -19,6 +19,7 @@ export interface TagPostCountResponse {
     id: number;
     name: string;
     postCount: number;
+    createTime: string;
 }
 
 /**
@@ -51,6 +52,9 @@ export const getAdminTagsApi = (params: TagQuery) => {
     return request.get<PageResult<TagPostCountResponse>>('/api/admin/tags', { params });
 };
 
+/**
+ * 获取管理端所有标签
+ */
 export const getAdminTagListApi = () => {
     return request.get<TagResponse[]>('/api/admin/tags/all');
 };

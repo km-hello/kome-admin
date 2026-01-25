@@ -13,7 +13,7 @@ import {
 } from '@/api/tag';
 
 // 图标
-import { Plus, Search, Edit, Trash2, Hash, FileText, Loader2 } from 'lucide-vue-next';
+import { Plus, Search, Edit, Trash2, Hash, FileText, Loader2, Calendar } from 'lucide-vue-next';
 
 // 自定义组件
 import Pagination from '@/components/Pagination.vue';
@@ -234,6 +234,21 @@ const handlePageSizeChange = (size: number) => {
   pagination.value.current = 1; // 重置到第一页
   fetchTags();
 };
+
+/**
+ * 格式化日期
+ */
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 </script>
 
 <template>
@@ -252,7 +267,7 @@ const handlePageSizeChange = (size: number) => {
 
     <!-- ========== 统计卡片 ========== -->
     <div class="grid gap-4 md:grid-cols-3">
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Total Tags</CardTitle>
           <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
@@ -265,7 +280,7 @@ const handlePageSizeChange = (size: number) => {
         </CardContent>
       </Card>
 
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Used Tags</CardTitle>
           <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -278,7 +293,7 @@ const handlePageSizeChange = (size: number) => {
         </CardContent>
       </Card>
 
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Unused Tags</CardTitle>
           <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
@@ -293,8 +308,8 @@ const handlePageSizeChange = (size: number) => {
     </div>
 
     <!-- ========== 标签列表 ========== -->
-    <Card class="border-slate-200">
-      <CardHeader class="border-b border-slate-100">
+    <Card class="border-slate-200 shadow-sm">
+      <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex items-center justify-between">
           <div>
             <CardTitle class="text-lg font-bold text-slate-800">All Tags</CardTitle>
@@ -307,11 +322,11 @@ const handlePageSizeChange = (size: number) => {
               <Input
                   v-model="searchKeyword"
                   placeholder="Search tags..."
-                  class="pl-9 bg-slate-50 border-slate-200"
+                  class="pl-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
             </div>
-            <Button @click="handleSearch" variant="outline" size="sm">
+            <Button @click="handleSearch" variant="outline" size="sm" class="h-9">
               Search
             </Button>
           </div>
@@ -321,11 +336,12 @@ const handlePageSizeChange = (size: number) => {
       <CardContent class="p-0">
         <Table>
           <TableHeader>
-            <TableRow class="hover:bg-transparent">
-              <TableHead class="w-15">ID</TableHead>
-              <TableHead class="w-[40%]">Tag Name</TableHead>
+            <TableRow class="hover:bg-transparent border-slate-100">
+              <TableHead class="w-16 pl-6">ID</TableHead>
+              <TableHead class="w-[30%]">Tag Name</TableHead>
               <TableHead>Post Count</TableHead>
-              <TableHead class="text-right">Actions</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead class="text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -334,10 +350,10 @@ const handlePageSizeChange = (size: number) => {
             <TableRow
                 v-for="tag in tags"
                 :key="tag.id"
-                class="hover:bg-slate-50/50 transition-colors"
+                class="hover:bg-slate-50/50 transition-colors border-slate-100"
             >
               <!-- ID 列 -->
-              <TableCell class="font-mono text-xs text-slate-500">
+              <TableCell class="font-mono text-xs text-slate-500 pl-6">
                 #{{ tag.id }}
               </TableCell>
 
@@ -360,26 +376,34 @@ const handlePageSizeChange = (size: number) => {
                 </div>
               </TableCell>
 
+              <!-- 创建时间列 -->
+              <TableCell>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Calendar class="w-3 h-3" />
+                  {{ formatDate(tag.createTime) }}
+                </div>
+              </TableCell>
+
               <!-- 操作列 -->
-              <TableCell class="text-right">
+              <TableCell class="text-right pr-6">
                 <div class="flex items-center justify-end gap-2">
                   <Button
                       @click="openEditDialog(tag)"
                       variant="ghost"
                       size="sm"
-                      class="h-8 gap-1.5 text-slate-600 hover:text-slate-900"
+                      class="h-8 w-8 p-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      title="Edit"
                   >
-                    <Edit class="w-3.5 h-3.5" />
-                    Edit
+                    <Edit class="w-4 h-4" />
                   </Button>
                   <Button
                       @click="openDeleteDialog(tag)"
                       variant="ghost"
                       size="sm"
-                      class="h-8 gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Delete"
                   >
-                    <Trash2 class="w-3.5 h-3.5" />
-                    Delete
+                    <Trash2 class="w-4 h-4" />
                   </Button>
                 </div>
               </TableCell>
@@ -387,7 +411,7 @@ const handlePageSizeChange = (size: number) => {
 
             <!-- 空状态 -->
             <TableRow v-if="!loading && tags.length === 0">
-              <TableCell colspan="4" class="h-32 text-center">
+              <TableCell colspan="5" class="h-32 text-center">
                 <div class="flex flex-col items-center justify-center text-slate-400">
                   <Hash class="w-12 h-12 mb-2 opacity-20" />
                   <p class="text-sm font-medium">
@@ -402,7 +426,7 @@ const handlePageSizeChange = (size: number) => {
 
             <!-- 加载状态 -->
             <TableRow v-if="loading">
-              <TableCell colspan="4" class="h-32 text-center">
+              <TableCell colspan="5" class="h-32 text-center">
                 <div class="flex items-center justify-center">
                   <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
                 </div>
@@ -481,8 +505,8 @@ const handlePageSizeChange = (size: number) => {
             This will permanently delete the tag
             <span class="font-semibold text-slate-900">"{{ deleteTarget?.name }}"</span>.
             <span v-if="deleteTarget && deleteTarget.postCount > 0" class="block mt-2 text-amber-600">
-              ⚠️ This tag is used in {{ deleteTarget.postCount }} post(s).
-            </span>
+                  ⚠️ This tag is used in {{ deleteTarget.postCount }} post(s).
+                </span>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
