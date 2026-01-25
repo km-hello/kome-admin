@@ -103,7 +103,7 @@ const fetchPosts = async () => {
     pagination.value.total = data.total;
   } catch (error) {
     console.error('Failed to fetch posts:', error);
-    toast.error('Failed to load posts');
+    toast.error('加载文章列表失败');
   } finally {
     loading.value = false;
   }
@@ -186,7 +186,7 @@ const handleDelete = async () => {
 
   try {
     await deletePostApi(deleteTarget.value.id);
-    toast.success('Post deleted successfully');
+    toast.success('文章删除成功');
     deleteDialogVisible.value = false;
 
     if (posts.value.length === 1 && pagination.value.current > 1) {
@@ -199,7 +199,7 @@ const handleDelete = async () => {
     ]);
   } catch (error) {
     console.error('Failed to delete post:', error);
-    toast.error('Failed to delete post');
+    toast.error('删除文章失败');
   } finally {
     deleteLoading.value = false;
   }
