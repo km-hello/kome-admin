@@ -39,7 +39,6 @@ export interface MemoResponse {
     isPinned: boolean;
     status: number;
     createTime: string;
-    updateTime: string;
 }
 
 // ==================== API 接口 ====================

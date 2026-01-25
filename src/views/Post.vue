@@ -13,10 +13,10 @@ import { getAdminTagListApi, type TagResponse } from '@/api/tag';
 import Pagination from '@/components/Pagination.vue';
 
 // 图标
-import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Eye } from 'lucide-vue-next';
+import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Eye, Calendar, Globe, FileEdit } from 'lucide-vue-next';
 
 // Shadcn 组件
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 // ========== 状态定义 ==========
 
@@ -221,9 +226,8 @@ const handlePageSizeChange = (size: number) => {
  */
 const getStatusConfig = (status: number) => {
   const configs = {
-    0: { label: 'Draft', variant: 'secondary' as const },
-    1: { label: 'Published', variant: 'default' as const },
-    2: { label: 'Review', variant: 'outline' as const },
+    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
+    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
   };
   return configs[status as keyof typeof configs] || configs[0];
 };
@@ -232,11 +236,14 @@ const getStatusConfig = (status: number) => {
  * 格式化日期
  */
 const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 };
 
@@ -266,7 +273,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
 
     <!-- ========== 统计卡片 ========== -->
     <div class="grid gap-4 md:grid-cols-3">
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Total Posts</CardTitle>
           <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -279,7 +286,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
         </CardContent>
       </Card>
 
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
           <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
@@ -292,7 +299,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
         </CardContent>
       </Card>
 
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Drafts</CardTitle>
           <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
@@ -306,152 +313,219 @@ const truncateText = (text: string, maxLength: number = 60) => {
       </Card>
     </div>
 
-    <!-- ========== 筛选和搜索 ========== -->
-    <Card class="border-slate-200">
-      <CardContent class="pt-6">
-        <div class="flex flex-col md:flex-row gap-4">
-          <div class="flex-1">
-            <div class="relative">
-              <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+    <!-- ========== 文章列表 ========== -->
+    <Card class="border-slate-200 shadow-sm">
+      <CardHeader class="border-b border-slate-100 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <CardTitle class="text-lg font-bold text-slate-800">All Posts</CardTitle>
+            <CardDescription class="mt-1">Manage your blog articles and content</CardDescription>
+          </div>
+          <div class="flex items-center gap-3">
+            <!-- 状态筛选 -->
+            <Select :model-value="statusFilter?.toString() || 'all'" @update:model-value="handleStatusFilterChange">
+              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="0">Draft</SelectItem>
+                <SelectItem value="1">Published</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <!-- 标签筛选 -->
+            <Select :model-value="tagFilter?.toString() || 'all'" @update:model-value="handleTagFilterChange">
+              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
+                <SelectValue placeholder="All Tags" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tags</SelectItem>
+                <SelectItem v-for="tag in allTags" :key="tag.id" :value="tag.id.toString()">
+                  {{ tag.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <!-- 搜索框 -->
+            <div class="relative w-64">
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                   v-model="searchKeyword"
-                  placeholder="Search posts by title or content..."
-                  class="pl-10"
+                  placeholder="Search posts..."
+                  class="pl-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
             </div>
+            <Button @click="handleSearch" variant="outline" size="sm" class="h-9">
+              Search
+            </Button>
           </div>
-
-          <Select :model-value="statusFilter?.toString() || 'all'" @update:model-value="handleStatusFilterChange">
-            <SelectTrigger class="w-full md:w-45">
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="0">Draft</SelectItem>
-              <SelectItem value="1">Published</SelectItem>
-              <SelectItem value="2">Review</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select :model-value="tagFilter?.toString() || 'all'" @update:model-value="handleTagFilterChange">
-            <SelectTrigger class="w-full md:w-45">
-              <SelectValue placeholder="All Tags" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tags</SelectItem>
-              <SelectItem v-for="tag in allTags" :key="tag.id" :value="tag.id.toString()">
-                {{ tag.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button @click="handleSearch" class="bg-slate-900 hover:bg-slate-800">
-            <Search class="w-4 h-4" />
-          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </CardHeader>
 
-    <!-- ========== 文章列表 ========== -->
-    <Card class="border-slate-200">
-      <CardContent class="pt-6">
-        <div v-if="loading" class="flex justify-center items-center py-12">
-          <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
-        </div>
+      <CardContent class="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow class="hover:bg-transparent border-slate-100">
+              <TableHead class="w-[60px] pl-6">ID</TableHead>
+              <TableHead class="w-[35%]">Title</TableHead>
+              <TableHead>Tags</TableHead>
+              <TableHead>Views</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead class="text-right pr-6">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
 
-        <div v-else-if="posts.length === 0" class="text-center py-12">
-          <FileText class="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <p class="text-slate-500">No posts found</p>
-          <p class="text-sm text-slate-400 mt-1">Create your first post to get started</p>
-        </div>
+          <TableBody>
+            <!-- 加载状态 -->
+            <TableRow v-if="loading">
+              <TableCell colspan="7" class="text-center py-12">
+                <div class="flex items-center justify-center gap-2 text-slate-500">
+                  <Loader2 class="w-5 h-5 animate-spin" />
+                  <span>Loading posts...</span>
+                </div>
+              </TableCell>
+            </TableRow>
 
-        <div v-else class="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-10"></TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead class="hidden md:table-cell">Slug</TableHead>
-                <TableHead class="hidden lg:table-cell">Tags</TableHead>
-                <TableHead class="hidden xl:table-cell">Views</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead class="hidden lg:table-cell">Date</TableHead>
-                <TableHead class="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-for="post in posts" :key="post.id">
-                <TableCell>
-                  <Pin v-if="post.isPinned" class="w-4 h-4 text-amber-500" />
-                </TableCell>
-                <TableCell class="font-medium">
-                  <div class="flex flex-col">
-                    <span class="text-slate-900">{{ truncateText(post.title, 50) }}</span>
-                    <span v-if="post.summary" class="text-xs text-slate-400 mt-1">
-                      {{ truncateText(post.summary, 60) }}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell class="hidden md:table-cell text-slate-600 font-mono text-sm">
-                  {{ post.slug }}
-                </TableCell>
-                <TableCell class="hidden lg:table-cell">
-                  <div class="flex flex-wrap gap-1">
+            <!-- 空状态 -->
+            <TableRow v-else-if="posts.length === 0">
+              <TableCell colspan="7" class="text-center py-12">
+                <div class="flex flex-col items-center gap-2 text-slate-400">
+                  <FileText class="w-12 h-12" />
+                  <p class="text-sm font-medium">No posts found</p>
+                  <p class="text-xs">Create your first post to get started</p>
+                </div>
+              </TableCell>
+            </TableRow>
+
+            <!-- 文章列表 -->
+            <TableRow
+                v-for="post in posts"
+                :key="post.id"
+                class="transition-colors border-slate-100 group"
+                :class="[
+                  post.isPinned ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-slate-50/50'
+                ]"
+            >
+              <!-- ID 列 -->
+              <TableCell class="font-mono text-xs text-slate-500 pl-6 relative">
+                <div class="flex items-center">
+                  <span class="mr-1">#{{ post.id }}</span>
+                  <Pin v-if="post.isPinned" class="w-3 h-3 text-amber-500 opacity-70" />
+                </div>
+              </TableCell>
+
+              <!-- 标题和 Slug 融合列 -->
+              <TableCell>
+                <div class="flex flex-col gap-1">
+                  <span class="font-semibold text-slate-900 truncate" :title="post.title">
+                    {{ truncateText(post.title, 50) }}
+                  </span>
+                  <span class="text-xs text-slate-400 font-mono truncate" :title="post.slug">
+                    /{{ post.slug }}
+                  </span>
+                </div>
+              </TableCell>
+
+              <!-- 标签列 -->
+              <TableCell>
+                <div class="flex flex-wrap items-center gap-1">
+                  <template v-if="post.tags && post.tags.length > 0">
                     <Badge
-                        v-for="tag in post.tags?.slice(0, 3)"
+                        v-for="tag in post.tags.slice(0, 3)"
                         :key="tag.id"
                         variant="outline"
                         class="text-xs"
                     >
                       {{ tag.name }}
                     </Badge>
-                    <Badge v-if="post.tags && post.tags.length > 3" variant="outline" class="text-xs">
-                      +{{ post.tags.length - 3 }}
-                    </Badge>
-                  </div>
-                </TableCell>
-                <TableCell class="hidden xl:table-cell">
-                  <div class="flex items-center gap-1 text-slate-600">
-                    <Eye class="w-3 h-3" />
-                    <span class="text-sm">{{ post.views }}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge :variant="getStatusConfig(post.status).variant">
-                    {{ getStatusConfig(post.status).label }}
-                  </Badge>
-                </TableCell>
-                <TableCell class="hidden lg:table-cell text-slate-600 text-sm">
+                    <!-- 超过3个标签时显示 Popover -->
+                    <Popover v-if="post.tags.length > 3">
+                      <PopoverTrigger as-child>
+                        <Badge
+                            variant="outline"
+                            class="text-xs cursor-pointer hover:bg-slate-100 transition-colors"
+                        >
+                          +{{ post.tags.length - 3 }}
+                        </Badge>
+                      </PopoverTrigger>
+                      <PopoverContent class="w-auto p-3" align="start">
+                        <div class="text-xs font-medium text-slate-500 mb-2">All Tags</div>
+                        <div class="flex flex-wrap gap-1 max-w-[200px]">
+                          <Badge
+                              v-for="tag in post.tags"
+                              :key="tag.id"
+                              variant="outline"
+                              class="text-xs"
+                          >
+                            {{ tag.name }}
+                          </Badge>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </template>
+                  <span v-else class="text-xs text-slate-400">-</span>
+                </div>
+              </TableCell>
+
+              <!-- 浏览量列 -->
+              <TableCell>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Eye class="w-3 h-3" />
+                  <span>{{ post.views }}</span>
+                </div>
+              </TableCell>
+
+              <!-- 状态列 -->
+              <TableCell>
+                <div
+                    class="inline-flex items-center gap-1.5 text-xs"
+                    :class="getStatusConfig(post.status).class"
+                >
+                  <component :is="getStatusConfig(post.status).icon" class="w-3 h-3" />
+                  {{ getStatusConfig(post.status).label }}
+                </div>
+              </TableCell>
+
+              <!-- 创建时间列 -->
+              <TableCell>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Calendar class="w-3 h-3" />
                   {{ formatDate(post.createTime) }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <div class="flex justify-end gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        @click="goToEdit(post)"
-                        class="hover:bg-slate-100"
-                    >
-                      <Edit class="w-4 h-4" />
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        @click="openDeleteDialog(post)"
-                        class="hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 class="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+                </div>
+              </TableCell>
+
+              <!-- 操作列 -->
+              <TableCell class="text-right pr-6">
+                <div class="flex items-center justify-end gap-2">
+                  <Button
+                      @click="goToEdit(post)"
+                      variant="ghost"
+                      size="sm"
+                      class="h-8 w-8 p-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      title="Edit"
+                  >
+                    <Edit class="w-4 h-4" />
+                  </Button>
+                  <Button
+                      @click="openDeleteDialog(post)"
+                      variant="ghost"
+                      size="sm"
+                      class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Delete"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
 
         <!-- 分页 -->
-        <div class="mt-6 pt-6 border-t border-slate-200">
+        <div class="border-t border-slate-100 px-6 py-4">
           <Pagination
               :current="pagination.current"
               :page-size="pagination.pageSize"
@@ -469,7 +543,10 @@ const truncateText = (text: string, maxLength: number = 60) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the post "{{ deleteTarget?.title }}".
+            This will permanently delete the post
+            <span v-if="deleteTarget" class="font-semibold text-slate-700">
+              "{{ truncateText(deleteTarget.title, 50) }}"
+            </span>.
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -478,9 +555,9 @@ const truncateText = (text: string, maxLength: number = 60) => {
           <AlertDialogAction
               @click="handleDelete"
               :disabled="deleteLoading"
-              class="bg-red-600 hover:bg-red-700"
+              class="bg-red-600 hover:bg-red-700 gap-2"
           >
-            <Loader2 v-if="deleteLoading" class="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 v-if="deleteLoading" class="w-4 h-4 animate-spin" />
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -15,7 +15,7 @@ import {
 import Pagination from '@/components/Pagination.vue';
 
 // 图标
-import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Calendar } from 'lucide-vue-next';
+import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
 
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -295,8 +295,8 @@ const handlePageSizeChange = (size: number) => {
  */
 const getStatusConfig = (status: number) => {
   const configs = {
-    0: { label: 'Draft', variant: 'secondary' as const },
-    1: { label: 'Published', variant: 'default' as const },
+    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
+    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
   };
   return configs[status as keyof typeof configs] || configs[0];
 };
@@ -305,6 +305,7 @@ const getStatusConfig = (status: number) => {
  * 格式化日期
  */
 const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
   const date = new Date(dateString);
   return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -340,7 +341,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
     <!-- ========== 统计卡片 ========== -->
     <div class="grid gap-4 md:grid-cols-3">
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Total Memos</CardTitle>
           <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -353,7 +354,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
         </CardContent>
       </Card>
 
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
           <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
@@ -366,7 +367,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
         </CardContent>
       </Card>
 
-      <Card class="border-slate-200">
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Draft</CardTitle>
           <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
@@ -381,8 +382,8 @@ const truncateText = (text: string, maxLength: number = 100) => {
     </div>
 
     <!-- ========== 备忘录列表 ========== -->
-    <Card class="border-slate-200">
-      <CardHeader class="border-b border-slate-100">
+    <Card class="border-slate-200 shadow-sm">
+      <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex items-center justify-between">
           <div>
             <CardTitle class="text-lg font-bold text-slate-800">All Memos</CardTitle>
@@ -391,7 +392,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
           <div class="flex items-center gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="(value) => handleStatusFilterChange(value as string)">
-              <SelectTrigger class="w-[140px] bg-slate-50 border-slate-200">
+              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -407,11 +408,11 @@ const truncateText = (text: string, maxLength: number = 100) => {
               <Input
                   v-model="searchKeyword"
                   placeholder="Search memos..."
-                  class="pl-9 bg-slate-50 border-slate-200"
+                  class="pl-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
             </div>
-            <Button @click="handleSearch" variant="outline" size="sm">
+            <Button @click="handleSearch" variant="outline" size="sm" class="h-9">
               Search
             </Button>
           </div>
@@ -421,20 +422,19 @@ const truncateText = (text: string, maxLength: number = 100) => {
       <CardContent class="p-0">
         <Table>
           <TableHeader>
-            <TableRow class="hover:bg-transparent">
-              <TableHead class="w-[60px]">ID</TableHead>
-              <TableHead class="w-[45%]">Content</TableHead>
+            <TableRow class="hover:bg-transparent border-slate-100">
+              <TableHead class="w-[60px] pl-6">ID</TableHead>
+              <TableHead class="w-[50%]">Content</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Pinned</TableHead>
-              <TableHead>Updated</TableHead>
-              <TableHead class="text-right">Actions</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead class="text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <!-- 加载状态 -->
             <TableRow v-if="loading">
-              <TableCell colspan="6" class="text-center py-12">
+              <TableCell colspan="5" class="text-center py-12">
                 <div class="flex items-center justify-center gap-2 text-slate-500">
                   <Loader2 class="w-5 h-5 animate-spin" />
                   <span>Loading memos...</span>
@@ -444,7 +444,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
             <!-- 空状态 -->
             <TableRow v-else-if="memos.length === 0">
-              <TableCell colspan="6" class="text-center py-12">
+              <TableCell colspan="5" class="text-center py-12">
                 <div class="flex flex-col items-center gap-2 text-slate-400">
                   <FileText class="w-12 h-12" />
                   <p class="text-sm">No memos found</p>
@@ -456,17 +456,22 @@ const truncateText = (text: string, maxLength: number = 100) => {
             <TableRow
                 v-for="memo in memos"
                 :key="memo.id"
-                class="hover:bg-slate-50/50 transition-colors"
+                class="transition-colors border-slate-100 group"
+                :class="[
+                    memo.isPinned ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-slate-50/50'
+                  ]"
             >
               <!-- ID 列 -->
-              <TableCell class="font-mono text-xs text-slate-500">
-                #{{ memo.id }}
+              <TableCell class="font-mono text-xs text-slate-500 pl-6 relative">
+                <div class="flex items-center">
+                  <span class="mr-1">#{{ memo.id }}</span>
+                  <Pin v-if="memo.isPinned" class="w-3 h-3 text-amber-500 opacity-70" />
+                </div>
               </TableCell>
 
               <!-- 内容列 -->
               <TableCell>
                 <div class="flex items-start gap-2">
-                  <Pin v-if="memo.isPinned" class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <p class="text-sm text-slate-700 line-clamp-2" :title="memo.content">
                     {{ truncateText(memo.content, 150) }}
                   </p>
@@ -475,48 +480,43 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
               <!-- 状态列 -->
               <TableCell>
-                <Badge :variant="getStatusConfig(memo.status).variant">
+                <div
+                    class="inline-flex items-center gap-1.5 text-xs"
+                    :class="getStatusConfig(memo.status).class"
+                >
+                  <component :is="getStatusConfig(memo.status).icon" class="w-3 h-3" />
                   {{ getStatusConfig(memo.status).label }}
-                </Badge>
+                </div>
               </TableCell>
 
-              <!-- 置顶列 -->
-              <TableCell>
-                <Badge v-if="memo.isPinned" variant="outline" class="gap-1">
-                  <Pin class="w-3 h-3" />
-                  Pinned
-                </Badge>
-                <span v-else class="text-xs text-slate-400">-</span>
-              </TableCell>
-
-              <!-- 更新时间列 -->
+              <!-- 创建时间列 -->
               <TableCell>
                 <div class="flex items-center gap-1.5 text-xs text-slate-500">
                   <Calendar class="w-3 h-3" />
-                  {{ formatDate(memo.updateTime) }}
+                  {{ formatDate(memo.createTime) }}
                 </div>
               </TableCell>
 
               <!-- 操作列 -->
-              <TableCell class="text-right">
+              <TableCell class="text-right pr-6">
                 <div class="flex items-center justify-end gap-2">
                   <Button
                       @click="openEditDialog(memo)"
                       variant="ghost"
                       size="sm"
-                      class="h-8 gap-1.5 text-slate-600 hover:text-slate-900"
+                      class="h-8 w-8 p-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      title="Edit"
                   >
-                    <Edit class="w-3.5 h-3.5" />
-                    Edit
+                    <Edit class="w-4 h-4" />
                   </Button>
                   <Button
                       @click="openDeleteDialog(memo)"
                       variant="ghost"
                       size="sm"
-                      class="h-8 gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Delete"
                   >
-                    <Trash2 class="w-3.5 h-3.5" />
-                    Delete
+                    <Trash2 class="w-4 h-4" />
                   </Button>
                 </div>
               </TableCell>
@@ -625,8 +625,8 @@ const truncateText = (text: string, maxLength: number = 100) => {
           <AlertDialogDescription>
             This will permanently delete the memo
             <span v-if="deleteTarget" class="font-semibold text-slate-700">
-              "{{ truncateText(deleteTarget.content, 50) }}"
-            </span>.
+                  "{{ truncateText(deleteTarget.content, 50) }}"
+                </span>.
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>

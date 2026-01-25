@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useSiteStore } from '@/stores/site';
-import { getAdminPostsApi, type PostSimple } from '@/api/post';
+import { getAdminPostsApi, type PostSimpleResponse } from '@/api/post';
 
 // 图标
 import { Eye, FileText, Hash, Link as LinkIcon, Activity } from 'lucide-vue-next';
@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 const siteStore = useSiteStore();
 
 // 最近文章列表
-const recentPosts = ref<PostSimple[]>([]);
+const recentPosts = ref<PostSimpleResponse[]>([]);
 
 // 加载状态
 const loading = ref(true);
@@ -78,7 +78,7 @@ const formatDate = (dateString: string) => {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-6">
     <!-- ========== 页面标题 ========== -->
     <div class="flex items-center justify-between">
       <div>
@@ -94,7 +94,7 @@ const formatDate = (dateString: string) => {
     <!-- ========== 统计卡片网格 ========== -->
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <!-- 文章统计 -->
-      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200 relative overflow-hidden">
+      <Card class="hover:shadow-md transition-all duration-300 border-slate-200 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
           <CardTitle class="text-sm font-medium text-slate-600">Total Posts</CardTitle>
@@ -118,7 +118,7 @@ const formatDate = (dateString: string) => {
       </Card>
 
       <!-- 标签统计 -->
-      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200 relative overflow-hidden">
+      <Card class="hover:shadow-md transition-all duration-300 border-slate-200 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
           <CardTitle class="text-sm font-medium text-slate-600">Total Tags</CardTitle>
@@ -142,7 +142,7 @@ const formatDate = (dateString: string) => {
       </Card>
 
       <!-- 备忘录统计 -->
-      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200 relative overflow-hidden">
+      <Card class="hover:shadow-md transition-all duration-300 border-slate-200 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
           <CardTitle class="text-sm font-medium text-slate-600">Total Memos</CardTitle>
@@ -166,7 +166,7 @@ const formatDate = (dateString: string) => {
       </Card>
 
       <!-- 友链统计 -->
-      <Card class="hover:shadow-lg transition-all duration-300 border-slate-200 relative overflow-hidden">
+      <Card class="hover:shadow-md transition-all duration-300 border-slate-200 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
           <CardTitle class="text-sm font-medium text-slate-600">Friend Links</CardTitle>
@@ -191,8 +191,8 @@ const formatDate = (dateString: string) => {
     </div>
 
     <!-- ========== 最近文章表格 ========== -->
-    <Card class="border-slate-200">
-      <CardHeader class="border-b border-slate-100">
+    <Card class="border-slate-200 shadow-sm">
+      <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex items-center justify-between">
           <div>
             <CardTitle class="text-lg font-bold text-slate-800">Recent Posts</CardTitle>
@@ -210,11 +210,11 @@ const formatDate = (dateString: string) => {
       <CardContent class="p-0">
         <Table>
           <TableHeader>
-            <TableRow class="hover:bg-transparent">
-              <TableHead class="w-[40%]">Title</TableHead>
+            <TableRow class="hover:bg-transparent border-slate-100">
+              <TableHead class="w-[40%] pl-6">Title</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Views</TableHead>
-              <TableHead class="text-right">Created At</TableHead>
+              <TableHead class="text-right pr-6">Created At</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -223,10 +223,10 @@ const formatDate = (dateString: string) => {
             <TableRow
                 v-for="post in recentPosts"
                 :key="post.id"
-                class="hover:bg-slate-50/50 transition-colors"
+                class="hover:bg-slate-50/50 transition-colors border-slate-100"
             >
               <!-- 标题列 -->
-              <TableCell class="font-medium">
+              <TableCell class="font-medium pl-6">
                 <div class="space-y-1">
                   <div class="font-semibold text-slate-900 truncate max-w-[300px]">
                     {{ post.title }}
@@ -253,10 +253,10 @@ const formatDate = (dateString: string) => {
               </TableCell>
 
               <!-- 日期列 -->
-              <TableCell class="text-right">
-                <span class="font-mono text-xs text-slate-500">
-                  {{ formatDate(post.createTime) }}
-                </span>
+              <TableCell class="text-right pr-6">
+                    <span class="font-mono text-xs text-slate-500">
+                      {{ formatDate(post.createTime) }}
+                    </span>
               </TableCell>
             </TableRow>
 

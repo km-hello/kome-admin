@@ -13,7 +13,7 @@ import {
 import {getAdminTagListApi, type TagResponse} from '@/api/tag';
 
 // 图标
-import {ArrowLeft, Eye, FileText, Image as ImageIcon, Loader2, Pin, Save, Tag as TagIcon} from 'lucide-vue-next';
+import {ArrowLeft, Eye, FileEdit, FileText, Globe, Image as ImageIcon, Loader2, Pin, Save, Tag as TagIcon} from 'lucide-vue-next';
 
 // Shadcn 组件
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -233,15 +233,14 @@ const handleTagCreated = (newTag: TagResponse) => {
 };
 
 /**
- * 获取状态标签
+ * 获取状态配置
  */
-const getStatusLabel = (status: number) => {
-  const labels = {
-    0: 'Draft',
-    1: 'Published',
-    2: 'Review',
+const getStatusConfig = (status: number) => {
+  const configs = {
+    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
+    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
   };
-  return labels[status as keyof typeof labels] || 'Draft';
+  return configs[status as keyof typeof configs] || configs[0];
 };
 
 /**
@@ -299,9 +298,13 @@ const useFirstImageAsCover = () => {
           </div>
 
           <div class="flex items-center gap-3">
-            <Badge :variant="formData.status === 1 ? 'default' : 'secondary'">
-              {{ getStatusLabel(formData.status) }}
-            </Badge>
+            <div
+                class="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md bg-slate-100"
+                :class="getStatusConfig(formData.status).class"
+            >
+              <component :is="getStatusConfig(formData.status).icon" class="w-3 h-3" />
+              {{ getStatusConfig(formData.status).label }}
+            </div>
             <Button
                 @click="handleSave"
                 :disabled="saving || loading"
@@ -437,20 +440,14 @@ const useFirstImageAsCover = () => {
                   <SelectContent>
                     <SelectItem value="0">
                       <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-slate-400"></div>
+                        <FileEdit class="w-3 h-3 text-slate-400" />
                         Draft
                       </div>
                     </SelectItem>
                     <SelectItem value="1">
                       <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <Globe class="w-3 h-3 text-slate-600" />
                         Published
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="2">
-                      <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-amber-500"></div>
-                        Review
                       </div>
                     </SelectItem>
                   </SelectContent>

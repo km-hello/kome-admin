@@ -17,7 +17,7 @@ export interface PostSimpleResponse {
     views: number;
     readTime?: number;
     isPinned: boolean;
-    status: number;       // 0: Draft, 1: Published, 2: Review
+    status: number;       // 0: Draft, 1: Published
     createTime: string;
     tags?: TagResponse[];
 }
@@ -47,7 +47,7 @@ export interface PostDetailResponse {
 export interface PostQuery extends BaseQuery {
     keyword?: string;     // 搜索关键词
     tagId?: number;       // 标签筛选
-    status?: number;      // 状态筛选 (0: Draft, 1: Published, 2: Review)
+    status?: number;      // 状态筛选 (0: Draft, 1: Published)
 }
 
 /**
@@ -60,7 +60,7 @@ export interface PostCreateRequest {
     content: string;      // 内容 (min 1)
     coverImage?: string;  // 封面图 (max 255)
     isPinned: boolean;    // 是否置顶
-    status: number;       // 状态 (0: Draft, 1: Published, 2: Review)
+    status: number;       // 状态 (0: Draft, 1: Published)
     tagIds?: number[];    // 标签ID列表
 }
 

@@ -44,6 +44,7 @@ export interface LinkResponse {
     avatar?: string;
     description?: string;
     status: number;
+    createTime: string;
 }
 
 // ==================== API 接口 ====================
