@@ -21,17 +21,18 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Textarea} from '@/components/ui/textarea';
-import {Badge} from '@/components/ui/badge';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 
 // 自定义组件
 import TagSelector from '@/components/TagSelector.vue';
+import {useSiteStore} from "@/stores/site.ts";
 
 // ========== 路由和状态 ==========
 
 const route = useRoute();
 const router = useRouter();
+const siteStore = useSiteStore();
 
 const isEditMode = computed(() => route.params.id !== undefined);
 const postId = computed(() => Number(route.params.id));
@@ -192,6 +193,9 @@ const handleSave = async () => {
       await createPostApi(request);
       toast.success('Post created successfully');
     }
+
+    // 标记统计数据已失效，让 Post 页面进入时自动刷新
+    siteStore.invalidateStats();
 
     // 返回列表页
     await router.push('/posts');
