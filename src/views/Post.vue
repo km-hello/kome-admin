@@ -290,8 +290,8 @@ const truncateText = (text: string, maxLength: number = 60) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-emerald-600" />
+          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
+            <FileText class="h-4 w-4 text-teal-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -303,8 +303,8 @@ const truncateText = (text: string, maxLength: number = 60) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Drafts</CardTitle>
-          <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-amber-600" />
+          <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
+            <FileText class="h-4 w-4 text-slate-600" />
           </div>
         </CardHeader>
         <CardContent>

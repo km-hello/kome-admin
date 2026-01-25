@@ -160,7 +160,7 @@ const openCreateDialog = () => {
     url: '',
     avatar: '',
     description: '',
-    status: 1,
+    status: 0,
   };
   dialogVisible.value = true;
 };
@@ -384,8 +384,8 @@ const formatDate = (dateString: string) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <Globe class="h-4 w-4 text-emerald-600" />
+          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
+            <LinkIcon class="h-4 w-4 text-teal-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -414,7 +414,7 @@ const formatDate = (dateString: string) => {
         <div class="flex items-center justify-between">
           <div>
             <CardTitle class="text-lg font-bold text-slate-800">All Links</CardTitle>
-            <CardDescription class="mt-1">Manage your friendship links</CardDescription>
+            <CardDescription class="mt-1">Manage your blog's friendship links</CardDescription>
           </div>
           <div class="flex items-center gap-3">
             <!-- 状态筛选 -->
@@ -608,12 +608,12 @@ const formatDate = (dateString: string) => {
             <Input
                 id="link-name"
                 v-model="formData.name"
-                placeholder="Enter link name (max 100 characters)"
+                placeholder="Enter the link name"
                 maxlength="100"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.name.length }}/100 characters
+              {{ formData.name.length }}/100
             </p>
           </div>
 
@@ -630,7 +630,7 @@ const formatDate = (dateString: string) => {
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.url.length }}/255 characters
+              {{ formData.url.length }}/255
             </p>
           </div>
 
@@ -645,7 +645,7 @@ const formatDate = (dateString: string) => {
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.avatar.length }}/255 characters
+              {{ formData.avatar.length }}/255
             </p>
           </div>
 
@@ -655,13 +655,13 @@ const formatDate = (dateString: string) => {
             <Textarea
                 id="link-description"
                 v-model="formData.description"
-                placeholder="Enter a brief description (max 255 characters)"
+                placeholder="Enter a brief description"
                 maxlength="255"
                 rows="3"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.description.length }}/255 characters
+              {{ formData.description.length }}/255
             </p>
           </div>
 

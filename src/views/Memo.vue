@@ -15,7 +15,7 @@ import {
 import Pagination from '@/components/Pagination.vue';
 
 // 图标
-import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
+import { Plus, Search, Edit, Trash2, Activity, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
 
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -157,7 +157,7 @@ const openCreateDialog = () => {
     id: 0,
     content: '',
     isPinned: false,
-    status: 1,
+    status: 0,
   };
   dialogVisible.value = true;
 };
@@ -343,8 +343,8 @@ const truncateText = (text: string, maxLength: number = 100) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Total Memos</CardTitle>
-          <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-blue-600" />
+          <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+            <Activity class="h-4 w-4 text-amber-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -356,8 +356,8 @@ const truncateText = (text: string, maxLength: number = 100) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-emerald-600" />
+          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
+            <Activity class="h-4 w-4 text-teal-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -370,7 +370,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Draft</CardTitle>
           <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-slate-600" />
+            <Activity class="h-4 w-4 text-slate-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -551,11 +551,13 @@ const truncateText = (text: string, maxLength: number = 100) => {
         <div class="space-y-4 py-4">
           <!-- 内容输入 -->
           <div class="space-y-2">
-            <Label for="content">Content *</Label>
+            <Label for="content">
+              Content <span class="text-red-500">*</span>
+            </Label>
             <Textarea
                 id="content"
                 v-model="formData.content"
-                placeholder="Write your memo here..."
+                placeholder="Write your memo here... (Markdown supported)"
                 class="min-h-50 resize-none"
                 :disabled="dialogLoading"
             />
@@ -574,13 +576,15 @@ const truncateText = (text: string, maxLength: number = 100) => {
                 class="text-sm font-normal cursor-pointer flex items-center gap-1.5"
             >
               <Pin class="w-3.5 h-3.5" />
-              Pin this memo to the top
+              Pin to top <span class="text-red-500">*</span>
             </Label>
           </div>
 
           <!-- 状态选择 -->
           <div class="space-y-2">
-            <Label for="status">Status *</Label>
+            <Label for="status">
+              Status <span class="text-red-500">*</span>
+            </Label>
             <Select
                 v-model="formData.status"
                 :disabled="dialogLoading"

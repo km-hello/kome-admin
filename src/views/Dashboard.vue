@@ -150,23 +150,6 @@ const truncateText = (text: string, maxLength: number) => {
         </CardContent>
       </Card>
 
-      <!-- 标签统计 -->
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Tags</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <Hash class="h-4 w-4 text-emerald-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalTags }}</div>
-          <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-            <span>Used: <span class="font-semibold text-emerald-600">{{ siteStore.stats.usedTagCount }}</span></span>
-            <span>Unused: <span class="font-semibold text-slate-600">{{ siteStore.stats.unusedTagCount }}</span></span>
-          </div>
-        </CardContent>
-      </Card>
-
       <!-- 备忘录统计 -->
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -180,6 +163,23 @@ const truncateText = (text: string, maxLength: number) => {
           <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
             <span>Published: <span class="font-semibold text-amber-600">{{ siteStore.stats.publishedMemoCount }}</span></span>
             <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftMemoCount }}</span></span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- 标签统计 -->
+      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle class="text-sm font-medium text-slate-600">Total Tags</CardTitle>
+          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
+            <Hash class="h-4 w-4 text-emerald-600" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalTags }}</div>
+          <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
+            <span>Used: <span class="font-semibold text-emerald-600">{{ siteStore.stats.usedTagCount }}</span></span>
+            <span>Unused: <span class="font-semibold text-slate-600">{{ siteStore.stats.unusedTagCount }}</span></span>
           </div>
         </CardContent>
       </Card>
