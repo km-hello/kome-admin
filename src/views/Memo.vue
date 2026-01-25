@@ -15,7 +15,7 @@ import {
 import Pagination from '@/components/Pagination.vue';
 
 // 图标
-import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
+import { Plus, Search, Edit, Trash2, Activity, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
 
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -158,7 +157,7 @@ const openCreateDialog = () => {
     id: 0,
     content: '',
     isPinned: false,
-    status: 1,
+    status: 0,
   };
   dialogVisible.value = true;
 };
@@ -344,8 +343,8 @@ const truncateText = (text: string, maxLength: number = 100) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Total Memos</CardTitle>
-          <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-blue-600" />
+          <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+            <Activity class="h-4 w-4 text-amber-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -357,8 +356,8 @@ const truncateText = (text: string, maxLength: number = 100) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-emerald-600" />
+          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
+            <Activity class="h-4 w-4 text-teal-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -371,7 +370,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Draft</CardTitle>
           <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-slate-600" />
+            <Activity class="h-4 w-4 text-slate-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -392,7 +391,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
           <div class="flex items-center gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="(value) => handleStatusFilterChange(value as string)">
-              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
+              <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -423,7 +422,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-[60px] pl-6">ID</TableHead>
+              <TableHead class="w-15 pl-6">ID</TableHead>
               <TableHead class="w-[50%]">Content</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
@@ -444,10 +443,15 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
             <!-- 空状态 -->
             <TableRow v-else-if="memos.length === 0">
-              <TableCell colspan="5" class="text-center py-12">
-                <div class="flex flex-col items-center gap-2 text-slate-400">
-                  <FileText class="w-12 h-12" />
-                  <p class="text-sm">No memos found</p>
+              <TableCell colspan="5" class="h-32 text-center">
+                <div class="flex flex-col items-center justify-center text-slate-400">
+                  <Activity class="w-12 h-12 mb-2 opacity-20" />
+                  <p class="text-sm font-medium">
+                    {{ searchKeyword || statusFilter !== undefined ? 'No memos found' : 'No memos yet' }}
+                  </p>
+                  <p class="text-xs mt-1">
+                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first memo to get started' }}
+                  </p>
                 </div>
               </TableCell>
             </TableRow>
@@ -539,7 +543,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
     <!-- ========== 创建/编辑对话框 ========== -->
     <Dialog v-model:open="dialogVisible">
-      <DialogContent class="sm:max-w-[600px]">
+      <DialogContent class="sm:max-w-150">
         <DialogHeader>
           <DialogTitle>
             {{ dialogMode === 'create' ? 'Create New Memo' : 'Edit Memo' }}
@@ -552,12 +556,14 @@ const truncateText = (text: string, maxLength: number = 100) => {
         <div class="space-y-4 py-4">
           <!-- 内容输入 -->
           <div class="space-y-2">
-            <Label for="content">Content *</Label>
+            <Label for="content">
+              Content <span class="text-red-500">*</span>
+            </Label>
             <Textarea
                 id="content"
                 v-model="formData.content"
-                placeholder="Write your memo here..."
-                class="min-h-[200px] resize-none"
+                placeholder="Write your memo here... (Markdown supported)"
+                class="min-h-50 resize-none"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-400">{{ formData.content.length }} characters</p>
@@ -575,13 +581,15 @@ const truncateText = (text: string, maxLength: number = 100) => {
                 class="text-sm font-normal cursor-pointer flex items-center gap-1.5"
             >
               <Pin class="w-3.5 h-3.5" />
-              Pin this memo to the top
+              Pin to top <span class="text-red-500">*</span>
             </Label>
           </div>
 
           <!-- 状态选择 -->
           <div class="space-y-2">
-            <Label for="status">Status *</Label>
+            <Label for="status">
+              Status <span class="text-red-500">*</span>
+            </Label>
             <Select
                 v-model="formData.status"
                 :disabled="dialogLoading"

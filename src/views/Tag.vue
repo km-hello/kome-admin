@@ -257,7 +257,7 @@ const formatDate = (dateString: string) => {
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-3xl font-bold font-serif tracking-tight text-slate-800">Tags</h2>
-        <p class="text-slate-500 mt-1">Manage your blog tags and categories</p>
+        <p class="text-slate-500 mt-1">Manage and organize your content tags</p>
       </div>
       <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
         <Plus class="w-4 h-4" />
@@ -283,8 +283,8 @@ const formatDate = (dateString: string) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Used Tags</CardTitle>
-          <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <Hash class="h-4 w-4 text-blue-600" />
+          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
+            <Hash class="h-4 w-4 text-teal-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -418,7 +418,7 @@ const formatDate = (dateString: string) => {
                     {{ searchKeyword ? 'No tags found' : 'No tags yet' }}
                   </p>
                   <p class="text-xs mt-1">
-                    {{ searchKeyword ? 'Try a different search term' : 'Create your first tag to get started' }}
+                    {{ searchKeyword ? 'Try adjusting your filters' : 'Create your first tag to get started' }}
                   </p>
                 </div>
               </TableCell>
@@ -461,17 +461,19 @@ const formatDate = (dateString: string) => {
 
         <div class="space-y-4 py-4">
           <div class="space-y-2">
-            <Label htmlFor="tag-name">Tag Name</Label>
+            <Label htmlFor="tag-name">
+              Tag Name <span class="text-red-500">*</span>
+            </Label>
             <Input
                 id="tag-name"
                 v-model="formData.name"
-                placeholder="Enter tag name (max 50 characters)"
+                placeholder="Enter tag name"
                 maxlength="50"
                 :disabled="dialogLoading"
                 @keyup.enter="handleSubmit"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.name.length }}/50 characters
+              {{ formData.name.length }}/50
             </p>
           </div>
         </div>

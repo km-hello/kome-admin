@@ -21,17 +21,18 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Textarea} from '@/components/ui/textarea';
-import {Badge} from '@/components/ui/badge';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 
 // 自定义组件
 import TagSelector from '@/components/TagSelector.vue';
+import {useSiteStore} from "@/stores/site.ts";
 
 // ========== 路由和状态 ==========
 
 const route = useRoute();
 const router = useRouter();
+const siteStore = useSiteStore();
 
 const isEditMode = computed(() => route.params.id !== undefined);
 const postId = computed(() => Number(route.params.id));
@@ -48,7 +49,7 @@ const formData = ref({
   content: '',
   coverImage: '',
   isPinned: false,
-  status: 1,
+  status: 0,
   tagIds: [] as number[],
 });
 
@@ -193,6 +194,9 @@ const handleSave = async () => {
       toast.success('Post created successfully');
     }
 
+    // 标记统计数据已失效，让 Post 页面进入时自动刷新
+    siteStore.invalidateStats();
+
     // 返回列表页
     await router.push('/posts');
   } catch (error) {
@@ -279,7 +283,7 @@ const useFirstImageAsCover = () => {
   <div class="min-h-screen bg-slate-50">
     <!-- ========== 顶部操作栏 ========== -->
     <div class="bg-white border-b border-slate-200 sticky top-0 z-10">
-      <div class="max-w-[1600px] mx-auto px-6 py-4">
+      <div class="max-w-400 mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
             <Button
@@ -325,7 +329,7 @@ const useFirstImageAsCover = () => {
     </div>
 
     <!-- ========== 编辑器主体 ========== -->
-    <div v-else class="max-w-[1600px] mx-auto px-6 py-8">
+    <div v-else class="max-w-400 mx-auto px-6 py-8">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- ========== 左侧：内容编辑区 ========== -->
         <div class="lg:col-span-2 space-y-6">
@@ -334,19 +338,26 @@ const useFirstImageAsCover = () => {
             <CardContent class="pt-6">
               <div class="space-y-4">
                 <div class="space-y-2">
-                  <Label for="title" class="text-base font-semibold">Title</Label>
+                  <Label for="title" class="text-base font-semibold">
+                    Title <span class="text-red-500">*</span>
+                  </Label>
                   <Input
                       id="title"
                       v-model="formData.title"
-                      placeholder="Enter your post title..."
+                      placeholder="Enter your post title"
                       class="text-2xl font-bold border-0 px-0 focus-visible:ring-0 placeholder:text-slate-300"
                       maxlength="255"
                   />
+                  <p class="text-xs text-slate-500">
+                    {{ formData.title.length }}/255
+                  </p>
                 </div>
 
                 <div class="space-y-2">
                   <div class="flex items-center justify-between">
-                    <Label for="slug" class="text-sm">URL Slug</Label>
+                    <Label for="slug" class="text-sm">
+                      URL Slug <span class="text-red-500">*</span>
+                    </Label>
                     <Button
                         type="button"
                         variant="ghost"
@@ -365,7 +376,7 @@ const useFirstImageAsCover = () => {
                       class="font-mono text-sm"
                   />
                   <p class="text-xs text-slate-500">
-                    Only lowercase letters, numbers, and hyphens
+                    {{ formData.slug.length }}/255 · Only lowercase letters, numbers, and hyphens
                   </p>
                 </div>
               </div>
@@ -383,13 +394,13 @@ const useFirstImageAsCover = () => {
             <CardContent>
               <Textarea
                   v-model="formData.summary"
-                  placeholder="Write a brief summary of your post..."
+                  placeholder="Write a brief summary of your post"
                   rows="4"
                   maxlength="500"
                   class="resize-none"
               />
-              <p class="text-xs text-slate-500 text-right mt-2">
-                {{ formData.summary.length }} / 500 characters
+              <p class="text-xs text-slate-500 mt-2">
+                {{ formData.summary.length }}/500
               </p>
             </CardContent>
           </Card>
@@ -399,7 +410,7 @@ const useFirstImageAsCover = () => {
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <FileText class="w-4 h-4" />
-                Content
+                Content <span class="text-red-500">*</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -410,7 +421,7 @@ const useFirstImageAsCover = () => {
                   class="font-mono text-sm resize-none"
               />
               <p class="text-xs text-slate-500 mt-2">
-                Markdown formatting is supported
+                {{ formData.content.length }} characters
               </p>
             </CardContent>
           </Card>
@@ -429,7 +440,9 @@ const useFirstImageAsCover = () => {
             <CardContent class="space-y-4">
               <!-- 状态 -->
               <div class="space-y-2">
-                <Label for="status">Status</Label>
+                <Label for="status">
+                  Status <span class="text-red-500">*</span>
+                </Label>
                 <Select
                     :model-value="formData.status.toString()"
                     @update:model-value="(val) => formData.status = Number(val)"
@@ -465,7 +478,7 @@ const useFirstImageAsCover = () => {
                     class="text-sm font-normal cursor-pointer flex items-center gap-2"
                 >
                   <Pin class="w-4 h-4" />
-                  Pin to top
+                  Pin to top <span class="text-red-500">*</span>
                 </Label>
               </div>
             </CardContent>
@@ -485,6 +498,9 @@ const useFirstImageAsCover = () => {
                   placeholder="https://example.com/image.jpg"
                   maxlength="255"
               />
+              <p class="text-xs text-slate-500">
+                {{ formData.coverImage.length }}/255
+              </p>
               <Button
                   type="button"
                   variant="outline"
@@ -506,9 +522,6 @@ const useFirstImageAsCover = () => {
                     @error="(e) => (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect fill=\'%23f1f5f9\' width=\'100\' height=\'100\'/%3E%3Ctext fill=\'%2394a3b8\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3ENo Image%3C/text%3E%3C/svg%3E'"
                 />
               </div>
-              <p class="text-xs text-slate-500">
-                Enter the URL of your cover image
-              </p>
             </CardContent>
           </Card>
 
@@ -526,21 +539,6 @@ const useFirstImageAsCover = () => {
                   v-model:selected-ids="formData.tagIds"
                   @tag-created="handleTagCreated"
               />
-            </CardContent>
-          </Card>
-
-          <!-- 提示信息 -->
-          <Card class="border-slate-200 bg-blue-50/50">
-            <CardContent class="pt-6">
-              <div class="space-y-2 text-sm text-slate-600">
-                <p class="font-medium text-slate-900">💡 Tips</p>
-                <ul class="space-y-1 text-xs">
-                  <li>• Use Markdown for rich text formatting</li>
-                  <li>• Keep your slug URL-friendly</li>
-                  <li>• Add relevant tags for better organization</li>
-                  <li>• Save as draft to preview before publishing</li>
-                </ul>
-              </div>
             </CardContent>
           </Card>
         </div>

@@ -162,7 +162,7 @@ watch(popoverOpen, (open) => {
 <template>
   <div class="space-y-2">
     <!-- 已选标签展示 -->
-    <div class="flex flex-wrap gap-2 min-h-[32px]">
+    <div class="flex flex-wrap gap-2 min-h-8">
       <Badge
           v-for="tag in selectedTags"
           :key="tag.id"

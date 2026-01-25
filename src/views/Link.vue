@@ -160,7 +160,7 @@ const openCreateDialog = () => {
     url: '',
     avatar: '',
     description: '',
-    status: 1,
+    status: 0,
   };
   dialogVisible.value = true;
 };
@@ -384,8 +384,8 @@ const formatDate = (dateString: string) => {
       <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <Globe class="h-4 w-4 text-emerald-600" />
+          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
+            <LinkIcon class="h-4 w-4 text-teal-600" />
           </div>
         </CardHeader>
         <CardContent>
@@ -414,12 +414,12 @@ const formatDate = (dateString: string) => {
         <div class="flex items-center justify-between">
           <div>
             <CardTitle class="text-lg font-bold text-slate-800">All Links</CardTitle>
-            <CardDescription class="mt-1">Manage your friendship links</CardDescription>
+            <CardDescription class="mt-1">Manage your blog's friendship links</CardDescription>
           </div>
           <div class="flex items-center gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="(value) => handleStatusFilterChange(value as string)">
-              <SelectTrigger class="w-[140px] h-9 bg-slate-50 border-slate-200">
+              <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -450,7 +450,7 @@ const formatDate = (dateString: string) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-[60px] pl-6">ID</TableHead>
+              <TableHead class="w-15 pl-6">ID</TableHead>
               <TableHead class="w-[40%]">Info</TableHead>
               <TableHead class="w-[20%]">Description</TableHead>
               <TableHead>Status</TableHead>
@@ -474,7 +474,7 @@ const formatDate = (dateString: string) => {
               <!-- 名称和URL合并列 -->
               <TableCell>
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
                     <img
                         v-if="link.avatar"
                         :src="link.avatar"
@@ -491,8 +491,8 @@ const formatDate = (dateString: string) => {
                         target="_blank"
                         class="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 hover:underline group"
                     >
-                      <span class="truncate max-w-[250px]">{{ link.url }}</span>
-                      <ExternalLink class="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <span class="truncate max-w-62.5">{{ link.url }}</span>
+                      <ExternalLink class="w-3 h-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
                   </div>
                 </div>
@@ -500,7 +500,7 @@ const formatDate = (dateString: string) => {
 
               <!-- 描述列 -->
               <TableCell>
-                  <span class="text-sm text-slate-600 truncate block max-w-[200px]" :title="link.description">
+                  <span class="text-sm text-slate-600 truncate block max-w-50" :title="link.description">
                     {{ link.description || '-' }}
                   </span>
               </TableCell>
@@ -558,7 +558,7 @@ const formatDate = (dateString: string) => {
                     {{ searchKeyword || statusFilter !== undefined ? 'No links found' : 'No links yet' }}
                   </p>
                   <p class="text-xs mt-1">
-                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first friendship link' }}
+                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first link to get started' }}
                   </p>
                 </div>
               </TableCell>
@@ -591,7 +591,7 @@ const formatDate = (dateString: string) => {
 
     <!-- ========== 创建/编辑对话框 ========== -->
     <Dialog v-model:open="dialogVisible">
-      <DialogContent class="sm:max-w-[500px]">
+      <DialogContent class="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>{{ dialogMode === 'create' ? 'Create New Link' : 'Edit Link' }}</DialogTitle>
           <DialogDescription>
@@ -608,12 +608,12 @@ const formatDate = (dateString: string) => {
             <Input
                 id="link-name"
                 v-model="formData.name"
-                placeholder="Enter link name (max 100 characters)"
+                placeholder="Enter the link name"
                 maxlength="100"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.name.length }}/100 characters
+              {{ formData.name.length }}/100
             </p>
           </div>
 
@@ -630,7 +630,7 @@ const formatDate = (dateString: string) => {
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.url.length }}/255 characters
+              {{ formData.url.length }}/255
             </p>
           </div>
 
@@ -645,7 +645,7 @@ const formatDate = (dateString: string) => {
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.avatar.length }}/255 characters
+              {{ formData.avatar.length }}/255
             </p>
           </div>
 
@@ -655,13 +655,13 @@ const formatDate = (dateString: string) => {
             <Textarea
                 id="link-description"
                 v-model="formData.description"
-                placeholder="Enter a brief description (max 255 characters)"
+                placeholder="Enter a brief description"
                 maxlength="255"
                 rows="3"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.description.length }}/255 characters
+              {{ formData.description.length }}/255
             </p>
           </div>
 
