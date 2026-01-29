@@ -66,7 +66,7 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Failed to initialize editor:', error);
-    toast.error('Failed to load editor');
+    toast.error('加载编辑器失败');
   } finally {
     loading.value = false;
   }
@@ -82,7 +82,7 @@ const fetchTags = async () => {
     allTags.value = await getAdminTagListApi();
   } catch (error) {
     console.error('Failed to fetch tags:', error);
-    toast.error('Failed to load tags');
+    toast.error('加载标签列表失败');
   }
 };
 
@@ -104,7 +104,7 @@ const loadPost = async () => {
     };
   } catch (error) {
     console.error('Failed to load post:', error);
-    toast.error('Failed to load post');
+    toast.error('加载文章失败');
     await router.push('/posts');
   }
 };
@@ -114,43 +114,43 @@ const loadPost = async () => {
  */
 const validateForm = (): boolean => {
   if (!formData.value.title.trim()) {
-    toast.warning('Please enter post title');
+    toast.warning('请输入文章标题');
     return false;
   }
 
   if (formData.value.title.length > 255) {
-    toast.warning('Title is too long (max 255 characters)');
+    toast.warning('标题过长（最多255个字符）');
     return false;
   }
 
   if (!formData.value.slug.trim()) {
-    toast.warning('Please enter post slug');
+    toast.warning('请输入文章 Slug');
     return false;
   }
 
   const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   if (!slugPattern.test(formData.value.slug)) {
-    toast.warning('Slug must be lowercase letters, numbers, and hyphens only');
+    toast.warning('Slug 只能包含小写字母、数字和连字符');
     return false;
   }
 
   if (formData.value.slug.length > 255) {
-    toast.warning('Slug is too long (max 255 characters)');
+    toast.warning('Slug 过长（最多255个字符）');
     return false;
   }
 
   if (!formData.value.content.trim()) {
-    toast.warning('Please enter post content');
+    toast.warning('请输入文章内容');
     return false;
   }
 
   if (formData.value.summary && formData.value.summary.length > 500) {
-    toast.warning('Summary is too long (max 500 characters)');
+    toast.warning('摘要过长（最多500个字符）');
     return false;
   }
 
   if (formData.value.coverImage && formData.value.coverImage.length > 255) {
-    toast.warning('Cover image URL is too long (max 255 characters)');
+    toast.warning('封面图片链接过长（最多255个字符）');
     return false;
   }
 
@@ -178,7 +178,7 @@ const handleSave = async () => {
         tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : undefined,
       };
       await updatePostApi(postId.value, request);
-      toast.success('Post updated successfully');
+      toast.success('文章更新成功');
     } else {
       const request: PostCreateRequest = {
         title: formData.value.title.trim(),
@@ -191,7 +191,7 @@ const handleSave = async () => {
         tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : undefined,
       };
       await createPostApi(request);
-      toast.success('Post created successfully');
+      toast.success('文章创建成功');
     }
 
     // 标记统计数据已失效，让 Post 页面进入时自动刷新
@@ -201,7 +201,7 @@ const handleSave = async () => {
     await router.push('/posts');
   } catch (error) {
     console.error('Failed to save post:', error);
-    toast.error('Failed to save post');
+    toast.error('保存文章失败');
   } finally {
     saving.value = false;
   }
@@ -272,9 +272,9 @@ const useFirstImageAsCover = () => {
   const imageUrl = extractFirstImage(formData.value.content);
   if (imageUrl) {
     formData.value.coverImage = imageUrl;
-    toast.success('Cover image set from content');
+    toast.success('已从内容中提取封面图片');
   } else {
-    toast.warning('No image found in content');
+    toast.warning('内容中未找到图片');
   }
 };
 </script>

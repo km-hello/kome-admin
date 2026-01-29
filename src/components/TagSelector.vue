@@ -113,7 +113,7 @@ const createTag = async () => {
   creating.value = true;
   try {
     const newTag = await createTagApi({ name: tagName });
-    toast.success(`Tag "${tagName}" created`);
+    toast.success(`标签 "${tagName}" 创建成功`);
 
     // 标记统计数据已失效，让其他页面在进入时自动刷新
     siteStore.invalidateStats();
@@ -129,7 +129,7 @@ const createTag = async () => {
     searchQuery.value = '';
   } catch (error) {
     console.error('Failed to create tag:', error);
-    toast.error('Failed to create tag');
+    toast.error('创建标签失败');
   } finally {
     creating.value = false;
   }

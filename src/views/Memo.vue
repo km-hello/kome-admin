@@ -181,12 +181,12 @@ const openEditDialog = (memo: MemoResponse) => {
  */
 const validateForm = (): boolean => {
   if (!formData.value.content.trim()) {
-    toast.warning('请输入备忘录内容');
+    toast.warning('请输入Memo内容');
     return false;
   }
 
   if (formData.value.content.length > 2147483647) {
-    toast.warning('备忘录内容过长');
+    toast.warning('Memo内容过长');
     return false;
   }
 
@@ -209,7 +209,7 @@ const handleSubmit = async () => {
         status: formData.value.status,
       };
       await createMemoApi(request);
-      toast.success('备忘录创建成功');
+      toast.success('Memo创建成功');
     } else {
       const request: MemoUpdateRequest = {
         content: formData.value.content.trim(),
@@ -217,7 +217,7 @@ const handleSubmit = async () => {
         status: formData.value.status,
       };
       await updateMemoApi(formData.value.id, request);
-      toast.success('备忘录更新成功');
+      toast.success('Memo更新成功');
     }
 
     dialogVisible.value = false;
@@ -252,7 +252,7 @@ const handleDelete = async () => {
 
   try {
     await deleteMemoApi(deleteTarget.value.id);
-    toast.success('备忘录删除成功');
+    toast.success('Memo删除成功');
     deleteDialogVisible.value = false;
 
     // 如果当前页没有数据了，回到上一页
