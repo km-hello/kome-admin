@@ -58,7 +58,7 @@ const handleLogout = async () => {
       </div>
 
       <!-- 导航菜单 -->
-      <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">
+      <nav class="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
         <!-- Overview 分组 -->
         <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Overview
@@ -161,7 +161,7 @@ const handleLogout = async () => {
         </div>
       </header>
 
-      <div class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-8">
+      <div class="flex-1 overflow-y-auto scrollbar-thin p-6 lg:p-8">
         <div class="max-w-7xl mx-auto">
           <router-view />
         </div>
@@ -169,17 +169,3 @@ const handleLogout = async () => {
     </main>
   </div>
 </template>
-
-<style scoped>
-.custom-scroll::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-.custom-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scroll::-webkit-scrollbar-thumb {
-  background-color: rgb(226 232 240);
-  border-radius: 4px;
-}
-</style>
