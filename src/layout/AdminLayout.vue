@@ -31,9 +31,8 @@ import {
 } from 'lucide-vue-next';
 
 // 布局子组件
-import Sidebar from '@/components/layout/Sidebar.vue';
+import Sidebar, { type NavGroup } from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
-import type { NavGroup } from '@/components/layout/SidebarNav.vue';
 
 const router = useRouter();
 const userStore = useUserStore();
