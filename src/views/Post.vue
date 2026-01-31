@@ -10,7 +10,9 @@ import {
   type PostSimpleResponse,
 } from '@/api/post';
 import { getAdminTagListApi, type TagResponse } from '@/api/tag';
-import Pagination from '@/components/Pagination.vue';
+import Pagination from '@/components/common/Pagination.vue';
+import PageHeader from '@/components/common/PageHeader.vue';
+import StatsCard from '@/components/common/StatsCard.vue';
 
 // 图标
 import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Eye, Calendar, Globe, FileEdit } from 'lucide-vue-next';
@@ -261,57 +263,41 @@ const truncateText = (text: string, maxLength: number = 60) => {
 <template>
   <div class="space-y-6">
     <!-- ========== 页面标题 ========== -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-3xl font-bold font-serif tracking-tight text-slate-800">Posts</h2>
-        <p class="text-slate-500 mt-1">Manage your blog articles and content</p>
-      </div>
-      <Button @click="goToCreate" class="bg-slate-900 hover:bg-slate-800 gap-2">
-        <Plus class="w-4 h-4" />
-        New Post
-      </Button>
-    </div>
+    <PageHeader title="Posts" description="Manage your blog articles and content">
+      <template #actions>
+        <Button @click="goToCreate" class="bg-slate-900 hover:bg-slate-800 gap-2">
+          <Plus class="w-4 h-4" />
+          New Post
+        </Button>
+      </template>
+    </PageHeader>
 
     <!-- ========== 统计卡片 ========== -->
     <div class="grid gap-4 md:grid-cols-3">
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Posts</CardTitle>
-          <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-blue-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalPosts }}</div>
-          <p class="text-xs text-slate-400 mt-1">All articles</p>
-        </CardContent>
-      </Card>
-
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
-          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-teal-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.publishedPostCount }}</div>
-          <p class="text-xs text-slate-400 mt-1">Live on site</p>
-        </CardContent>
-      </Card>
-
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Drafts</CardTitle>
-          <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-slate-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.draftPostCount }}</div>
-          <p class="text-xs text-slate-400 mt-1">Work in progress</p>
-        </CardContent>
-      </Card>
+      <StatsCard
+          title="Total Posts"
+          :value="siteStore.totalPosts"
+          description="All articles"
+          :icon="FileText"
+          icon-bg-class="bg-blue-50"
+          icon-class="text-blue-600"
+      />
+      <StatsCard
+          title="Published"
+          :value="siteStore.stats.publishedPostCount"
+          description="Live on site"
+          :icon="FileText"
+          icon-bg-class="bg-teal-50"
+          icon-class="text-teal-600"
+      />
+      <StatsCard
+          title="Drafts"
+          :value="siteStore.stats.draftPostCount"
+          description="Work in progress"
+          :icon="FileText"
+          icon-bg-class="bg-slate-50"
+          icon-class="text-slate-600"
+      />
     </div>
 
     <!-- ========== 文章列表 ========== -->

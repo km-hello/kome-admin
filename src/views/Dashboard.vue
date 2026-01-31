@@ -19,6 +19,10 @@ import {
   Loader2,
 } from 'lucide-vue-next';
 
+// 通用组件
+import PageHeader from '@/components/common/PageHeader.vue';
+import StatsCard from '@/components/common/StatsCard.vue';
+
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -126,80 +130,64 @@ const truncateText = (text: string, maxLength: number) => {
 <template>
   <div class="space-y-6">
     <!-- ========== 页面标题 ========== -->
-    <div>
-      <h2 class="text-3xl font-bold font-serif tracking-tight text-slate-800">Dashboard</h2>
-      <p class="text-slate-500 mt-1">Welcome back! Here's an overview of your blog.</p>
-    </div>
+    <PageHeader
+        title="Dashboard"
+        description="Welcome back! Here's an overview of your blog."
+    />
 
     <!-- ========== 统计卡片网格 ========== -->
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <!-- 文章统计 -->
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Posts</CardTitle>
-          <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <FileText class="h-4 w-4 text-blue-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalPosts }}</div>
-          <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-            <span>Published: <span class="font-semibold text-blue-600">{{ siteStore.stats.publishedPostCount }}</span></span>
-            <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftPostCount }}</span></span>
-          </div>
-        </CardContent>
-      </Card>
+      <StatsCard
+          title="Total Posts"
+          :value="siteStore.totalPosts"
+          :icon="FileText"
+          icon-bg-class="bg-blue-50"
+          icon-class="text-blue-600"
+      >
+        <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
+          <span>Published: <span class="font-semibold text-blue-600">{{ siteStore.stats.publishedPostCount }}</span></span>
+          <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftPostCount }}</span></span>
+        </div>
+      </StatsCard>
 
-      <!-- 备忘录统计 -->
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Memos</CardTitle>
-          <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-            <Activity class="h-4 w-4 text-amber-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalMemos }}</div>
-          <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-            <span>Published: <span class="font-semibold text-amber-600">{{ siteStore.stats.publishedMemoCount }}</span></span>
-            <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftMemoCount }}</span></span>
-          </div>
-        </CardContent>
-      </Card>
+      <StatsCard
+          title="Total Memos"
+          :value="siteStore.totalMemos"
+          :icon="Activity"
+          icon-bg-class="bg-amber-50"
+          icon-class="text-amber-600"
+      >
+        <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
+          <span>Published: <span class="font-semibold text-amber-600">{{ siteStore.stats.publishedMemoCount }}</span></span>
+          <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftMemoCount }}</span></span>
+        </div>
+      </StatsCard>
 
-      <!-- 标签统计 -->
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Tags</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <Hash class="h-4 w-4 text-emerald-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalTags }}</div>
-          <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-            <span>Used: <span class="font-semibold text-emerald-600">{{ siteStore.stats.usedTagCount }}</span></span>
-            <span>Unused: <span class="font-semibold text-slate-600">{{ siteStore.stats.unusedTagCount }}</span></span>
-          </div>
-        </CardContent>
-      </Card>
+      <StatsCard
+          title="Total Tags"
+          :value="siteStore.totalTags"
+          :icon="Hash"
+          icon-bg-class="bg-emerald-50"
+          icon-class="text-emerald-600"
+      >
+        <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
+          <span>Used: <span class="font-semibold text-emerald-600">{{ siteStore.stats.usedTagCount }}</span></span>
+          <span>Unused: <span class="font-semibold text-slate-600">{{ siteStore.stats.unusedTagCount }}</span></span>
+        </div>
+      </StatsCard>
 
-      <!-- 友链统计 -->
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Friend Links</CardTitle>
-          <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-            <LinkIcon class="h-4 w-4 text-purple-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalLinks }}</div>
-          <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-            <span>Published: <span class="font-semibold text-purple-600">{{ siteStore.stats.publishedLinkCount }}</span></span>
-            <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftLinkCount }}</span></span>
-          </div>
-        </CardContent>
-      </Card>
+      <StatsCard
+          title="Friend Links"
+          :value="siteStore.totalLinks"
+          :icon="LinkIcon"
+          icon-bg-class="bg-purple-50"
+          icon-class="text-purple-600"
+      >
+        <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
+          <span>Published: <span class="font-semibold text-purple-600">{{ siteStore.stats.publishedLinkCount }}</span></span>
+          <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftLinkCount }}</span></span>
+        </div>
+      </StatsCard>
     </div>
 
     <!-- ========== 内容列表区域 ========== -->

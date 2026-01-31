@@ -25,7 +25,7 @@ import {Checkbox} from '@/components/ui/checkbox';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 
 // 自定义组件
-import TagSelector from '@/components/TagSelector.vue';
+import TagSelector from '@/components/common/TagSelector.vue';
 import {useSiteStore} from "@/stores/site.ts";
 
 // ========== 路由和状态 ==========

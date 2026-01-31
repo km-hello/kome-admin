@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { Bell, ExternalLink, Sun, Settings } from 'lucide-vue-next';
-import Breadcrumb from '@/components/Breadcrumb.vue';
+import Breadcrumb from '@/components/common/Breadcrumb.vue';
 
 interface Props {
   /** 前台站点 URL */

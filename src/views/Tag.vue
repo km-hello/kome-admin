@@ -15,8 +15,10 @@ import {
 // 图标
 import { Plus, Search, Edit, Trash2, Hash, FileText, Loader2, Calendar } from 'lucide-vue-next';
 
-// 自定义组件
-import Pagination from '@/components/Pagination.vue';
+// 通用组件
+import PageHeader from '@/components/common/PageHeader.vue';
+import StatsCard from '@/components/common/StatsCard.vue';
+import Pagination from '@/components/common/Pagination.vue';
 
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -254,57 +256,41 @@ const formatDate = (dateString: string) => {
 <template>
   <div class="space-y-6">
     <!-- ========== 页面标题 ========== -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-3xl font-bold font-serif tracking-tight text-slate-800">Tags</h2>
-        <p class="text-slate-500 mt-1">Manage and organize your content tags</p>
-      </div>
-      <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
-        <Plus class="w-4 h-4" />
-        New Tag
-      </Button>
-    </div>
+    <PageHeader title="Tags" description="Manage and organize your content tags">
+      <template #actions>
+        <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
+          <Plus class="w-4 h-4" />
+          New Tag
+        </Button>
+      </template>
+    </PageHeader>
 
     <!-- ========== 统计卡片 ========== -->
     <div class="grid gap-4 md:grid-cols-3">
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Tags</CardTitle>
-          <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
-            <Hash class="h-4 w-4 text-emerald-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalTags }}</div>
-          <p class="text-xs text-slate-400 mt-1">All classification tags</p>
-        </CardContent>
-      </Card>
-
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Used Tags</CardTitle>
-          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-            <Hash class="h-4 w-4 text-teal-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.usedTagCount }}</div>
-          <p class="text-xs text-slate-400 mt-1">With published posts</p>
-        </CardContent>
-      </Card>
-
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Unused Tags</CardTitle>
-          <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
-            <Hash class="h-4 w-4 text-slate-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.unusedTagCount }}</div>
-          <p class="text-xs text-slate-400 mt-1">No published posts</p>
-        </CardContent>
-      </Card>
+      <StatsCard
+          title="Total Tags"
+          :value="siteStore.totalTags"
+          description="All classification tags"
+          :icon="Hash"
+          icon-bg-class="bg-emerald-50"
+          icon-class="text-emerald-600"
+      />
+      <StatsCard
+          title="Used Tags"
+          :value="siteStore.stats.usedTagCount"
+          description="With published posts"
+          :icon="Hash"
+          icon-bg-class="bg-teal-50"
+          icon-class="text-teal-600"
+      />
+      <StatsCard
+          title="Unused Tags"
+          :value="siteStore.stats.unusedTagCount"
+          description="No published posts"
+          :icon="Hash"
+          icon-bg-class="bg-slate-50"
+          icon-class="text-slate-600"
+      />
     </div>
 
     <!-- ========== 标签列表 ========== -->

@@ -12,7 +12,9 @@ import {
   type MemoUpdateRequest,
 } from '@/api/memo';
 
-import Pagination from '@/components/Pagination.vue';
+import Pagination from '@/components/common/Pagination.vue';
+import PageHeader from '@/components/common/PageHeader.vue';
+import StatsCard from '@/components/common/StatsCard.vue';
 
 // 图标
 import { Plus, Search, Edit, Trash2, Activity, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
@@ -327,57 +329,41 @@ const truncateText = (text: string, maxLength: number = 100) => {
 <template>
   <div class="space-y-6">
     <!-- ========== 页面标题 ========== -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-3xl font-bold font-serif tracking-tight text-slate-800">Memos</h2>
-        <p class="text-slate-500 mt-1">Manage your quick thoughts and notes</p>
-      </div>
-      <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
-        <Plus class="w-4 h-4" />
-        New Memo
-      </Button>
-    </div>
+    <PageHeader title="Memos" description="Manage your quick thoughts and notes">
+      <template #actions>
+        <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
+          <Plus class="w-4 h-4" />
+          New Memo
+        </Button>
+      </template>
+    </PageHeader>
 
     <!-- ========== 统计卡片 ========== -->
     <div class="grid gap-4 md:grid-cols-3">
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Memos</CardTitle>
-          <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-            <Activity class="h-4 w-4 text-amber-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalMemos }}</div>
-          <p class="text-xs text-slate-400 mt-1">Total quick notes</p>
-        </CardContent>
-      </Card>
-
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
-          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-            <Activity class="h-4 w-4 text-teal-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.publishedMemoCount }}</div>
-          <p class="text-xs text-slate-400 mt-1">Visible to public</p>
-        </CardContent>
-      </Card>
-
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Draft</CardTitle>
-          <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
-            <Activity class="h-4 w-4 text-slate-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.draftMemoCount }}</div>
-          <p class="text-xs text-slate-400 mt-1">Private notes</p>
-        </CardContent>
-      </Card>
+      <StatsCard
+          title="Total Memos"
+          :value="siteStore.totalMemos"
+          description="Total quick notes"
+          :icon="Activity"
+          icon-bg-class="bg-amber-50"
+          icon-class="text-amber-600"
+      />
+      <StatsCard
+          title="Published"
+          :value="siteStore.stats.publishedMemoCount"
+          description="Visible to public"
+          :icon="Activity"
+          icon-bg-class="bg-teal-50"
+          icon-class="text-teal-600"
+      />
+      <StatsCard
+          title="Draft"
+          :value="siteStore.stats.draftMemoCount"
+          description="Private notes"
+          :icon="Activity"
+          icon-bg-class="bg-slate-50"
+          icon-class="text-slate-600"
+      />
     </div>
 
     <!-- ========== 备忘录列表 ========== -->

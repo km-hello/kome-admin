@@ -12,7 +12,9 @@ import {
   type LinkUpdateRequest,
 } from '@/api/link';
 
-import Pagination from '@/components/Pagination.vue';
+import Pagination from '@/components/common/Pagination.vue';
+import PageHeader from '@/components/common/PageHeader.vue';
+import StatsCard from '@/components/common/StatsCard.vue';
 
 // 图标
 import { Plus, Search, Edit, Trash2, Link as LinkIcon, ExternalLink, Image, Loader2, Globe, Calendar, FileEdit } from 'lucide-vue-next';
@@ -355,57 +357,41 @@ const formatDate = (dateString: string) => {
 <template>
   <div class="space-y-6">
     <!-- ========== 页面标题 ========== -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-3xl font-bold font-serif tracking-tight text-slate-800">Friend Links</h2>
-        <p class="text-slate-500 mt-1">Manage your blog's friendship links</p>
-      </div>
-      <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
-        <Plus class="w-4 h-4" />
-        New Link
-      </Button>
-    </div>
+    <PageHeader title="Friend Links" description="Manage your blog's friendship links">
+      <template #actions>
+        <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
+          <Plus class="w-4 h-4" />
+          New Link
+        </Button>
+      </template>
+    </PageHeader>
 
     <!-- ========== 统计卡片 ========== -->
     <div class="grid gap-4 md:grid-cols-3">
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Total Links</CardTitle>
-          <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-            <LinkIcon class="h-4 w-4 text-purple-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.totalLinks }}</div>
-          <p class="text-xs text-slate-400 mt-1">Total friendship links</p>
-        </CardContent>
-      </Card>
-
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Published</CardTitle>
-          <div class="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
-            <LinkIcon class="h-4 w-4 text-teal-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.publishedLinkCount }}</div>
-          <p class="text-xs text-slate-400 mt-1">Active on website</p>
-        </CardContent>
-      </Card>
-
-      <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium text-slate-600">Draft</CardTitle>
-          <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
-            <LinkIcon class="h-4 w-4 text-slate-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold text-slate-900">{{ siteStore.stats.draftLinkCount }}</div>
-          <p class="text-xs text-slate-400 mt-1">Pending links</p>
-        </CardContent>
-      </Card>
+      <StatsCard
+          title="Total Links"
+          :value="siteStore.totalLinks"
+          description="Total friendship links"
+          :icon="LinkIcon"
+          icon-bg-class="bg-purple-50"
+          icon-class="text-purple-600"
+      />
+      <StatsCard
+          title="Published"
+          :value="siteStore.stats.publishedLinkCount"
+          description="Active on website"
+          :icon="LinkIcon"
+          icon-bg-class="bg-teal-50"
+          icon-class="text-teal-600"
+      />
+      <StatsCard
+          title="Draft"
+          :value="siteStore.stats.draftLinkCount"
+          description="Pending links"
+          :icon="LinkIcon"
+          icon-bg-class="bg-slate-50"
+          icon-class="text-slate-600"
+      />
     </div>
 
     <!-- ========== 友链列表 ========== -->
