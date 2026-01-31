@@ -26,6 +26,9 @@ import {
   FileText,
 } from 'lucide-vue-next';
 
+// 通用组件
+import PageHeader from '@/components/common/PageHeader.vue';
+
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -285,10 +288,10 @@ const resetProfileForm = () => {
 <template>
   <div class="space-y-6">
     <!-- ========== 页面标题 ========== -->
-    <div>
-      <h2 class="text-3xl font-bold font-serif tracking-tight text-slate-800">Settings</h2>
-      <p class="text-slate-500 mt-1">Manage your account settings and preferences</p>
-    </div>
+    <PageHeader
+        title="Settings"
+        description="Manage your account settings and preferences"
+    />
 
     <!-- 加载状态 -->
     <div v-if="loading" class="flex items-center justify-center py-20">

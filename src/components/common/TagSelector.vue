@@ -2,8 +2,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue';
 import { toast } from 'vue-sonner';
-import { createTagApi, type TagResponse } from '@/api/tag';
-import { useSiteStore } from '@/stores/site';
+import { createTagApi, type TagResponse } from '@/api/tag.ts';
+import { useSiteStore } from '@/stores/site.ts';
 
 // 图标
 import { X, Plus, Search, Check, Loader2 } from 'lucide-vue-next';
