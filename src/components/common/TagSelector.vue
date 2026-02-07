@@ -212,7 +212,7 @@ watch(popoverOpen, (open) => {
           </div>
 
           <!-- 标签列表 -->
-          <div class="max-h-48 overflow-y-auto p-1">
+          <div class="max-h-48 overflow-y-auto scrollbar-thin p-1">
             <!-- 无匹配结果 -->
             <div
                 v-if="filteredTags.length === 0 && !showCreateOption"
