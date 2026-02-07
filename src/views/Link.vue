@@ -585,7 +585,7 @@ const formatDate = (dateString: string) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div class="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+        <div class="space-y-4 py-4 max-h-[60vh] overflow-y-auto scrollbar-thin">
           <!-- 名称 -->
           <div class="space-y-2">
             <Label htmlFor="link-name">
