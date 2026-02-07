@@ -117,6 +117,23 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(226 232 240) transparent;
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: rgb(226 232 240);
+      border-radius: 4px;
+    }
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: rgb(203 213 225);
+    }
+  }
 }
 
 /* 滚动条样式 */
@@ -132,6 +149,9 @@
     &::-webkit-scrollbar-thumb {
       background-color: rgb(226 232 240);
       border-radius: 4px;
+    }
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: rgb(203 213 225);
     }
     /* Firefox 支持 */
     scrollbar-width: thin;
