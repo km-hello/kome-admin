@@ -1,13 +1,42 @@
+/* ================================================================
+   kome-admin 全局样式
+   ================================================================
+   结构：
+   1. 外部依赖导入（Tailwind、tw-animate-css）
+   2. shadcn-vue 设计令牌（@custom-variant、@theme inline、:root、.dark）
+   3. 全局基础样式（@layer base）
+   4. 工具类（@layer utilities）
+   ================================================================ */
+
+/* ---------- 1. 外部依赖导入 ---------- */
+
+/* Tailwind CSS v4 核心 */
 @import "tailwindcss";
+
+/* shadcn-vue 动画库，为 Dialog、Popover 等组件提供进出场动画 */
 @import "tw-animate-css";
 
+/* ---------- 2. shadcn-vue 设计令牌 ---------- */
+
+/*
+ * 暗色模式变体定义
+ * 让 Tailwind 的 dark: 前缀在 <html class="dark"> 时生效
+ */
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * @theme inline — 将 CSS 变量注册为 Tailwind 主题值
+ * 这样就可以在模板中使用 bg-background、text-primary 等 class
+ * 变量的实际值在下方 :root / .dark 中定义
+ */
 @theme inline {
+  /* 圆角系统：基于 --radius 基准值派生 */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* 语义颜色映射 */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -26,11 +55,15 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* 图表颜色（供 Chart 组件使用） */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  /* 侧边栏颜色（供 Sidebar 组件使用） */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -41,6 +74,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* 亮色主题变量值 */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -76,6 +110,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* 暗色主题变量值（<html class="dark"> 时激活） */
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -110,17 +145,47 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ---------- 3. 全局基础样式 ---------- */
+
 @layer base {
+  /* 统一所有元素的默认边框和轮廓颜色（跟随主题变量） */
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* 页面背景和文字颜色（跟随主题变量，支持暗色切换） */
   body {
     @apply bg-background text-foreground;
   }
+
+  /* 全局页面滚动条：细窄风格 */
+  html {
+    scrollbar-width: thin;                             /* Firefox */
+    scrollbar-color: rgb(226 232 240) transparent;     /* Firefox：滑块色 / 轨道色 */
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: rgb(226 232 240);  /* slate-200 */
+      border-radius: 4px;
+    }
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: rgb(203 213 225);  /* slate-300，hover 加深 */
+    }
+  }
 }
 
-/* 滚动条样式 */
+/* ---------- 4. 工具类 ---------- */
+
 @layer utilities {
+  /*
+   * .scrollbar-thin — 局部细滚动条
+   * 用于侧边栏、表格等需要独立滚动的容器
+   * 同时兼容 Webkit（Chrome/Safari/Edge）和 Firefox
+   */
   .scrollbar-thin {
     &::-webkit-scrollbar {
       width: 4px;
@@ -133,7 +198,9 @@
       background-color: rgb(226 232 240);
       border-radius: 4px;
     }
-    /* Firefox 支持 */
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: rgb(203 213 225);
+    }
     scrollbar-width: thin;
     scrollbar-color: rgb(226 232 240) transparent;
   }
