@@ -64,7 +64,7 @@ const defaultAvatar = computed(() =>
     <!-- ========== Logo 区域 ========== -->
     <div class="h-16 flex items-center px-6 border-b border-border/50 shrink-0">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white text-sm font-serif font-bold shadow-md">
+        <div class="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-md">
           K
         </div>
         <div class="flex flex-col">
