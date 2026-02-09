@@ -301,7 +301,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
     </div>
 
     <!-- ========== 文章列表 ========== -->
-    <Card class="border-slate-200 shadow-sm">
+    <Card>
       <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex items-center justify-between">
           <div>
