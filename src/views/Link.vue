@@ -395,7 +395,7 @@ const formatDate = (dateString: string) => {
     </div>
 
     <!-- ========== 友链列表 ========== -->
-    <Card class="border-slate-200 shadow-sm">
+    <Card>
       <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex items-center justify-between">
           <div>

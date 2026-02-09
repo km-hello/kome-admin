@@ -77,7 +77,7 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="flex h-screen w-full overflow-hidden bg-slate-50">
+  <div class="flex h-screen w-full overflow-hidden bg-background">
     <!-- 侧边栏 -->
     <Sidebar
         :nav-groups="navGroups"

@@ -31,7 +31,7 @@ const router = useRouter();
 </script>
 
 <template>
-  <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 flex items-center justify-between shrink-0 z-10">
+  <header class="h-16 bg-white/80 backdrop-blur-md border-b px-6 flex items-center justify-between shrink-0 z-10">
     <!-- 左侧：面包屑导航 -->
     <Breadcrumb />
 

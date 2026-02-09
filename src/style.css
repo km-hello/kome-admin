@@ -77,7 +77,7 @@
 /* 亮色主题变量值 */
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: oklch(0.965 0.003 261.0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -181,6 +181,22 @@
 /* ---------- 4. 工具类 ---------- */
 
 @layer utilities {
+  /*
+   * .bento-card — 卡片容器通用样式
+   * 白底圆角 + 微弱边框和阴影，hover 时边框加深、阴影扩散
+   * 对齐 kome-blog 前台的卡片视觉风格
+   */
+  .bento-card {
+    @apply bg-white rounded-xl transition-all;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.12);
+      box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+  }
+
   /*
    * .scrollbar-thin — 局部细滚动条
    * 用于侧边栏、表格等需要独立滚动的容器

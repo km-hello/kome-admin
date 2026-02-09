@@ -302,7 +302,7 @@ const resetProfileForm = () => {
       <!-- ========== 左侧：设置表单 ========== -->
       <div class="lg:col-span-2 space-y-6">
         <!-- 个人资料设置 -->
-        <Card class="border-slate-200">
+        <Card>
           <CardHeader class="border-b border-slate-100">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -427,7 +427,7 @@ const resetProfileForm = () => {
         </Card>
 
         <!-- 密码设置 -->
-        <Card class="border-slate-200">
+        <Card>
           <CardHeader class="border-b border-slate-100">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
@@ -549,7 +549,7 @@ const resetProfileForm = () => {
 
       <!-- ========== 右侧：用户头像卡片 ========== -->
       <div class="lg:col-span-1">
-        <Card class="border-slate-200 lg:sticky lg:top-6">
+        <Card class="lg:sticky lg:top-6">
           <CardContent class="pt-6">
             <div class="flex flex-col items-center text-center">
               <!-- 头像 -->

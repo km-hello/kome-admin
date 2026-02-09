@@ -78,18 +78,18 @@ const handleLogin = async (): Promise<void> => {
 </script>
 
 <template>
-  <div class="h-screen w-full flex items-center justify-center bg-slate-50 relative overflow-hidden">
+  <div class="h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
     <!-- 装饰背景 -->
     <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] bg-size-[32px_32px] opacity-60"></div>
 
     <!-- 登录卡片 -->
-    <Card class="w-full max-w-md shadow-xl z-10 border-slate-200/60 bg-white/95 backdrop-blur-sm">
+    <Card class="w-full max-w-md shadow-xl z-10 bg-white/95 backdrop-blur-sm">
       <CardHeader class="text-center space-y-2 pb-4 mt-2">
         <!-- Logo -->
-        <div class="mx-auto w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center text-white font-serif font-bold text-2xl mb-2 shadow-lg">
+        <div class="mx-auto w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-2 shadow-lg">
           K
         </div>
-        <CardTitle class="text-2xl font-bold font-serif text-slate-800">Welcome Back</CardTitle>
+        <CardTitle class="text-2xl font-bold text-slate-800">Welcome Back</CardTitle>
         <CardDescription class="text-slate-500">Sign in to manage your blog system</CardDescription>
       </CardHeader>
 

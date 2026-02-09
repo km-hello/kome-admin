@@ -29,7 +29,7 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <Card class="border-slate-200 hover:shadow-md transition-all duration-300">
+  <Card>
     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle class="text-sm font-medium text-slate-600">{{ title }}</CardTitle>
       <div

@@ -280,7 +280,7 @@ const useFirstImageAsCover = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50">
+  <div class="min-h-screen bg-background">
     <!-- ========== 顶部操作栏 ========== -->
     <div class="bg-white border-b border-slate-200 sticky top-0 z-10">
       <div class="max-w-400 mx-auto px-6 py-4">
@@ -334,7 +334,7 @@ const useFirstImageAsCover = () => {
         <!-- ========== 左侧：内容编辑区 ========== -->
         <div class="lg:col-span-2 space-y-6">
           <!-- 标题 -->
-          <Card class="border-slate-200">
+          <Card>
             <CardContent class="pt-6">
               <div class="space-y-4">
                 <div class="space-y-2">
@@ -384,7 +384,7 @@ const useFirstImageAsCover = () => {
           </Card>
 
           <!-- 摘要 -->
-          <Card class="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <FileText class="w-4 h-4" />
@@ -406,7 +406,7 @@ const useFirstImageAsCover = () => {
           </Card>
 
           <!-- 内容 -->
-          <Card class="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <FileText class="w-4 h-4" />
@@ -430,7 +430,7 @@ const useFirstImageAsCover = () => {
         <!-- ========== 右侧：设置区 ========== -->
         <div class="space-y-6">
           <!-- 发布设置 -->
-          <Card class="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <Eye class="w-4 h-4" />
@@ -485,7 +485,7 @@ const useFirstImageAsCover = () => {
           </Card>
 
           <!-- 封面图片 -->
-          <Card class="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <ImageIcon class="w-4 h-4" />
@@ -526,7 +526,7 @@ const useFirstImageAsCover = () => {
           </Card>
 
           <!-- 标签 -->
-          <Card class="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <TagIcon class="w-4 h-4" />

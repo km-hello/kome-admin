@@ -60,11 +60,11 @@ const defaultAvatar = computed(() =>
 </script>
 
 <template>
-  <aside class="w-64 bg-white h-full border-r border-slate-200 flex-col hidden md:flex shrink-0">
+  <aside class="w-64 bg-white h-full border-r flex-col hidden md:flex shrink-0">
     <!-- ========== Logo 区域 ========== -->
-    <div class="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
+    <div class="h-16 flex items-center px-6 border-b border-border/50 shrink-0">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white text-sm font-serif font-bold shadow-md">
+        <div class="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-md">
           K
         </div>
         <div class="flex flex-col">
@@ -101,7 +101,7 @@ const defaultAvatar = computed(() =>
     </nav>
 
     <!-- ========== 用户信息卡片 ========== -->
-    <div class="p-4 border-t border-slate-100 shrink-0">
+    <div class="p-4 border-t border-border/50 shrink-0">
       <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
         <img
             :src="userAvatar || defaultAvatar"

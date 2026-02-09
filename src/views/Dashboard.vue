@@ -193,7 +193,7 @@ const truncateText = (text: string, maxLength: number) => {
     <!-- ========== 内容列表区域 ========== -->
     <div class="grid gap-6 lg:grid-cols-2">
       <!-- 最近文章 -->
-      <Card class="border-slate-200 shadow-sm">
+      <Card>
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
             <CardTitle class="text-lg font-bold text-slate-800">Recent Posts</CardTitle>
@@ -291,7 +291,7 @@ const truncateText = (text: string, maxLength: number) => {
       </Card>
 
       <!-- 最近备忘录 -->
-      <Card class="border-slate-200 shadow-sm">
+      <Card>
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
             <CardTitle class="text-lg font-bold text-slate-800">Recent Memos</CardTitle>
