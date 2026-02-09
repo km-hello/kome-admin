@@ -282,15 +282,15 @@ const useFirstImageAsCover = () => {
 <template>
   <div class="min-h-screen bg-background">
     <!-- ========== 顶部操作栏 ========== -->
-    <div class="bg-white border-b border-slate-200 sticky top-0 z-10">
-      <div class="max-w-400 mx-auto px-6 py-4">
+    <div class="sticky top-0 z-10 px-6 pt-4">
+      <div class="max-w-400 mx-auto bg-white/95 backdrop-blur-sm border border-slate-100 rounded-xl shadow-xs px-6 py-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
             <Button
                 variant="ghost"
                 size="sm"
                 @click="handleBack"
-                class="gap-2"
+                class="gap-2 rounded-lg hover:bg-slate-100"
             >
               <ArrowLeft class="w-4 h-4" />
               Back
@@ -303,7 +303,7 @@ const useFirstImageAsCover = () => {
 
           <div class="flex items-center gap-3">
             <div
-                class="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md bg-slate-100"
+                class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50"
                 :class="getStatusConfig(formData.status).class"
             >
               <component :is="getStatusConfig(formData.status).icon" class="w-3 h-3" />
@@ -312,7 +312,7 @@ const useFirstImageAsCover = () => {
             <Button
                 @click="handleSave"
                 :disabled="saving || loading"
-                class="bg-slate-900 hover:bg-slate-800 gap-2"
+                class="bg-slate-900 hover:bg-slate-800 rounded-lg gap-2"
             >
               <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
               <Save v-else class="w-4 h-4" />
