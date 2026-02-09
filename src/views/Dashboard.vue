@@ -252,9 +252,14 @@ const formatDate = (dateString: string) => {
 
                 <!-- 标题列 -->
                 <TableCell>
-                  <span class="block font-semibold text-slate-900 truncate" :title="post.title">
-                    {{ post.title }}
-                  </span>
+                  <div class="flex flex-col gap-1">
+                    <span class="block font-semibold text-slate-900 truncate" :title="post.title">
+                      {{ post.title }}
+                    </span>
+                    <span class="block text-xs text-slate-400 font-mono truncate" :title="post.slug">
+                      /{{ post.slug }}
+                    </span>
+                  </div>
                 </TableCell>
 
                 <!-- 状态列 -->
