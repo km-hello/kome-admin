@@ -441,8 +441,8 @@ const formatDate = (dateString: string) => {
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
               <SortableHead class="w-15 pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
-              <SortableHead class="w-[40%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">Info</SortableHead>
-              <TableHead class="w-[20%]">Description</TableHead>
+              <SortableHead class="w-[30%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">Info</SortableHead>
+              <TableHead class="w-[30%]">Description</TableHead>
               <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
               <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
               <TableHead class="text-right pr-6">Actions</TableHead>
@@ -490,7 +490,7 @@ const formatDate = (dateString: string) => {
 
               <!-- 描述列 -->
               <TableCell>
-                  <span class="text-sm text-slate-600 truncate block max-w-50" :title="link.description">
+                  <span class="text-sm text-slate-600 truncate block" :title="link.description">
                     {{ link.description || '-' }}
                   </span>
               </TableCell>
