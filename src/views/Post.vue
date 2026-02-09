@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
 import { useSiteStore } from '@/stores/site';
+import { useTableSort } from '@/composables/useTableSort';
 import {
   getAdminPostsApi,
   deletePostApi,
@@ -13,6 +14,7 @@ import { getAdminTagListApi, type TagResponse } from '@/api/tag';
 import Pagination from '@/components/common/Pagination.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatsCard from '@/components/common/StatsCard.vue';
+import SortableHead from '@/components/common/SortableHead.vue';
 
 // 图标
 import { Plus, Search, Edit, Trash2, FileText, Loader2, Pin, Eye, Calendar, Globe, FileEdit } from 'lucide-vue-next';
@@ -54,6 +56,7 @@ const siteStore = useSiteStore();
 
 const posts = ref<PostSimpleResponse[]>([]);
 const allTags = ref<TagResponse[]>([]);
+const { sortedData: sortedPosts, toggleSort, getSortOrder, resetSort } = useTableSort(posts);
 const loading = ref(true);
 const searchKeyword = ref('');
 const statusFilter = ref<number | undefined>(undefined);
@@ -103,6 +106,7 @@ const fetchPosts = async () => {
 
     posts.value = data.records;
     pagination.value.total = data.total;
+    resetSort();
   } catch (error) {
     console.error('Failed to fetch posts:', error);
     toast.error('加载文章列表失败');
@@ -355,12 +359,12 @@ const truncateText = (text: string, maxLength: number = 60) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-15 pl-6">ID</TableHead>
+              <SortableHead class="w-15 pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
               <TableHead class="w-[35%]">Title</TableHead>
               <TableHead>Tags</TableHead>
-              <TableHead>Views</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
+              <SortableHead :sort-order="getSortOrder('views')" @sort="toggleSort('views')">Views</SortableHead>
+              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
+              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
               <TableHead class="text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -393,7 +397,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
 
             <!-- 文章列表 -->
             <TableRow
-                v-for="post in posts"
+                v-for="post in sortedPosts"
                 :key="post.id"
                 class="transition-colors border-slate-100 group"
                 :class="[
@@ -411,10 +415,10 @@ const truncateText = (text: string, maxLength: number = 60) => {
               <!-- 标题和 Slug 融合列 -->
               <TableCell>
                 <div class="flex flex-col gap-1">
-                  <span class="font-semibold text-slate-900 truncate" :title="post.title">
-                    {{ truncateText(post.title, 50) }}
+                  <span class="block font-semibold text-slate-900 truncate" :title="post.title">
+                    {{ post.title }}
                   </span>
-                  <span class="text-xs text-slate-400 font-mono truncate" :title="post.slug">
+                  <span class="block text-xs text-slate-400 font-mono truncate" :title="post.slug">
                     /{{ post.slug }}
                   </span>
                 </div>

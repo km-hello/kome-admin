@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
 import { useSiteStore } from '@/stores/site';
+import { useTableSort } from '@/composables/useTableSort';
 import {
   getAdminTagsApi,
   createTagApi,
@@ -19,6 +20,7 @@ import { Plus, Search, Edit, Trash2, Hash, FileText, Loader2, Calendar } from 'l
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatsCard from '@/components/common/StatsCard.vue';
 import Pagination from '@/components/common/Pagination.vue';
+import SortableHead from '@/components/common/SortableHead.vue';
 
 // Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -51,6 +53,7 @@ import {
 const siteStore = useSiteStore();
 
 const tags = ref<TagPostCountResponse[]>([]);
+const { sortedData: sortedTags, toggleSort, getSortOrder, resetSort } = useTableSort(tags);
 const loading = ref(true);
 const searchKeyword = ref('');
 
@@ -107,6 +110,7 @@ const fetchTags = async () => {
 
     tags.value = data.records;
     pagination.value.total = data.total;
+    resetSort();
   } catch (error) {
     console.error('Failed to fetch tags:', error);
   } finally {
@@ -323,10 +327,10 @@ const formatDate = (dateString: string) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-16 pl-6">ID</TableHead>
-              <TableHead class="w-[30%]">Tag Name</TableHead>
-              <TableHead>Post Count</TableHead>
-              <TableHead>Created At</TableHead>
+              <SortableHead class="w-16 pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
+              <SortableHead class="w-[30%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">Tag Name</SortableHead>
+              <SortableHead :sort-order="getSortOrder('postCount')" @sort="toggleSort('postCount')">Post Count</SortableHead>
+              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
               <TableHead class="text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -334,7 +338,7 @@ const formatDate = (dateString: string) => {
           <TableBody>
             <!-- 标签列表 -->
             <TableRow
-                v-for="tag in tags"
+                v-for="tag in sortedTags"
                 :key="tag.id"
                 class="hover:bg-slate-50/50 transition-colors border-slate-100"
             >
@@ -349,7 +353,7 @@ const formatDate = (dateString: string) => {
                   <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
                     <Hash class="w-4 h-4 text-slate-600" />
                   </div>
-                  <span class="font-semibold text-slate-900">{{ tag.name }}</span>
+                  <span class="font-semibold text-slate-900 truncate min-w-0" :title="tag.name">{{ tag.name }}</span>
                 </div>
               </TableCell>
 
