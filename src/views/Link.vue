@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
 import { useSiteStore } from '@/stores/site';
+import { useTableSort } from '@/composables/useTableSort';
 import {
   getAdminLinksApi,
   createLinkApi,
@@ -15,6 +16,7 @@ import {
 import Pagination from '@/components/common/Pagination.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatsCard from '@/components/common/StatsCard.vue';
+import SortableHead from '@/components/common/SortableHead.vue';
 
 // 图标
 import { Plus, Search, Edit, Trash2, Link as LinkIcon, ExternalLink, Image, Loader2, Globe, Calendar, FileEdit } from 'lucide-vue-next';
@@ -58,6 +60,7 @@ import {
 const siteStore = useSiteStore();
 
 const links = ref<LinkResponse[]>([]);
+const { sortedData: sortedLinks, toggleSort, getSortOrder, resetSort } = useTableSort(links);
 const loading = ref(true);
 const searchKeyword = ref('');
 const statusFilter = ref<number | undefined>(undefined);
@@ -120,6 +123,7 @@ const fetchLinks = async () => {
 
     links.value = data.records;
     pagination.value.total = data.total;
+    resetSort();
   } catch (error) {
     console.error('Failed to fetch links:', error);
   } finally {
@@ -436,11 +440,11 @@ const formatDate = (dateString: string) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-15 pl-6">ID</TableHead>
-              <TableHead class="w-[40%]">Info</TableHead>
+              <SortableHead class="w-15 pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
+              <SortableHead class="w-[40%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">Info</SortableHead>
               <TableHead class="w-[20%]">Description</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
+              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
+              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
               <TableHead class="text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -448,7 +452,7 @@ const formatDate = (dateString: string) => {
           <TableBody>
             <!-- 友链列表 -->
             <TableRow
-                v-for="link in links"
+                v-for="link in sortedLinks"
                 :key="link.id"
                 class="hover:bg-slate-50/50 transition-colors border-slate-100"
             >
@@ -470,8 +474,8 @@ const formatDate = (dateString: string) => {
                     />
                     <Image v-else class="w-5 h-5 text-slate-400" />
                   </div>
-                  <div class="flex flex-col">
-                    <span class="font-semibold text-slate-900 truncate">{{ link.name }}</span>
+                  <div class="flex flex-col min-w-0">
+                    <span class="font-semibold text-slate-900 truncate" :title="link.name">{{ link.name }}</span>
                     <a
                         :href="link.url"
                         target="_blank"

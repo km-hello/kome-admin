@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
 import { useSiteStore } from '@/stores/site';
+import { useTableSort } from '@/composables/useTableSort';
 import {
   getAdminMemosApi,
   createMemoApi,
@@ -15,6 +16,7 @@ import {
 import Pagination from '@/components/common/Pagination.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatsCard from '@/components/common/StatsCard.vue';
+import SortableHead from '@/components/common/SortableHead.vue';
 
 // 图标
 import { Plus, Search, Edit, Trash2, Activity, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
@@ -59,6 +61,7 @@ import {
 const siteStore = useSiteStore();
 
 const memos = ref<MemoResponse[]>([]);
+const { sortedData: sortedMemos, toggleSort, getSortOrder, resetSort } = useTableSort(memos);
 const loading = ref(true);
 const searchKeyword = ref('');
 const statusFilter = ref<number | undefined>(undefined);
@@ -119,6 +122,7 @@ const fetchMemos = async () => {
 
     memos.value = data.records;
     pagination.value.total = data.total;
+    resetSort();
   } catch (error) {
     console.error('Failed to fetch memos:', error);
   } finally {
@@ -408,10 +412,10 @@ const truncateText = (text: string, maxLength: number = 100) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <TableHead class="w-15 pl-6">ID</TableHead>
+              <SortableHead class="w-15 pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
               <TableHead class="w-[50%]">Content</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
+              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
+              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
               <TableHead class="text-right pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -444,7 +448,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
             <!-- 备忘录列表 -->
             <TableRow
-                v-for="memo in memos"
+                v-for="memo in sortedMemos"
                 :key="memo.id"
                 class="transition-colors border-slate-100 group"
                 :class="[
@@ -460,12 +464,10 @@ const truncateText = (text: string, maxLength: number = 100) => {
               </TableCell>
 
               <!-- 内容列 -->
-              <TableCell>
-                <div class="flex items-start gap-2">
+              <TableCell class="whitespace-normal">
                   <p class="text-sm text-slate-700 line-clamp-2" :title="memo.content">
-                    {{ truncateText(memo.content, 150) }}
+                    {{ truncateText(memo.content, 100) }}
                   </p>
-                </div>
               </TableCell>
 
               <!-- 状态列 -->

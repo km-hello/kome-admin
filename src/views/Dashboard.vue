@@ -116,15 +116,6 @@ const formatDate = (dateString: string) => {
     minute: '2-digit',
   });
 };
-
-/**
- * 截断文本
- */
-const truncateText = (text: string, maxLength: number) => {
-  if (!text) return '';
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
-};
 </script>
 
 <template>
@@ -213,7 +204,7 @@ const truncateText = (text: string, maxLength: number) => {
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
                 <TableHead class="w-15 pl-6">ID</TableHead>
-                <TableHead>Title</TableHead>
+                <TableHead class="w-[50%]">Title</TableHead>
                 <TableHead class="w-20">Status</TableHead>
                 <TableHead class="w-25 text-right pr-6">Date</TableHead>
               </TableRow>
@@ -261,8 +252,8 @@ const truncateText = (text: string, maxLength: number) => {
 
                 <!-- 标题列 -->
                 <TableCell>
-                  <span class="font-semibold text-slate-900 truncate max-w-50" :title="post.title">
-                    {{ truncateText(post.title, 30) }}
+                  <span class="block font-semibold text-slate-900 truncate" :title="post.title">
+                    {{ post.title }}
                   </span>
                 </TableCell>
 
@@ -311,7 +302,7 @@ const truncateText = (text: string, maxLength: number) => {
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
                 <TableHead class="w-15 pl-6">ID</TableHead>
-                <TableHead>Content</TableHead>
+                <TableHead class="w-[50%]">Content</TableHead>
                 <TableHead class="w-20">Status</TableHead>
                 <TableHead class="w-25 text-right pr-6">Date</TableHead>
               </TableRow>
@@ -358,9 +349,9 @@ const truncateText = (text: string, maxLength: number) => {
                 </TableCell>
 
                 <!-- 内容列 -->
-                <TableCell>
+                <TableCell class="whitespace-normal">
                   <p class="text-sm text-slate-700 line-clamp-2" :title="memo.content">
-                    {{ truncateText(memo.content, 50) }}
+                    {{ memo.content }}
                   </p>
                 </TableCell>
 
