@@ -17,6 +17,7 @@ import {
   FileEdit,
   Activity,
   Loader2,
+  Plus,
 } from 'lucide-vue-next';
 
 // 通用组件
@@ -39,6 +40,13 @@ const recentPosts = ref<PostSimpleResponse[]>([]);
 // 最近备忘录列表
 const recentMemos = ref<MemoResponse[]>([]);
 
+// 快捷操作
+const quickActions = [
+  { label: 'New Post', desc: 'Create article', icon: FileText, color: 'blue', route: '/posts/new' },
+  { label: 'New Memo', desc: 'Write memo', icon: Activity, color: 'amber', route: '/memos' },
+  { label: 'New Tag', desc: 'Add tag', icon: Hash, color: 'emerald', route: '/tags' },
+  { label: 'New Link', desc: 'Add link', icon: LinkIcon, color: 'purple', route: '/links' },
+];
 
 // 加载状态
 const loading = ref(true);
@@ -179,6 +187,42 @@ const formatDate = (dateString: string) => {
           <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftLinkCount }}</span></span>
         </div>
       </StatsCard>
+    </div>
+
+    <!-- ========== 快捷操作 ========== -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <Card
+          v-for="action in quickActions"
+          :key="action.label"
+          class="cursor-pointer hover:border-slate-300 transition-colors group"
+          @click="router.push(action.route)"
+      >
+        <CardContent class="flex items-center gap-3 p-4">
+          <div
+              class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              :class="{
+                'bg-blue-50': action.color === 'blue',
+                'bg-amber-50': action.color === 'amber',
+                'bg-emerald-50': action.color === 'emerald',
+                'bg-purple-50': action.color === 'purple',
+              }"
+          >
+            <Plus
+                class="w-4 h-4"
+                :class="{
+                  'text-blue-600': action.color === 'blue',
+                  'text-amber-600': action.color === 'amber',
+                  'text-emerald-600': action.color === 'emerald',
+                  'text-purple-600': action.color === 'purple',
+                }"
+            />
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-800">{{ action.label }}</p>
+            <p class="text-xs text-slate-400">{{ action.desc }}</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- ========== 内容列表区域 ========== -->
