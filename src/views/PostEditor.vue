@@ -1,8 +1,9 @@
 
 <script setup lang="ts">
-import {computed, onMounted, ref} from 'vue';
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {toast} from 'vue-sonner';
+import {useDebounceFn} from '@vueuse/core';
 import {
   createPostApi,
   getPostByIdApi,
@@ -13,7 +14,7 @@ import {
 import {getAdminTagListApi, type TagResponse} from '@/api/tag';
 
 // 图标
-import {ArrowLeft, Eye, FileEdit, FileText, Globe, Image as ImageIcon, Loader2, Pin, Save, Tag as TagIcon} from 'lucide-vue-next';
+import {ArrowLeft, Eye, EyeOff, FileEdit, FileText, Globe, Image as ImageIcon, Loader2, Pin, Save, Tag as TagIcon} from 'lucide-vue-next';
 
 // Shadcn 组件
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -51,6 +52,89 @@ const formData = ref({
   isPinned: false,
   status: 0,
   tagIds: [] as number[],
+});
+
+// ========== 预览功能 ==========
+
+const showPreview = ref(false);
+const previewIframe = ref<HTMLIFrameElement | null>(null);
+const previewUrl = import.meta.env.VITE_PREVIEW_URL || '/preview';
+const previewOrigin = import.meta.env.VITE_PREVIEW_ORIGIN || window.location.origin;
+
+// 防抖发送预览内容
+const sendPreviewContent = useDebounceFn(() => {
+  if (!previewIframe.value?.contentWindow) return;
+  previewIframe.value.contentWindow.postMessage({
+    type: 'preview',
+    content: formData.value.content,
+  }, previewOrigin);
+}, 300);
+
+// 监听内容变化，在预览模式下同步
+watch(() => formData.value.content, () => {
+  if (showPreview.value) {
+    sendPreviewContent();
+  }
+});
+
+// iframe 加载完成后立即发送当前内容
+const onPreviewLoad = () => {
+  sendPreviewContent();
+};
+
+// 切换预览模式
+const togglePreview = () => {
+  showPreview.value = !showPreview.value;
+  if (showPreview.value) {
+    // 切换到预览模式时，等待 iframe 加载后会触发 onPreviewLoad
+  }
+};
+
+// ========== 拖动分割条 ==========
+
+const editorWidthPercent = ref(50);
+const isDragging = ref(false);
+const splitContainerRef = ref<HTMLDivElement | null>(null);
+
+const editorStyle = computed(() => ({
+  width: showPreview.value ? `${editorWidthPercent.value}%` : '100%',
+}));
+
+const previewStyle = computed(() => ({
+  width: `${100 - editorWidthPercent.value}%`,
+}));
+
+const startDrag = (e: MouseEvent) => {
+  e.preventDefault();
+  isDragging.value = true;
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', stopDrag);
+};
+
+const onDrag = (e: MouseEvent) => {
+  if (!isDragging.value || !splitContainerRef.value) return;
+
+  const container = splitContainerRef.value;
+  const rect = container.getBoundingClientRect();
+  const offsetX = e.clientX - rect.left;
+  const containerWidth = rect.width;
+
+  // 计算百分比，限制在 20% - 80% 之间
+  let percent = (offsetX / containerWidth) * 100;
+  percent = Math.max(20, Math.min(80, percent));
+
+  editorWidthPercent.value = percent;
+};
+
+const stopDrag = () => {
+  isDragging.value = false;
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
+};
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
 });
 
 // ========== 生命周期 ==========
@@ -329,10 +413,10 @@ const useFirstImageAsCover = () => {
     </div>
 
     <!-- ========== 编辑器主体 ========== -->
-    <div v-else class="max-w-400 mx-auto px-6 py-8">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div v-else class="mx-auto px-6 py-8" :class="showPreview ? 'max-w-450' : 'max-w-400'">
+      <div class="grid grid-cols-1 gap-6" :class="showPreview ? '' : 'lg:grid-cols-3'">
         <!-- ========== 左侧：内容编辑区 ========== -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="space-y-6" :class="showPreview ? '' : 'lg:col-span-2'">
           <!-- 标题 -->
           <Card>
             <CardContent class="pt-6">
@@ -408,18 +492,65 @@ const useFirstImageAsCover = () => {
           <!-- 内容 -->
           <Card>
             <CardHeader>
-              <CardTitle class="text-base flex items-center gap-2">
-                <FileText class="w-4 h-4" />
-                Content <span class="text-red-500">*</span>
-              </CardTitle>
+              <div class="flex items-center justify-between">
+                <CardTitle class="text-base flex items-center gap-2">
+                  <FileText class="w-4 h-4" />
+                  Content <span class="text-red-500">*</span>
+                </CardTitle>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    @click="togglePreview"
+                    class="gap-2"
+                >
+                  <Eye v-if="!showPreview" class="w-4 h-4" />
+                  <EyeOff v-else class="w-4 h-4" />
+                  {{ showPreview ? 'Hide Preview' : 'Preview' }}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <Textarea
-                  v-model="formData.content"
-                  placeholder="Write your post content here... (Markdown supported)"
-                  rows="20"
-                  class="font-mono text-sm resize-none"
-              />
+              <div
+                  ref="splitContainerRef"
+                  class="flex"
+                  :class="[
+                    showPreview ? 'h-[calc(100vh-320px)]' : '',
+                    isDragging ? 'select-none' : ''
+                  ]"
+              >
+                <!-- 编辑区 -->
+                <div :style="editorStyle">
+                  <Textarea
+                      v-model="formData.content"
+                      placeholder="Write your post content here... (Markdown supported)"
+                      :rows="showPreview ? undefined : 20"
+                      class="font-mono text-sm resize-none scrollbar-thin"
+                      :class="{ 'h-full': showPreview }"
+                  />
+                </div>
+                <!-- 拖动分割条 -->
+                <div
+                    v-if="showPreview"
+                    class="w-2 shrink-0 bg-slate-100 hover:bg-slate-200 cursor-col-resize transition-colors flex items-center justify-center group"
+                    @mousedown="startDrag"
+                >
+                  <div class="w-0.5 h-8 bg-slate-300 group-hover:bg-slate-400 rounded-full transition-colors"></div>
+                </div>
+                <!-- 预览区 -->
+                <div
+                    v-if="showPreview"
+                    :style="previewStyle"
+                    class="border border-slate-200 rounded-md overflow-hidden"
+                >
+                  <iframe
+                      ref="previewIframe"
+                      :src="previewUrl"
+                      class="w-full h-full border-0"
+                      :class="{ 'pointer-events-none': isDragging }"
+                      @load="onPreviewLoad"
+                  ></iframe>
+                </div>
+              </div>
               <p class="text-xs text-slate-500 mt-2">
                 {{ formData.content.length }} characters
               </p>
@@ -427,8 +558,8 @@ const useFirstImageAsCover = () => {
           </Card>
         </div>
 
-        <!-- ========== 右侧：设置区 ========== -->
-        <div class="space-y-6">
+        <!-- ========== 右侧：设置区（预览时隐藏） ========== -->
+        <div v-show="!showPreview" class="space-y-6">
           <!-- 发布设置 -->
           <Card>
             <CardHeader>
