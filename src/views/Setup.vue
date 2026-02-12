@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSiteStore } from '@/stores/site';
+import { useUserStore } from '@/stores/user';
 import { setupAdminApi } from '@/api/site';
 import { toast } from 'vue-sonner';
 import { Loader2, User, Lock, Mail, Eye, EyeOff, Check, X, Image, FileText, UserCircle, ChevronDown } from 'lucide-vue-next';
@@ -23,6 +24,7 @@ const DEFAULT_EMAIL = 'admin@example.com';
 // ========== 状态定义 ==========
 const router = useRouter();
 const siteStore = useSiteStore();
+const userStore = useUserStore();
 
 const form = ref({
   username: '',
@@ -113,6 +115,9 @@ const handleSetup = async (): Promise<void> => {
 
     // 更新 store 状态
     siteStore.setInitialized();
+
+    // 清除任何残留的登录状态，确保用户必须使用新账户登录
+    userStore.logout();
 
     toast.success('Setup completed! Please login with your new account.');
 
