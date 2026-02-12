@@ -34,6 +34,18 @@ export interface SiteInfoResponse {
     owner: SiteOwner;
 }
 
+/**
+ * 首次设置管理员请求
+ */
+export interface SetupRequest {
+    username: string;
+    password: string;
+    nickname?: string;
+    avatar?: string;
+    description?: string;
+    email?: string;
+}
+
 // ==================== API 接口 ====================
 
 /**
@@ -43,4 +55,20 @@ export interface SiteInfoResponse {
  */
 export const getAdminSiteInfoApi = () => {
     return request.get<SiteInfoResponse>('/api/admin/site/info');
+};
+
+/**
+ * 检查系统是否已初始化
+ * 用于首次访问时判断是否需要跳转到设置页面
+ */
+export const checkInitializedApi = () => {
+    return request.get<boolean>('/api/site/initialized');
+};
+
+/**
+ * 首次设置管理员
+ * 仅当系统未初始化时可用
+ */
+export const setupAdminApi = (data: SetupRequest) => {
+    return request.post<void>('/api/site/setup', data);
 };

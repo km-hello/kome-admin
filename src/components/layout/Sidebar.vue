@@ -4,7 +4,6 @@
   包含：Logo、导航菜单、用户信息卡片
 -->
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import type { Component } from 'vue'
 import { LogOut } from 'lucide-vue-next'
@@ -30,9 +29,10 @@ interface Props {
   userEmail?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  userNickname: 'Administrator',
-  userEmail: 'admin@example.com',
+withDefaults(defineProps<Props>(), {
+  userAvatar: '',
+  userNickname: '',
+  userEmail: '',
 })
 
 const emit = defineEmits<{
@@ -53,10 +53,6 @@ const getNavItemClass = (path: string) => {
       ? `${base} bg-slate-900 text-white shadow-md hover:bg-slate-800`
       : `${base} text-slate-600 hover:bg-slate-100 hover:text-slate-900`
 }
-
-const defaultAvatar = computed(() =>
-    `https://api.dicebear.com/7.x/notionists/svg?seed=${props.userNickname}`
-)
 </script>
 
 <template>
@@ -104,7 +100,7 @@ const defaultAvatar = computed(() =>
     <div class="p-4 border-t border-border/50 shrink-0">
       <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
         <img
-            :src="userAvatar || defaultAvatar"
+            :src="userAvatar"
             class="w-10 h-10 rounded-full bg-white border-2 border-slate-200"
             alt="User Avatar"
         >
