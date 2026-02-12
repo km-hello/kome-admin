@@ -555,8 +555,8 @@ const resetProfileForm = () => {
               <!-- 头像 -->
               <div class="relative group">
                 <img
-                    :src="profileForm.avatar || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + userInfo.username"
-                    :alt="userInfo.nickname || userInfo.username"
+                    :src="profileForm.avatar"
+                    :alt="userInfo.nickname"
                     class="w-28 h-28 rounded-full bg-slate-100 border-4 border-slate-200 object-cover"
                 />
                 <div
