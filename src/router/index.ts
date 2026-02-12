@@ -5,6 +5,7 @@ import { useSiteStore } from "@/stores/site.ts";
 
 // 路由懒加载
 const Login = () => import('@/views/Login.vue');
+const Setup = () => import('@/views/Setup.vue');
 const AdminLayout = () => import('@/layout/AdminLayout.vue');
 const Dashboard = () => import('@/views/Dashboard.vue');
 const Tag = () => import('@/views/Tag.vue');
@@ -30,6 +31,15 @@ const routes: RouteRecordRaw[] = [
         meta: {
             title: '登录',
             guest: true
+        },
+    },
+    {
+        path: '/setup',
+        name: 'Setup',
+        component: Setup,
+        meta: {
+            title: '初始化设置',
+            setup: true
         },
     },
     {
@@ -109,16 +119,34 @@ const router: Router = createRouter({
     routes,
 });
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
     const userStore = useUserStore();
+    const siteStore = useSiteStore();
 
-    // 1. 需要登录 但 未登录 -> 去登录页
+    // 1. 首次加载时检查初始化状态（跳过 /setup 页面避免死循环）
+    if (siteStore.initialized === null && to.path !== '/setup') {
+        await siteStore.checkInitialized();
+    }
+
+    // 2. 未初始化 → 强制去 /setup
+    if (siteStore.initialized === false && to.path !== '/setup') {
+        next('/setup');
+        return;
+    }
+
+    // 3. 已初始化 → 不能访问 /setup
+    if (siteStore.initialized === true && to.path === '/setup') {
+        next('/login');
+        return;
+    }
+
+    // 4. 需要登录 但 未登录 -> 去登录页
     if (to.meta.requiresAuth && !userStore.isLoggedIn) {
         next('/login');
         return;
     }
 
-    // 2. 已登录 但 访问登录页 -> 去首页
+    // 5. 已登录 但 访问登录页 -> 去首页
     if (to.path === '/login' && userStore.isLoggedIn) {
         next('/');
         return;

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { getAdminSiteInfoApi, type SiteStats } from '@/api/site';
+import { getAdminSiteInfoApi, checkInitializedApi, type SiteStats } from '@/api/site';
 
 /**
  * 站点统计数据 Store
@@ -8,6 +8,17 @@ import { getAdminSiteInfoApi, type SiteStats } from '@/api/site';
  */
 export const useSiteStore = defineStore('site', () => {
     // ========== State ==========
+
+    /**
+     * 系统初始化状态
+     * null: 未检查，true: 已初始化，false: 未初始化
+     */
+    const initialized = ref<boolean | null>(null);
+
+    /**
+     * 初始化状态检查中
+     */
+    const checking = ref(false);
 
     /**
      * 站点统计数据
@@ -136,10 +147,38 @@ export const useSiteStore = defineStore('site', () => {
         isStale.value = false;
     };
 
+    /**
+     * 检查系统是否已初始化
+     * 如果已经检查过，直接返回缓存值
+     */
+    const checkInitialized = async (): Promise<boolean> => {
+        if (initialized.value !== null) {
+            return initialized.value;
+        }
+
+        checking.value = true;
+        try {
+            initialized.value = await checkInitializedApi();
+            return initialized.value;
+        } finally {
+            checking.value = false;
+        }
+    };
+
+    /**
+     * 设置初始化状态为已完成
+     * 在设置向导完成后调用
+     */
+    const setInitialized = (): void => {
+        initialized.value = true;
+    };
+
     // ========== Return ==========
 
     return {
         // State
+        initialized,
+        checking,
         stats,
         loading,
         lastUpdated,
@@ -153,6 +192,8 @@ export const useSiteStore = defineStore('site', () => {
         needsRefresh,
 
         // Actions
+        checkInitialized,
+        setInitialized,
         fetchStats,
         refreshStats,
         invalidateStats,
