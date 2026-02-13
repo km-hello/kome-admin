@@ -9,6 +9,7 @@ import {
   type UserInfoResponse,
   type UserUpdateRequest,
   type UserUpdatePasswordRequest,
+  type SocialLink,
 } from '@/api/user';
 
 // 图标
@@ -24,7 +25,15 @@ import {
   UserCog,
   Image,
   FileText,
+  Link2,
+  Plus,
+  Trash2,
+  Globe,
+  Rss,
+  Home,
+  Link as LinkIcon,
 } from 'lucide-vue-next';
+import { IconGithub, IconX } from '@/components/icons/BrandIcons';
 
 // 通用组件
 import PageHeader from '@/components/common/PageHeader.vue';
@@ -35,6 +44,39 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+// 可选平台列表
+const platformOptions = [
+  { value: 'github', label: 'GitHub' },
+  { value: 'twitter', label: 'X (Twitter)' },
+  { value: 'email', label: 'Email' },
+  { value: 'homepage', label: 'Homepage' },
+  { value: 'website', label: 'Website' },
+  { value: 'rss', label: 'RSS' },
+];
+
+// 平台图标映射（用于预览）
+const iconMap: Record<string, any> = {
+  github: IconGithub,
+  twitter: IconX,
+  email: Mail,
+  homepage: Home,
+  website: Globe,
+  rss: Rss,
+};
+
+// 获取平台图标
+const getIcon = (platform: string) => iconMap[platform] || LinkIcon;
+
+// 判断链接是否可点击
+const isClickable = (url: string) => url && url !== '#';
 
 // ========== 状态定义 ==========
 
@@ -49,12 +91,14 @@ const userInfo = ref<UserInfoResponse>({
   avatar: '',
   email: '',
   description: '',
+  socialLinks: [],
 });
 
 // 加载状态
 const loading = ref(true);
 const profileLoading = ref(false);
 const passwordLoading = ref(false);
+const socialLinksLoading = ref(false);
 
 // 个人资料表单
 const profileForm = ref<UserUpdateRequest>({
@@ -64,6 +108,9 @@ const profileForm = ref<UserUpdateRequest>({
   email: '',
   description: '',
 });
+
+// 社交链接表单
+const socialLinksForm = ref<SocialLink[]>([]);
 
 // 密码表单
 const passwordForm = ref<UserUpdatePasswordRequest>({
@@ -86,6 +133,23 @@ const profileHasChanges = computed(() => {
       profileForm.value.email !== userInfo.value.email ||
       profileForm.value.description !== (userInfo.value.description || '')
   );
+});
+
+// 计算属性：检查社交链接是否有变化
+const socialLinksHasChanges = computed(() => {
+  const original = userInfo.value.socialLinks || [];
+  const current = socialLinksForm.value;
+
+  if (original.length !== current.length) return true;
+
+  for (let i = 0; i < original.length; i++) {
+    const orig = original[i];
+    const curr = current[i];
+    if (orig?.platform !== curr?.platform || orig?.url !== curr?.url) {
+      return true;
+    }
+  }
+  return false;
 });
 
 // ========== 生命周期 ==========
@@ -113,6 +177,11 @@ const fetchUserInfo = async () => {
       email: data.email || '',
       description: data.description || '',
     };
+
+    // 初始化社交链接表单（深拷贝）
+    socialLinksForm.value = data.socialLinks
+        ? data.socialLinks.map(link => ({ ...link }))
+        : [];
   } catch (error) {
     console.error('Failed to fetch user info:', error);
   } finally {
@@ -282,6 +351,55 @@ const resetProfileForm = () => {
     description: userInfo.value.description || '',
   };
 };
+
+// ========== 社交链接管理 ==========
+
+/**
+ * 添加社交链接
+ */
+const addSocialLink = () => {
+  socialLinksForm.value.push({ platform: 'github', url: '' });
+};
+
+/**
+ * 删除社交链接
+ */
+const removeSocialLink = (index: number) => {
+  socialLinksForm.value.splice(index, 1);
+};
+
+/**
+ * 重置社交链接表单
+ */
+const resetSocialLinksForm = () => {
+  socialLinksForm.value = userInfo.value.socialLinks
+      ? userInfo.value.socialLinks.map(link => ({ ...link }))
+      : [];
+};
+
+/**
+ * 保存社交链接
+ */
+const handleSaveSocialLinks = async () => {
+  socialLinksLoading.value = true;
+  try {
+    const data = await userStore.updateProfile({
+      socialLinks: socialLinksForm.value,
+    });
+
+    // 更新本地数据
+    userInfo.value.socialLinks = data.socialLinks;
+    socialLinksForm.value = data.socialLinks
+        ? data.socialLinks.map(link => ({ ...link }))
+        : [];
+
+    toast.success('社交链接更新成功');
+  } catch (error) {
+    console.error('Failed to update social links:', error);
+  } finally {
+    socialLinksLoading.value = false;
+  }
+};
 </script>
 
 
@@ -419,6 +537,103 @@ const resetProfileForm = () => {
                   :disabled="profileLoading || !profileHasChanges"
               >
                 <Loader2 v-if="profileLoading" class="w-4 h-4 animate-spin" />
+                <Save v-else class="w-4 h-4" />
+                Save Changes
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- 社交链接设置 -->
+        <Card>
+          <CardHeader class="border-b border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+                <Link2 class="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <CardTitle class="text-lg font-bold text-slate-800">Social Links</CardTitle>
+                <CardDescription>Manage your social media links</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent class="pt-6 space-y-4">
+            <!-- 社交链接列表 -->
+            <div v-if="socialLinksForm.length > 0" class="space-y-3">
+              <div
+                  v-for="(link, index) in socialLinksForm"
+                  :key="index"
+                  class="flex items-center gap-3"
+              >
+                <!-- 平台选择 -->
+                <Select v-model="link.platform" :disabled="socialLinksLoading">
+                  <SelectTrigger class="w-36">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                        v-for="option in platformOptions"
+                        :key="option.value"
+                        :value="option.value"
+                    >
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <!-- URL 输入 -->
+                <Input
+                    v-model="link.url"
+                    placeholder="Enter URL or mailto:email@example.com"
+                    class="flex-1"
+                    :disabled="socialLinksLoading"
+                />
+
+                <!-- 删除按钮 -->
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    @click="removeSocialLink(index)"
+                    :disabled="socialLinksLoading"
+                    class="text-slate-400 hover:text-red-500"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div v-else class="py-6 text-center text-slate-400 text-sm">
+              No social links configured
+            </div>
+
+            <!-- 添加按钮 -->
+            <Button
+                variant="outline"
+                @click="addSocialLink"
+                :disabled="socialLinksLoading"
+                class="gap-2"
+            >
+              <Plus class="w-4 h-4" />
+              Add Link
+            </Button>
+
+            <!-- 操作按钮 -->
+            <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+              <Button
+                  variant="outline"
+                  @click="resetSocialLinksForm"
+                  :disabled="socialLinksLoading || !socialLinksHasChanges"
+              >
+                Reset
+              </Button>
+              <Button
+                  class="bg-slate-900 hover:bg-slate-800 gap-2"
+                  @click="handleSaveSocialLinks"
+                  :disabled="socialLinksLoading || !socialLinksHasChanges"
+              >
+                <Loader2 v-if="socialLinksLoading" class="w-4 h-4 animate-spin" />
                 <Save v-else class="w-4 h-4" />
                 Save Changes
               </Button>
@@ -582,6 +797,24 @@ const resetProfileForm = () => {
               <p v-if="userInfo.description" class="mt-3 text-sm text-slate-600 px-4">
                 {{ userInfo.description }}
               </p>
+
+              <!-- 社交链接预览 -->
+              <div v-if="socialLinksForm.length > 0" class="mt-5 pt-5 border-t border-slate-100 w-full">
+                <p class="text-xs text-slate-400 mb-3">Social Links Preview</p>
+                <div class="grid grid-cols-4 gap-2">
+                  <div
+                      v-for="(link, index) in socialLinksForm"
+                      :key="index"
+                      class="flex items-center justify-center h-9 rounded-lg border transition-colors"
+                      :class="isClickable(link.url)
+                        ? 'bg-slate-50 border-slate-200 text-slate-500'
+                        : 'bg-slate-50 border-slate-100 text-slate-300'"
+                      :title="link.platform + (isClickable(link.url) ? ': ' + link.url : ' (not configured)')"
+                  >
+                    <component :is="getIcon(link.platform)" class="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
