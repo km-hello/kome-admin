@@ -4,6 +4,14 @@ import request from '@/request';
 // ==================== 类型定义 ====================
 
 /**
+ * 社交链接
+ */
+export interface SocialLink {
+    platform: string;
+    url: string;
+}
+
+/**
  * 登录请求参数
  */
 export interface UserLoginRequest {
@@ -20,6 +28,7 @@ export interface UserUpdateRequest {
     avatar?: string;
     email?: string;
     description?: string;
+    socialLinks?: SocialLink[];
 }
 
 /**
@@ -40,6 +49,7 @@ export interface UserInfoResponse {
     avatar: string;
     email: string;
     description?: string;
+    socialLinks?: SocialLink[];
 }
 
 /**
