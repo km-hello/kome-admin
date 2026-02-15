@@ -115,7 +115,7 @@ const routes: RouteRecordRaw[] = [
 ];
 
 const router: Router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory('/admin'),
     routes,
 });
 
