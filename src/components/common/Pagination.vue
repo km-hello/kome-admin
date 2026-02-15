@@ -3,6 +3,7 @@
 import { ref, computed, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import type { AcceptableValue } from 'reka-ui';
 import {
   Select,
   SelectContent,
@@ -90,7 +91,7 @@ const goNext = () => {
   }
 };
 
-const handlePageSizeChange = (value: string) => {
+const handlePageSizeChange = (value: AcceptableValue) => {
   const newSize = Number(value);
   emit('update:pageSize', newSize);
   emit('pageSizeChange', newSize);
