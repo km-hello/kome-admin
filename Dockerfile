@@ -18,8 +18,8 @@ RUN npm run build
 # ==================== 阶段2: 运行 ====================
 FROM nginx:stable-alpine AS runtime
 
-# 复制构建产物到 Nginx 默认目录
-COPY --from=builder /build/dist /usr/share/nginx/html
+# 复制构建产物到 /admin 子路径下（与外层 Nginx 代理路径一致）
+COPY --from=builder /build/dist /usr/share/nginx/html/admin
 
 # 复制自定义 Nginx 配置
 COPY nginx.conf /etc/nginx/conf.d/default.conf
