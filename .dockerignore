@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Dependencies (will be installed in container)
+node_modules
+
+# Build output
+dist
+dist-ssr
+
+# Local config
+.env.development
+.env.local
+.env.*.local
+
+# Documentation
+*.md
+
+# CI/CD
+.github/
