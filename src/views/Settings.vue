@@ -10,6 +10,7 @@ import {
   type UserUpdateRequest,
   type UserUpdatePasswordRequest,
   type SocialLink,
+  type SkillItem,
 } from '@/api/user';
 
 // 图标
@@ -32,6 +33,7 @@ import {
   Rss,
   Home,
   Link as LinkIcon,
+  Zap,
 } from 'lucide-vue-next';
 import { IconGithub, IconX } from '@/components/icons/BrandIcons';
 
@@ -60,6 +62,13 @@ const platformOptions = [
   { value: 'homepage', label: 'Homepage' },
   { value: 'website', label: 'Website' },
   { value: 'rss', label: 'RSS' },
+];
+
+// 技能等级选项
+const skillLevelOptions = [
+  { value: '1', label: 'Basic' },
+  { value: '2', label: 'Familiar' },
+  { value: '3', label: 'Proficient' },
 ];
 
 // 平台图标映射（用于预览）
@@ -99,6 +108,7 @@ const loading = ref(true);
 const profileLoading = ref(false);
 const passwordLoading = ref(false);
 const socialLinksLoading = ref(false);
+const skillsLoading = ref(false);
 
 // 个人资料表单
 const profileForm = ref<UserUpdateRequest>({
@@ -111,6 +121,9 @@ const profileForm = ref<UserUpdateRequest>({
 
 // 社交链接表单
 const socialLinksForm = ref<SocialLink[]>([]);
+
+// 技能表单
+const skillsForm = ref<SkillItem[]>([]);
 
 // 密码表单
 const passwordForm = ref<UserUpdatePasswordRequest>({
@@ -152,6 +165,23 @@ const socialLinksHasChanges = computed(() => {
   return false;
 });
 
+// 计算属性：检查技能列表是否有变化
+const skillsHasChanges = computed(() => {
+  const original = userInfo.value.skills || [];
+  const current = skillsForm.value;
+
+  if (original.length !== current.length) return true;
+
+  for (let i = 0; i < original.length; i++) {
+    const orig = original[i];
+    const curr = current[i];
+    if (orig?.name !== curr?.name || orig?.level !== curr?.level) {
+      return true;
+    }
+  }
+  return false;
+});
+
 // ========== 生命周期 ==========
 
 onMounted(async () => {
@@ -181,6 +211,11 @@ const fetchUserInfo = async () => {
     // 初始化社交链接表单（深拷贝）
     socialLinksForm.value = data.socialLinks
         ? data.socialLinks.map(link => ({ ...link }))
+        : [];
+
+    // 初始化技能表单（深拷贝）
+    skillsForm.value = data.skills
+        ? data.skills.map(skill => ({ ...skill }))
         : [];
   } catch (error) {
     console.error('Failed to fetch user info:', error);
@@ -398,6 +433,55 @@ const handleSaveSocialLinks = async () => {
     console.error('Failed to update social links:', error);
   } finally {
     socialLinksLoading.value = false;
+  }
+};
+
+// ========== 技能管理 ==========
+
+/**
+ * 添加技能
+ */
+const addSkill = () => {
+  skillsForm.value.push({ name: '', level: 1 });
+};
+
+/**
+ * 删除技能
+ */
+const removeSkill = (index: number) => {
+  skillsForm.value.splice(index, 1);
+};
+
+/**
+ * 重置技能表单
+ */
+const resetSkillsForm = () => {
+  skillsForm.value = userInfo.value.skills
+      ? userInfo.value.skills.map(skill => ({ ...skill }))
+      : [];
+};
+
+/**
+ * 保存技能
+ */
+const handleSaveSkills = async () => {
+  skillsLoading.value = true;
+  try {
+    const data = await userStore.updateProfile({
+      skills: skillsForm.value,
+    });
+
+    // 更新本地数据
+    userInfo.value.skills = data.skills;
+    skillsForm.value = data.skills
+        ? data.skills.map(skill => ({ ...skill }))
+        : [];
+
+    toast.success('技能列表更新成功');
+  } catch (error) {
+    console.error('Failed to update skills:', error);
+  } finally {
+    skillsLoading.value = false;
   }
 };
 </script>
@@ -634,6 +718,107 @@ const handleSaveSocialLinks = async () => {
                   :disabled="socialLinksLoading || !socialLinksHasChanges"
               >
                 <Loader2 v-if="socialLinksLoading" class="w-4 h-4 animate-spin" />
+                <Save v-else class="w-4 h-4" />
+                Save Changes
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- 技能设置 -->
+        <Card>
+          <CardHeader class="border-b border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center">
+                <Zap class="w-5 h-5 text-violet-600" />
+              </div>
+              <div>
+                <CardTitle class="text-lg font-bold text-slate-800">Skills</CardTitle>
+                <CardDescription>Manage your skill tags displayed on the About page</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent class="pt-6 space-y-4">
+            <!-- 技能列表 -->
+            <div v-if="skillsForm.length > 0" class="space-y-3">
+              <div
+                  v-for="(skill, index) in skillsForm"
+                  :key="index"
+                  class="flex items-center gap-3"
+              >
+                <!-- 技能名称 -->
+                <Input
+                    v-model="skill.name"
+                    placeholder="Skill name"
+                    class="flex-1"
+                    :disabled="skillsLoading"
+                />
+
+                <!-- 等级选择 -->
+                <Select
+                    :model-value="String(skill.level)"
+                    @update:model-value="(v) => skill.level = Number(v)"
+                    :disabled="skillsLoading"
+                >
+                  <SelectTrigger class="w-36">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                        v-for="option in skillLevelOptions"
+                        :key="option.value"
+                        :value="option.value"
+                    >
+                      {{ option.label }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <!-- 删除按钮 -->
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    @click="removeSkill(index)"
+                    :disabled="skillsLoading"
+                    class="text-slate-400 hover:text-red-500"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div v-else class="py-6 text-center text-slate-400 text-sm">
+              No skills configured
+            </div>
+
+            <!-- 添加按钮 -->
+            <Button
+                variant="outline"
+                @click="addSkill"
+                :disabled="skillsLoading"
+                class="gap-2"
+            >
+              <Plus class="w-4 h-4" />
+              Add Skill
+            </Button>
+
+            <!-- 操作按钮 -->
+            <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+              <Button
+                  variant="outline"
+                  @click="resetSkillsForm"
+                  :disabled="skillsLoading || !skillsHasChanges"
+              >
+                Reset
+              </Button>
+              <Button
+                  class="bg-slate-900 hover:bg-slate-800 gap-2"
+                  @click="handleSaveSkills"
+                  :disabled="skillsLoading || !skillsHasChanges"
+              >
+                <Loader2 v-if="skillsLoading" class="w-4 h-4 animate-spin" />
                 <Save v-else class="w-4 h-4" />
                 Save Changes
               </Button>
