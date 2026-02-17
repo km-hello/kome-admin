@@ -12,6 +12,14 @@ export interface SocialLink {
 }
 
 /**
+ * 技能项
+ */
+export interface SkillItem {
+    name: string;
+    level: number;  // 1=Basic, 2=Familiar, 3=Proficient
+}
+
+/**
  * 登录请求参数
  */
 export interface UserLoginRequest {
@@ -29,6 +37,7 @@ export interface UserUpdateRequest {
     email?: string;
     description?: string;
     socialLinks?: SocialLink[];
+    skills?: SkillItem[];
 }
 
 /**
@@ -50,6 +59,7 @@ export interface UserInfoResponse {
     email: string;
     description?: string;
     socialLinks?: SocialLink[];
+    skills?: SkillItem[];
 }
 
 /**
