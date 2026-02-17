@@ -143,7 +143,7 @@ const handleLogin = async (): Promise<void> => {
               for="remember"
               class="text-sm text-slate-700 font-medium cursor-pointer select-none"
           >
-            Remember me for 7 days
+            Remember me for 3 days
           </label>
         </div>
 
@@ -161,8 +161,7 @@ const handleLogin = async (): Promise<void> => {
         <!-- 底部提示 -->
         <div class="text-center">
           <a
-              href="https://your-blog-url.com"
-              target="_blank"
+              href="/"
               class="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-800 transition-colors group"
           >
             <ArrowLeft class="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
