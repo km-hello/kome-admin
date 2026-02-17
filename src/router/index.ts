@@ -29,7 +29,7 @@ const routes: RouteRecordRaw[] = [
         name: 'Login',
         component: Login,
         meta: {
-            title: '登录',
+            title: 'Login',
             guest: true
         },
     },
@@ -38,7 +38,7 @@ const routes: RouteRecordRaw[] = [
         name: 'Setup',
         component: Setup,
         meta: {
-            title: '初始化设置',
+            title: 'Setup',
             setup: true
         },
     },
