@@ -149,11 +149,11 @@ const handleLogin = async (): Promise<void> => {
 
         <!-- 登录按钮 -->
         <Button
-            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold h-11 mt-2"
+            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold h-11 mt-2 gap-2"
             :disabled="isLoading"
             @click="handleLogin"
         >
-          <Loader2 v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 v-if="isLoading" class="h-4 w-4 animate-spin" />
           {{ isLoading ? 'Signing in...' : 'Sign In' }}
         </Button>
 

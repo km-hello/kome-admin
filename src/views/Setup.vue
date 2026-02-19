@@ -341,11 +341,11 @@ const handleSetup = async (): Promise<void> => {
 
         <!-- 设置按钮 -->
         <Button
-            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold h-11 mt-2"
+            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold h-11 mt-2 gap-2"
             :disabled="isLoading || !isFormValid"
             @click="handleSetup"
         >
-          <Loader2 v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 v-if="isLoading" class="h-4 w-4 animate-spin" />
           {{ isLoading ? 'Setting up...' : 'Complete Setup' }}
         </Button>
       </CardContent>

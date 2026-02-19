@@ -408,8 +408,9 @@ const useFirstImageAsCover = () => {
     </div>
 
     <!-- ========== 加载状态 ========== -->
-    <div v-if="loading" class="flex justify-center items-center py-20">
+    <div v-if="loading" class="flex justify-center items-center gap-2 py-20">
       <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
+      <span class="text-sm text-slate-400">Loading...</span>
     </div>
 
     <!-- ========== 编辑器主体 ========== -->
