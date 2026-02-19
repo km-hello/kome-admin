@@ -399,8 +399,18 @@ const formatDate = (dateString: string) => {
               </TableCell>
             </TableRow>
 
+            <!-- 加载状态 -->
+            <TableRow v-if="loading">
+              <TableCell colspan="5" class="text-center py-12">
+                <div class="flex items-center justify-center gap-2 text-slate-500">
+                  <Loader2 class="w-5 h-5 animate-spin" />
+                  <span>Loading tags...</span>
+                </div>
+              </TableCell>
+            </TableRow>
+
             <!-- 空状态 -->
-            <TableRow v-if="!loading && tags.length === 0">
+            <TableRow v-else-if="tags.length === 0">
               <TableCell colspan="5" class="h-32 text-center">
                 <div class="flex flex-col items-center justify-center text-slate-400">
                   <Hash class="w-12 h-12 mb-2 opacity-20" />
@@ -410,15 +420,6 @@ const formatDate = (dateString: string) => {
                   <p class="text-xs mt-1">
                     {{ searchKeyword ? 'Try adjusting your filters' : 'Create your first tag to get started' }}
                   </p>
-                </div>
-              </TableCell>
-            </TableRow>
-
-            <!-- 加载状态 -->
-            <TableRow v-if="loading">
-              <TableCell colspan="5" class="h-32 text-center">
-                <div class="flex items-center justify-center">
-                  <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
                 </div>
               </TableCell>
             </TableRow>
@@ -478,10 +479,10 @@ const formatDate = (dateString: string) => {
           </Button>
           <Button
               @click="handleSubmit"
-              class="bg-slate-900 hover:bg-slate-800"
+              class="bg-slate-900 hover:bg-slate-800 gap-2"
               :disabled="dialogLoading"
           >
-            <Loader2 v-if="dialogLoading" class="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 v-if="dialogLoading" class="h-4 w-4 animate-spin" />
             {{ dialogMode === 'create' ? 'Create' : 'Update' }}
           </Button>
         </DialogFooter>
@@ -505,10 +506,10 @@ const formatDate = (dateString: string) => {
           <AlertDialogCancel :disabled="deleteLoading">Cancel</AlertDialogCancel>
           <AlertDialogAction
               @click="handleDelete"
-              class="bg-red-600 hover:bg-red-700"
+              class="bg-red-600 hover:bg-red-700 gap-2"
               :disabled="deleteLoading"
           >
-            <Loader2 v-if="deleteLoading" class="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 v-if="deleteLoading" class="h-4 w-4 animate-spin" />
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>
