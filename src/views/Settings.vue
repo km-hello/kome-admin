@@ -496,8 +496,9 @@ const handleSaveSkills = async () => {
     />
 
     <!-- 加载状态 -->
-    <div v-if="loading" class="flex items-center justify-center py-20">
+    <div v-if="loading" class="flex items-center justify-center gap-2 py-20">
       <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
+      <span class="text-sm text-slate-400">Loading...</span>
     </div>
 
     <div v-else class="grid gap-6 lg:grid-cols-3">
