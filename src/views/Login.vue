@@ -78,7 +78,7 @@ const handleLogin = async (): Promise<void> => {
 </script>
 
 <template>
-  <div class="h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
+  <div class="h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-5">
     <!-- 装饰背景 -->
     <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] bg-size-[32px_32px] opacity-60"></div>
 
