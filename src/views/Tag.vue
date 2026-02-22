@@ -312,13 +312,17 @@ const formatDate = (dateString: string) => {
               <Input
                   v-model="searchKeyword"
                   placeholder="Search tags..."
-                  class="pl-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                  class="pl-9 pr-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
+              <button
+                  @click="handleSearch"
+                  class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  title="Search"
+              >
+                <Search class="w-4 h-4" />
+              </button>
             </div>
-            <Button @click="handleSearch" variant="outline" size="sm" class="h-9">
-              Search
-            </Button>
           </div>
         </div>
       </CardHeader>
