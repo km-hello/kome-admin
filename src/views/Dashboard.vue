@@ -215,10 +215,10 @@ const formatDate = (dateString: string) => {
           <Table>
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
-                <TableHead class="w-15 pl-6">ID</TableHead>
+                <TableHead class="w-15 pl-4 sm:pl-6">ID</TableHead>
                 <TableHead class="w-[50%]">Title</TableHead>
                 <TableHead class="w-20">Status</TableHead>
-                <TableHead class="w-25 text-right pr-6">Date</TableHead>
+                <TableHead class="w-25 text-right pr-4 sm:pr-6">Date</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -255,7 +255,7 @@ const formatDate = (dateString: string) => {
                   ]"
               >
                 <!-- ID 列 -->
-                <TableCell class="font-mono text-xs text-slate-500 pl-6">
+                <TableCell class="font-mono text-xs text-slate-500 pl-4 sm:pl-6">
                   <div class="flex items-center">
                     <span class="mr-1">#{{ post.id }}</span>
                     <Pin v-if="post.isPinned" class="w-3 h-3 text-amber-500 opacity-70" />
@@ -286,7 +286,7 @@ const formatDate = (dateString: string) => {
                 </TableCell>
 
                 <!-- 日期列 -->
-                <TableCell class="text-right pr-6">
+                <TableCell class="text-right pr-4 sm:pr-6">
                   <div class="flex items-center justify-end gap-1.5 text-xs text-slate-500">
                     <Calendar class="w-3 h-3" />
                     {{ formatDate(post.createTime).split(' ')[0] }}
@@ -318,10 +318,10 @@ const formatDate = (dateString: string) => {
           <Table>
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
-                <TableHead class="w-15 pl-6">ID</TableHead>
+                <TableHead class="w-15 pl-4 sm:pl-6">ID</TableHead>
                 <TableHead class="w-[50%]">Content</TableHead>
                 <TableHead class="w-20">Status</TableHead>
-                <TableHead class="w-25 text-right pr-6">Date</TableHead>
+                <TableHead class="w-25 text-right pr-4 sm:pr-6">Date</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -358,7 +358,7 @@ const formatDate = (dateString: string) => {
                   ]"
               >
                 <!-- ID 列 -->
-                <TableCell class="font-mono text-xs text-slate-500 pl-6">
+                <TableCell class="font-mono text-xs text-slate-500 pl-4 sm:pl-6">
                   <div class="flex items-center">
                     <span class="mr-1">#{{ memo.id }}</span>
                     <Pin v-if="memo.isPinned" class="w-3 h-3 text-amber-500 opacity-70" />
@@ -384,7 +384,7 @@ const formatDate = (dateString: string) => {
                 </TableCell>
 
                 <!-- 日期列 -->
-                <TableCell class="text-right pr-6">
+                <TableCell class="text-right pr-4 sm:pr-6">
                   <div class="flex items-center justify-end gap-1.5 text-xs text-slate-500">
                     <Calendar class="w-3 h-3" />
                     {{ formatDate(memo.createTime).split(' ')[0] }}

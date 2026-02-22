@@ -445,12 +445,12 @@ const formatDate = (dateString: string) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <SortableHead class="w-15 pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
+              <SortableHead class="w-15 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
               <SortableHead class="w-[30%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">Info</SortableHead>
               <TableHead class="w-[30%]">Description</TableHead>
               <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
               <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
-              <TableHead class="text-right pr-6">Actions</TableHead>
+              <TableHead class="text-right pr-4 sm:pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -462,7 +462,7 @@ const formatDate = (dateString: string) => {
                 class="hover:bg-slate-50/50 transition-colors border-slate-100"
             >
               <!-- ID 列 -->
-              <TableCell class="font-mono text-xs text-slate-500 pl-6">
+              <TableCell class="font-mono text-xs text-slate-500 pl-4 sm:pl-6">
                 #{{ link.id }}
               </TableCell>
 
@@ -520,7 +520,7 @@ const formatDate = (dateString: string) => {
               </TableCell>
 
               <!-- 操作列 -->
-              <TableCell class="text-right pr-6">
+              <TableCell class="text-right pr-4 sm:pr-6">
                 <div class="flex items-center justify-end gap-2">
                   <Button
                       @click="openEditDialog(link)"
@@ -570,19 +570,19 @@ const formatDate = (dateString: string) => {
             </TableRow>
           </TableBody>
         </Table>
-      </CardContent>
 
-      <!-- 分页 -->
-      <div class="border-t border-slate-100 px-6 py-4">
-        <Pagination
-            :current="pagination.current"
-            :page-size="pagination.pageSize"
-            :total="pagination.total"
-            item-name="links"
-            @change="handlePageChange"
-            @page-size-change="handlePageSizeChange"
-        />
-      </div>
+        <!-- 分页 -->
+        <div class="border-t border-slate-100 px-4 sm:px-6 py-4">
+          <Pagination
+              :current="pagination.current"
+              :page-size="pagination.pageSize"
+              :total="pagination.total"
+              item-name="links"
+              @change="handlePageChange"
+              @page-size-change="handlePageSizeChange"
+          />
+        </div>
+      </CardContent>
     </Card>
 
     <!-- ========== 创建/编辑对话框 ========== -->
