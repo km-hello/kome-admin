@@ -135,7 +135,7 @@ const formatDate = (dateString: string) => {
     />
 
     <!-- ========== 统计卡片网格 ========== -->
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       <StatsCard
           title="Total Posts"
           :value="siteStore.totalPosts"

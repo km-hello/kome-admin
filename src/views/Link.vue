@@ -371,8 +371,9 @@ const formatDate = (dateString: string) => {
     </PageHeader>
 
     <!-- ========== 统计卡片 ========== -->
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
       <StatsCard
+          class="col-span-2 md:col-span-1"
           title="Total Links"
           :value="siteStore.totalLinks"
           description="Total friendship links"
