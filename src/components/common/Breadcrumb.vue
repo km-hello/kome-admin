@@ -55,7 +55,7 @@ const isLast = (index: number) => index === breadcrumbs.value.length - 1;
 
 <template>
   <div class="flex items-center gap-2 text-sm">
-    <button class="md:hidden p-2 hover:bg-slate-100 rounded-lg">
+    <button class="md:hidden p-2 hover:bg-slate-100 rounded-lg" @click="$emit('toggleSidebar')">
       <Menu class="w-5 h-5" />
     </button>
 

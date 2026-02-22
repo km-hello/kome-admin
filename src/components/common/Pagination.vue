@@ -112,10 +112,10 @@ const handleJump = () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <!-- 左侧：显示信息 + 每页数量选择 -->
-    <div class="flex items-center gap-4">
-      <div class="text-sm text-slate-500">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+      <div class="hidden sm:block text-sm text-slate-500">
         <template v-if="total > 0">
           Showing {{ startItem }} to {{ endItem }} of {{ total }} {{ itemName }}
         </template>
@@ -152,7 +152,8 @@ const handleJump = () => {
           variant="outline"
           size="sm"
       >
-        Previous
+        <span class="hidden sm:inline">Previous</span>
+        <span class="sm:hidden">Prev</span>
       </Button>
 
       <!-- 页码跳转 -->
@@ -174,7 +175,8 @@ const handleJump = () => {
           variant="outline"
           size="sm"
       >
-        Next
+        <span class="hidden sm:inline">Next</span>
+        <span class="sm:hidden">Next</span>
       </Button>
     </div>
   </div>
