@@ -577,7 +577,6 @@ const formatDate = (dateString: string) => {
               :current="pagination.current"
               :page-size="pagination.pageSize"
               :total="pagination.total"
-              item-name="links"
               @change="handlePageChange"
               @page-size-change="handlePageSizeChange"
           />
