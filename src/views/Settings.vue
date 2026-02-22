@@ -649,11 +649,11 @@ const handleSaveSkills = async () => {
               <div
                   v-for="(link, index) in socialLinksForm"
                   :key="index"
-                  class="flex items-center gap-3"
+                  class="flex flex-wrap items-center gap-2 sm:gap-3"
               >
                 <!-- 平台选择 -->
                 <Select v-model="link.platform" :disabled="socialLinksLoading">
-                  <SelectTrigger class="w-36">
+                  <SelectTrigger class="w-full sm:w-36">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

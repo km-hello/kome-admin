@@ -228,7 +228,7 @@ const formatDate = (dateString: string) => {
     <!-- ========== 内容列表区域 ========== -->
     <div class="grid gap-6 lg:grid-cols-2">
       <!-- 最近文章 -->
-      <Card>
+      <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
             <CardTitle class="text-lg font-bold text-slate-800">Recent Posts</CardTitle>
@@ -331,7 +331,7 @@ const formatDate = (dateString: string) => {
       </Card>
 
       <!-- 最近备忘录 -->
-      <Card>
+      <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
             <CardTitle class="text-lg font-bold text-slate-800">Recent Memos</CardTitle>

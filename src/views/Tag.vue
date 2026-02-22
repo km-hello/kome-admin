@@ -298,16 +298,16 @@ const formatDate = (dateString: string) => {
     </div>
 
     <!-- ========== 标签列表 ========== -->
-    <Card>
+    <Card class="overflow-hidden">
       <CardHeader class="border-b border-slate-100 py-4">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle class="text-lg font-bold text-slate-800">All Tags</CardTitle>
             <CardDescription class="mt-1">Manage and organize your content tags</CardDescription>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <!-- 搜索框 -->
-            <div class="relative w-64">
+            <div class="relative w-full sm:w-64">
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                   v-model="searchKeyword"
