@@ -1,6 +1,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { AcceptableValue } from 'reka-ui';
@@ -20,14 +21,11 @@ interface Props {
   pageSize: number;
   /** 总数量 */
   total: number;
-  /** 显示的实体名称，默认为 'results' */
-  itemName?: string;
   /** 每页数量选项 */
   pageSizeOptions?: number[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  itemName: 'results',
   pageSizeOptions: () => [10, 20, 50, 100],
 });
 
@@ -38,14 +36,6 @@ const emit = defineEmits<{
   (e: 'change', page: number): void;
   (e: 'pageSizeChange', size: number): void;
 }>();
-
-// ========== 状态 ==========
-const jumpPage = ref(props.current.toString());
-
-// 监听 current 变化，同步 jumpPage
-watch(() => props.current, (newVal) => {
-  jumpPage.value = newVal.toString();
-});
 
 // ========== 计算属性 ==========
 
@@ -97,14 +87,20 @@ const handlePageSizeChange = (value: AcceptableValue) => {
   emit('pageSizeChange', newSize);
 };
 
-/** 跳转到指定页码 */
+// ========== 页码跳转 ==========
+
+const jumpPage = ref(props.current.toString());
+
+watch(() => props.current, (newVal) => {
+  jumpPage.value = newVal.toString();
+});
+
 const handleJump = () => {
   const page = parseInt(jumpPage.value, 10);
   if (isNaN(page)) {
     jumpPage.value = props.current.toString();
     return;
   }
-  // 限制在有效范围内
   const validPage = Math.min(Math.max(1, page), totalPages.value);
   jumpPage.value = validPage.toString();
   handlePageChange(validPage);
@@ -113,68 +109,61 @@ const handleJump = () => {
 
 <template>
   <div class="flex items-center justify-between">
-    <!-- 左侧：显示信息 + 每页数量选择 -->
-    <div class="flex items-center gap-4">
-      <div class="text-sm text-slate-500">
-        <template v-if="total > 0">
-          Showing {{ startItem }} to {{ endItem }} of {{ total }} {{ itemName }}
-        </template>
-        <template v-else>
-          No {{ itemName }}
-        </template>
-      </div>
+    <!-- 左侧：显示信息 + 每页数量 -->
+    <div class="flex items-center gap-3">
+      <Select :model-value="pageSize.toString()" @update:model-value="handlePageSizeChange">
+        <SelectTrigger class="w-17.5 h-8">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+              v-for="size in pageSizeOptions"
+              :key="size"
+              :value="size.toString()"
+          >
+            {{ size }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
-      <!-- 每页数量选择 -->
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-slate-500">per page</span>
-        <Select :model-value="pageSize.toString()" @update:model-value="handlePageSizeChange">
-          <SelectTrigger class="w-17.5 h-8">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-                v-for="size in pageSizeOptions"
-                :key="size"
-                :value="size.toString()"
-            >
-              {{ size }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <span class="hidden sm:inline text-sm text-slate-500">
+        <template v-if="total > 0">{{ startItem }}-{{ endItem }} of {{ total }}</template>
+        <template v-else>No results</template>
+      </span>
     </div>
 
-    <!-- 右侧：分页控制 -->
-    <div class="flex items-center gap-2">
+    <!-- 右侧：翻页控制 -->
+    <div class="flex items-center gap-1.5">
       <Button
           @click="goPrev"
           :disabled="!hasPrev"
           variant="outline"
-          size="sm"
+          size="icon"
+          class="h-8 w-8"
       >
-        Previous
+        <ChevronLeft class="w-4 h-4" />
       </Button>
 
-      <!-- 页码跳转 -->
-      <div class="flex items-center gap-1.5">
-        <span class="text-sm text-slate-500">Page</span>
+      <div class="flex items-center gap-1">
         <Input
             v-model="jumpPage"
             type="text"
-            class="w-14 h-8 text-center"
+            class="w-10 h-8 text-center text-sm tabular-nums px-1"
             @keyup.enter="handleJump"
             @blur="handleJump"
         />
-        <span class="text-sm text-slate-500">of {{ totalPages }}</span>
+        <span class="text-sm text-slate-400">/</span>
+        <span class="text-sm text-slate-600 tabular-nums">{{ totalPages }}</span>
       </div>
 
       <Button
           @click="goNext"
           :disabled="!hasNext"
           variant="outline"
-          size="sm"
+          size="icon"
+          class="h-8 w-8"
       >
-        Next
+        <ChevronRight class="w-4 h-4" />
       </Button>
     </div>
   </div>

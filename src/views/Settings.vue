@@ -518,7 +518,7 @@ const handleSaveSkills = async () => {
             </div>
           </CardHeader>
 
-          <CardContent class="pt-6 space-y-4">
+          <CardContent class="space-y-4">
             <!-- 用户名 -->
             <div class="space-y-2">
               <Label htmlFor="username">
@@ -643,17 +643,17 @@ const handleSaveSkills = async () => {
             </div>
           </CardHeader>
 
-          <CardContent class="pt-6 space-y-4">
+          <CardContent class="space-y-4">
             <!-- 社交链接列表 -->
             <div v-if="socialLinksForm.length > 0" class="space-y-3">
               <div
                   v-for="(link, index) in socialLinksForm"
                   :key="index"
-                  class="flex items-center gap-3"
+                  class="flex flex-wrap items-center gap-2 sm:gap-3"
               >
                 <!-- 平台选择 -->
                 <Select v-model="link.platform" :disabled="socialLinksLoading">
-                  <SelectTrigger class="w-36">
+                  <SelectTrigger class="w-full sm:w-36">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -740,7 +740,7 @@ const handleSaveSkills = async () => {
             </div>
           </CardHeader>
 
-          <CardContent class="pt-6 space-y-4">
+          <CardContent class="space-y-4">
             <!-- 技能列表 -->
             <div v-if="skillsForm.length > 0" class="space-y-3">
               <div
@@ -841,7 +841,7 @@ const handleSaveSkills = async () => {
             </div>
           </CardHeader>
 
-          <CardContent class="pt-6 space-y-4">
+          <CardContent class="space-y-4">
             <!-- 当前密码 -->
             <div class="space-y-2">
               <Label htmlFor="oldPassword">
@@ -951,7 +951,7 @@ const handleSaveSkills = async () => {
       <!-- ========== 右侧：用户头像卡片 ========== -->
       <div class="lg:col-span-1">
         <Card class="lg:sticky lg:top-6">
-          <CardContent class="pt-6">
+          <CardContent>
             <div class="flex flex-col items-center text-center">
               <!-- 头像 -->
               <div class="relative group">

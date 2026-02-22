@@ -29,19 +29,19 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <Card>
-    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle class="text-sm font-medium text-slate-600">{{ title }}</CardTitle>
+  <Card class="relative py-4 gap-2 sm:py-6 sm:gap-6">
+    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-0 px-4 sm:px-6">
+      <CardTitle class="text-xs sm:text-sm font-medium text-slate-600">{{ title }}</CardTitle>
       <div
           v-if="icon"
-          class="w-8 h-8 rounded-lg flex items-center justify-center"
+          class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center"
           :class="iconBgClass"
       >
-        <component :is="icon" class="h-4 w-4" :class="iconClass" />
+        <component :is="icon" class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="iconClass" />
       </div>
     </CardHeader>
-    <CardContent>
-      <div class="text-2xl font-bold text-slate-900">{{ value }}</div>
+    <CardContent class="px-4 sm:px-6 pr-12 sm:pr-14">
+      <div class="text-xl sm:text-2xl font-bold text-slate-900">{{ value }}</div>
       <p v-if="description" class="text-xs text-slate-400 mt-1">{{ description }}</p>
       <slot />
     </CardContent>

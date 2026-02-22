@@ -40,14 +40,6 @@ const recentPosts = ref<PostSimpleResponse[]>([]);
 // 最近备忘录列表
 const recentMemos = ref<MemoResponse[]>([]);
 
-// 快捷操作
-const quickActions = [
-  { label: 'New Post', desc: 'Create article', icon: FileText, color: 'blue', route: '/posts/new' },
-  { label: 'New Memo', desc: 'Write memo', icon: Activity, color: 'amber', route: '/memos' },
-  { label: 'New Tag', desc: 'Add tag', icon: Hash, color: 'emerald', route: '/tags' },
-  { label: 'New Link', desc: 'Add link', icon: LinkIcon, color: 'purple', route: '/links' },
-];
-
 // 加载状态
 const loading = ref(true);
 
@@ -135,7 +127,7 @@ const formatDate = (dateString: string) => {
     />
 
     <!-- ========== 统计卡片网格 ========== -->
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       <StatsCard
           title="Total Posts"
           :value="siteStore.totalPosts"
@@ -147,6 +139,9 @@ const formatDate = (dateString: string) => {
           <span>Published: <span class="font-semibold text-blue-600">{{ siteStore.stats.publishedPostCount }}</span></span>
           <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftPostCount }}</span></span>
         </div>
+        <button @click="router.push('/posts/new')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors" title="New Post">
+          <Plus class="w-3.5 h-3.5 text-blue-600" />
+        </button>
       </StatsCard>
 
       <StatsCard
@@ -160,6 +155,9 @@ const formatDate = (dateString: string) => {
           <span>Published: <span class="font-semibold text-amber-600">{{ siteStore.stats.publishedMemoCount }}</span></span>
           <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftMemoCount }}</span></span>
         </div>
+        <button @click="router.push('/memos')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-50 hover:bg-amber-100 flex items-center justify-center transition-colors" title="New Memo">
+          <Plus class="w-3.5 h-3.5 text-amber-600" />
+        </button>
       </StatsCard>
 
       <StatsCard
@@ -173,6 +171,9 @@ const formatDate = (dateString: string) => {
           <span>Used: <span class="font-semibold text-emerald-600">{{ siteStore.stats.usedTagCount }}</span></span>
           <span>Unused: <span class="font-semibold text-slate-600">{{ siteStore.stats.unusedTagCount }}</span></span>
         </div>
+        <button @click="router.push('/tags')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-50 hover:bg-emerald-100 flex items-center justify-center transition-colors" title="New Tag">
+          <Plus class="w-3.5 h-3.5 text-emerald-600" />
+        </button>
       </StatsCard>
 
       <StatsCard
@@ -186,49 +187,16 @@ const formatDate = (dateString: string) => {
           <span>Published: <span class="font-semibold text-purple-600">{{ siteStore.stats.publishedLinkCount }}</span></span>
           <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftLinkCount }}</span></span>
         </div>
+        <button @click="router.push('/links')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-50 hover:bg-purple-100 flex items-center justify-center transition-colors" title="New Link">
+          <Plus class="w-3.5 h-3.5 text-purple-600" />
+        </button>
       </StatsCard>
-    </div>
-
-    <!-- ========== 快捷操作 ========== -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <Card
-          v-for="action in quickActions"
-          :key="action.label"
-          class="cursor-pointer hover:border-slate-300 transition-colors group"
-          @click="router.push(action.route)"
-      >
-        <CardContent class="flex items-center gap-3 p-4">
-          <div
-              class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-              :class="{
-                'bg-blue-50': action.color === 'blue',
-                'bg-amber-50': action.color === 'amber',
-                'bg-emerald-50': action.color === 'emerald',
-                'bg-purple-50': action.color === 'purple',
-              }"
-          >
-            <Plus
-                class="w-4 h-4"
-                :class="{
-                  'text-blue-600': action.color === 'blue',
-                  'text-amber-600': action.color === 'amber',
-                  'text-emerald-600': action.color === 'emerald',
-                  'text-purple-600': action.color === 'purple',
-                }"
-            />
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-slate-800">{{ action.label }}</p>
-            <p class="text-xs text-slate-400">{{ action.desc }}</p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
 
     <!-- ========== 内容列表区域 ========== -->
     <div class="grid gap-6 lg:grid-cols-2">
       <!-- 最近文章 -->
-      <Card>
+      <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
             <CardTitle class="text-lg font-bold text-slate-800">Recent Posts</CardTitle>
@@ -247,10 +215,10 @@ const formatDate = (dateString: string) => {
           <Table>
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
-                <TableHead class="w-15 pl-6">ID</TableHead>
+                <TableHead class="w-15 pl-4 sm:pl-6">ID</TableHead>
                 <TableHead class="w-[50%]">Title</TableHead>
                 <TableHead class="w-20">Status</TableHead>
-                <TableHead class="w-25 text-right pr-6">Date</TableHead>
+                <TableHead class="w-25 text-right pr-4 sm:pr-6">Date</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -287,7 +255,7 @@ const formatDate = (dateString: string) => {
                   ]"
               >
                 <!-- ID 列 -->
-                <TableCell class="font-mono text-xs text-slate-500 pl-6">
+                <TableCell class="font-mono text-xs text-slate-500 pl-4 sm:pl-6">
                   <div class="flex items-center">
                     <span class="mr-1">#{{ post.id }}</span>
                     <Pin v-if="post.isPinned" class="w-3 h-3 text-amber-500 opacity-70" />
@@ -318,7 +286,7 @@ const formatDate = (dateString: string) => {
                 </TableCell>
 
                 <!-- 日期列 -->
-                <TableCell class="text-right pr-6">
+                <TableCell class="text-right pr-4 sm:pr-6">
                   <div class="flex items-center justify-end gap-1.5 text-xs text-slate-500">
                     <Calendar class="w-3 h-3" />
                     {{ formatDate(post.createTime).split(' ')[0] }}
@@ -331,7 +299,7 @@ const formatDate = (dateString: string) => {
       </Card>
 
       <!-- 最近备忘录 -->
-      <Card>
+      <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
             <CardTitle class="text-lg font-bold text-slate-800">Recent Memos</CardTitle>
@@ -350,10 +318,10 @@ const formatDate = (dateString: string) => {
           <Table>
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
-                <TableHead class="w-15 pl-6">ID</TableHead>
+                <TableHead class="w-15 pl-4 sm:pl-6">ID</TableHead>
                 <TableHead class="w-[50%]">Content</TableHead>
                 <TableHead class="w-20">Status</TableHead>
-                <TableHead class="w-25 text-right pr-6">Date</TableHead>
+                <TableHead class="w-25 text-right pr-4 sm:pr-6">Date</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -390,7 +358,7 @@ const formatDate = (dateString: string) => {
                   ]"
               >
                 <!-- ID 列 -->
-                <TableCell class="font-mono text-xs text-slate-500 pl-6">
+                <TableCell class="font-mono text-xs text-slate-500 pl-4 sm:pl-6">
                   <div class="flex items-center">
                     <span class="mr-1">#{{ memo.id }}</span>
                     <Pin v-if="memo.isPinned" class="w-3 h-3 text-amber-500 opacity-70" />
@@ -416,7 +384,7 @@ const formatDate = (dateString: string) => {
                 </TableCell>
 
                 <!-- 日期列 -->
-                <TableCell class="text-right pr-6">
+                <TableCell class="text-right pr-4 sm:pr-6">
                   <div class="flex items-center justify-end gap-1.5 text-xs text-slate-500">
                     <Calendar class="w-3 h-3" />
                     {{ formatDate(memo.createTime).split(' ')[0] }}

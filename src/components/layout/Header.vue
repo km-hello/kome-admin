@@ -27,13 +27,17 @@ withDefaults(defineProps<Props>(), {
   showNotificationBadge: false,
 });
 
+const emit = defineEmits<{
+  (e: 'toggleSidebar'): void
+}>();
+
 const router = useRouter();
 </script>
 
 <template>
-  <header class="h-16 bg-white/80 backdrop-blur-md border-b px-6 flex items-center justify-between shrink-0 z-10">
+  <header class="h-16 bg-white/80 backdrop-blur-md border-b px-4 md:px-6 flex items-center justify-between shrink-0 z-10">
     <!-- 左侧：面包屑导航 -->
-    <Breadcrumb />
+    <Breadcrumb @toggle-sidebar="emit('toggleSidebar')" />
 
     <!-- 右侧：操作按钮组 -->
     <div class="flex items-center gap-1.5">

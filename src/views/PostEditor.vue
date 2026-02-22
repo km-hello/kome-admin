@@ -366,9 +366,9 @@ const useFirstImageAsCover = () => {
 <template>
   <div class="min-h-screen bg-background">
     <!-- ========== 顶部操作栏 ========== -->
-    <div class="sticky top-0 z-10 px-6 pt-4">
-      <div class="max-w-400 mx-auto bg-white/95 backdrop-blur-sm border border-slate-100 rounded-xl shadow-xs px-6 py-3">
-        <div class="flex items-center justify-between">
+    <div class="sticky top-0 z-10 pt-4">
+      <div class="max-w-400 mx-auto bg-white/95 backdrop-blur-sm border border-slate-100 rounded-xl shadow-xs px-4 md:px-6 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-4">
             <Button
                 variant="ghost"
@@ -380,7 +380,7 @@ const useFirstImageAsCover = () => {
               Back
             </Button>
             <div class="h-6 w-px bg-slate-200"></div>
-            <h1 class="text-xl font-semibold text-slate-900">
+            <h1 class="text-lg md:text-xl font-semibold text-slate-900">
               {{ isEditMode ? 'Edit Post' : 'New Post' }}
             </h1>
           </div>
@@ -414,7 +414,7 @@ const useFirstImageAsCover = () => {
     </div>
 
     <!-- ========== 编辑器主体 ========== -->
-    <div v-else class="mx-auto px-6 py-8" :class="showPreview ? 'max-w-450' : 'max-w-400'">
+    <div v-else class="mx-auto py-6 md:py-8" :class="showPreview ? 'max-w-450' : 'max-w-400'">
       <div class="grid grid-cols-1 gap-6" :class="showPreview ? '' : 'lg:grid-cols-3'">
         <!-- ========== 左侧：内容编辑区 ========== -->
         <div class="space-y-6" :class="showPreview ? '' : 'lg:col-span-2'">
@@ -526,7 +526,7 @@ const useFirstImageAsCover = () => {
                       placeholder="Write your post content here... (Markdown supported)"
                       :rows="showPreview ? undefined : 20"
                       class="font-mono text-sm resize-none scrollbar-thin"
-                      :class="{ 'h-full': showPreview }"
+                      :class="showPreview ? 'h-full' : 'max-h-[60vh]'"
                   />
                 </div>
                 <!-- 拖动分割条 -->

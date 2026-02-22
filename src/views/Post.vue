@@ -277,8 +277,9 @@ const truncateText = (text: string, maxLength: number = 60) => {
     </PageHeader>
 
     <!-- ========== 统计卡片 ========== -->
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
       <StatsCard
+          class="col-span-2 md:col-span-1"
           title="Total Posts"
           :value="siteStore.totalPosts"
           description="All articles"
@@ -305,14 +306,14 @@ const truncateText = (text: string, maxLength: number = 60) => {
     </div>
 
     <!-- ========== 文章列表 ========== -->
-    <Card>
+    <Card class="overflow-hidden">
       <CardHeader class="border-b border-slate-100 py-4">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle class="text-lg font-bold text-slate-800">All Posts</CardTitle>
             <CardDescription class="mt-1">Manage your blog articles and content</CardDescription>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="handleStatusFilterChange">
               <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
@@ -339,18 +340,22 @@ const truncateText = (text: string, maxLength: number = 60) => {
             </Select>
 
             <!-- 搜索框 -->
-            <div class="relative w-64">
+            <div class="relative w-full sm:w-64">
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                   v-model="searchKeyword"
                   placeholder="Search posts..."
-                  class="pl-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                  class="pl-9 pr-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
+              <button
+                  @click="handleSearch"
+                  class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  title="Search"
+              >
+                <Search class="w-4 h-4" />
+              </button>
             </div>
-            <Button @click="handleSearch" variant="outline" size="sm" class="h-9">
-              Search
-            </Button>
           </div>
         </div>
       </CardHeader>
@@ -359,13 +364,13 @@ const truncateText = (text: string, maxLength: number = 60) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <SortableHead class="w-15 pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
+              <SortableHead class="w-15 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
               <TableHead class="w-[35%]">Title</TableHead>
               <TableHead>Tags</TableHead>
               <SortableHead :sort-order="getSortOrder('views')" @sort="toggleSort('views')">Views</SortableHead>
               <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
               <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
-              <TableHead class="text-right pr-6">Actions</TableHead>
+              <TableHead class="text-right pr-4 sm:pr-6">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -405,7 +410,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
                 ]"
             >
               <!-- ID 列 -->
-              <TableCell class="font-mono text-xs text-slate-500 pl-6 relative">
+              <TableCell class="font-mono text-xs text-slate-500 pl-4 sm:pl-6 relative">
                 <div class="flex items-center">
                   <span class="mr-1">#{{ post.id }}</span>
                   <Pin v-if="post.isPinned" class="w-3 h-3 text-amber-500 opacity-70" />
@@ -493,7 +498,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
               </TableCell>
 
               <!-- 操作列 -->
-              <TableCell class="text-right pr-6">
+              <TableCell class="text-right pr-4 sm:pr-6">
                 <div class="flex items-center justify-end gap-2">
                   <Button
                       @click="goToEdit(post)"
@@ -520,7 +525,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
         </Table>
 
         <!-- 分页 -->
-        <div class="border-t border-slate-100 px-6 py-4">
+        <div class="border-t border-slate-100 px-4 sm:px-6 py-4">
           <Pagination
               :current="pagination.current"
               :page-size="pagination.pageSize"
