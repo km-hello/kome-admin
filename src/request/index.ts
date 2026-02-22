@@ -88,8 +88,9 @@ service.interceptors.response.use(
                 sessionStorage.removeItem('userInfo');
 
                 // 强制跳转登录页（避免路由守卫死循环）
-                if (window.location.pathname !== '/login') {
-                    setTimeout(() => window.location.href = '/login', 500);
+                const loginPath = `${import.meta.env.BASE_URL}login`;
+                if (!window.location.pathname.endsWith('/login')) {
+                    setTimeout(() => window.location.href = loginPath, 500);
                 }
             }
         } else {
