@@ -16,6 +16,7 @@
   └───────────┴─────────────────────────┘
 -->
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { toast } from 'vue-sonner';
@@ -33,9 +34,11 @@ import {
 // 布局子组件
 import Sidebar, { type NavGroup } from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 const router = useRouter();
 const userStore = useUserStore();
+const sidebarOpen = ref(false);
 
 /**
  * 导航菜单配置
@@ -78,7 +81,7 @@ const handleLogout = async () => {
 
 <template>
   <div class="flex h-screen w-full overflow-hidden bg-background">
-    <!-- 侧边栏 -->
+    <!-- 桌面端侧边栏 -->
     <Sidebar
         :nav-groups="navGroups"
         :user-avatar="userStore.userInfo.avatar"
@@ -87,13 +90,28 @@ const handleLogout = async () => {
         @logout="handleLogout"
     />
 
+    <!-- 移动端侧边栏抽屉 -->
+    <Sheet v-model:open="sidebarOpen">
+      <SheetContent side="left" class="w-64 p-0">
+        <Sidebar
+            :nav-groups="navGroups"
+            :user-avatar="userStore.userInfo.avatar"
+            :user-nickname="userStore.userInfo.nickname"
+            :user-email="userStore.userInfo.email"
+            mobile
+            @logout="handleLogout"
+            @navigate="sidebarOpen = false"
+        />
+      </SheetContent>
+    </Sheet>
+
     <!-- 主内容区 -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden">
+    <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0">
       <!-- 顶部导航栏 -->
-      <Header />
+      <Header @toggle-sidebar="sidebarOpen = true" />
 
       <!-- 页面内容区域 -->
-      <div class="flex-1 overflow-y-auto scrollbar-thin p-6 lg:p-8">
+      <div class="flex-1 overflow-y-auto scrollbar-thin p-4 md:p-6 lg:p-8">
         <div class="max-w-7xl mx-auto">
           <router-view />
         </div>

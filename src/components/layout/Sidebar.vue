@@ -27,16 +27,20 @@ interface Props {
   userAvatar?: string
   userNickname?: string
   userEmail?: string
+  /** 移动端模式：始终显示（不受 md:flex 控制） */
+  mobile?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   userAvatar: '',
   userNickname: '',
   userEmail: '',
+  mobile: false,
 })
 
 const emit = defineEmits<{
   (e: 'logout'): void
+  (e: 'navigate'): void
 }>()
 
 const route = useRoute()
@@ -56,7 +60,7 @@ const getNavItemClass = (path: string) => {
 </script>
 
 <template>
-  <aside class="w-64 bg-white h-full border-r flex-col hidden md:flex shrink-0">
+  <aside :class="mobile ? 'w-full bg-white h-full flex flex-col' : 'w-64 bg-white h-full border-r flex-col hidden md:flex shrink-0'">
     <!-- ========== Logo 区域 ========== -->
     <div class="h-16 flex items-center px-6 border-b border-border/50 shrink-0">
       <div class="flex items-center gap-3">
@@ -86,6 +90,7 @@ const getNavItemClass = (path: string) => {
             :key="item.to"
             :to="item.to"
             :class="getNavItemClass(item.to)"
+            @click="emit('navigate')"
         >
           <component :is="item.icon" class="w-4 h-4" />
           <span>{{ item.label }}</span>
