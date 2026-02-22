@@ -526,7 +526,7 @@ const useFirstImageAsCover = () => {
                       placeholder="Write your post content here... (Markdown supported)"
                       :rows="showPreview ? undefined : 20"
                       class="font-mono text-sm resize-none scrollbar-thin"
-                      :class="{ 'h-full': showPreview }"
+                      :class="showPreview ? 'h-full' : 'max-h-[60vh]'"
                   />
                 </div>
                 <!-- 拖动分割条 -->
