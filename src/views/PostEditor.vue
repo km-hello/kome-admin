@@ -12,9 +12,10 @@ import {
   updatePostApi,
 } from '@/api/post';
 import {getAdminTagListApi, type TagResponse} from '@/api/tag';
+import {generateSummaryApi, generateSlugApi} from '@/api/ai';
 
 // 图标
-import {ArrowLeft, Eye, EyeOff, FileEdit, FileText, Globe, Image as ImageIcon, Loader2, Pin, Save, Tag as TagIcon} from 'lucide-vue-next';
+import {ArrowLeft, Eye, EyeOff, FileEdit, FileText, Globe, Image as ImageIcon, Loader2, Pin, Save, Sparkles, Tag as TagIcon} from 'lucide-vue-next';
 
 // Shadcn 组件
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -40,6 +41,8 @@ const postId = computed(() => Number(route.params.id));
 
 const loading = ref(true);
 const saving = ref(false);
+const generatingSummary = ref(false);
+const generatingSlug = ref(false);
 const allTags = ref<TagResponse[]>([]);
 
 // 表单数据
@@ -299,17 +302,43 @@ const handleBack = () => {
 };
 
 /**
- * 生成 slug（从标题）
+ * AI 生成摘要
  */
-const generateSlug = () => {
-  if (!formData.value.title) return;
+const aiGenerateSummary = async () => {
+  if (!formData.value.content.trim()) {
+    toast.warning('请先输入文章内容');
+    return;
+  }
+  generatingSummary.value = true;
+  try {
+    const res = await generateSummaryApi(formData.value.content);
+    formData.value.summary = res.result.slice(0, 500);
+    toast.success('摘要已生成');
+  } catch {
+    // 错误已由 request 拦截器 toast 处理
+  } finally {
+    generatingSummary.value = false;
+  }
+};
 
-  formData.value.slug = formData.value.title
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+/**
+ * AI 生成 Slug
+ */
+const aiGenerateSlug = async () => {
+  if (!formData.value.title.trim()) {
+    toast.warning('请先输入文章标题');
+    return;
+  }
+  generatingSlug.value = true;
+  try {
+    const res = await generateSlugApi(formData.value.title);
+    formData.value.slug = res.result;
+    toast.success('Slug 已生成');
+  } catch {
+    // 错误已由 request 拦截器 toast 处理
+  } finally {
+    generatingSlug.value = false;
+  }
 };
 
 /**
@@ -447,10 +476,13 @@ const useFirstImageAsCover = () => {
                         type="button"
                         variant="ghost"
                         size="sm"
-                        @click="generateSlug"
+                        @click="aiGenerateSlug"
+                        :disabled="generatingSlug || !formData.title?.trim()"
                         class="text-xs h-7"
                     >
-                      Generate from title
+                      <Loader2 v-if="generatingSlug" class="w-3 h-3 animate-spin mr-1" />
+                      <Sparkles v-else class="w-3 h-3 mr-1" />
+                      AI Generate
                     </Button>
                   </div>
                   <Input
@@ -470,11 +502,23 @@ const useFirstImageAsCover = () => {
 
           <!-- 摘要 -->
           <Card>
-            <CardHeader>
+            <CardHeader class="flex flex-row items-center justify-between">
               <CardTitle class="text-base flex items-center gap-2">
                 <FileText class="w-4 h-4" />
                 Summary
               </CardTitle>
+              <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  @click="aiGenerateSummary"
+                  :disabled="generatingSummary || !formData.content?.trim()"
+                  class="text-xs h-7"
+              >
+                <Loader2 v-if="generatingSummary" class="w-3 h-3 animate-spin mr-1" />
+                <Sparkles v-else class="w-3 h-3 mr-1" />
+                AI Generate
+              </Button>
             </CardHeader>
             <CardContent>
               <Textarea
