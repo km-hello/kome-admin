@@ -33,6 +33,7 @@ import {
   Rss,
   Home,
   Link as LinkIcon,
+  X,
   Zap,
 } from 'lucide-vue-next';
 import { IconGithub, IconX } from '@/components/icons/BrandIcons';
@@ -175,7 +176,7 @@ const skillsHasChanges = computed(() => {
   for (let i = 0; i < original.length; i++) {
     const orig = original[i];
     const curr = current[i];
-    if (orig?.name !== curr?.name || orig?.level !== curr?.level) {
+    if (orig?.name !== curr?.name || orig?.level !== curr?.level || orig?.order !== curr?.order) {
       return true;
     }
   }
@@ -438,11 +439,130 @@ const handleSaveSocialLinks = async () => {
 
 // ========== 技能管理 ==========
 
+// 技能等级配置（与 blog 端 SkillCard 保持一致）
+const skillLevelConfig = [
+  {
+    level: 3,
+    label: 'Proficient',
+    tagClass: 'bg-slate-500/15 text-slate-700 border border-slate-300',
+    editTextClass: 'text-slate-700',
+    dotClass: 'bg-slate-500',
+  },
+  {
+    level: 2,
+    label: 'Familiar',
+    tagClass: 'bg-slate-400/10 text-slate-500 border border-slate-200',
+    editTextClass: 'text-slate-500',
+    dotClass: 'bg-slate-300',
+  },
+  {
+    level: 1,
+    label: 'Basic',
+    tagClass: 'bg-slate-50 text-slate-400 border border-slate-100',
+    editTextClass: 'text-slate-400',
+    dotClass: 'bg-slate-200',
+  },
+];
+
+// 按等级分组的技能列表（始终显示全部三组作为拖放目标）
+const skillLevelGroups = computed(() =>
+  skillLevelConfig.map(config => ({
+    ...config,
+    items: skillsForm.value
+      .map((skill, index) => ({ skill, index }))
+      .filter(item => item.skill.level === config.level),
+  }))
+);
+
+// 当前正在编辑的技能索引
+const editingSkillIndex = ref<number | null>(null);
+
+// 拖拽状态
+const draggingSkillIndex = ref<number | null>(null);
+const dragOverLevel = ref<number | null>(null);
+const dropTargetIndex = ref<number | null>(null);
+const dropPosition = ref<'before' | 'after' | null>(null);
+
+const onDragStart = (index: number) => {
+  draggingSkillIndex.value = index;
+};
+
+const onDragEnd = () => {
+  draggingSkillIndex.value = null;
+  dragOverLevel.value = null;
+  dropTargetIndex.value = null;
+  dropPosition.value = null;
+};
+
+const onDragEnterGroup = (level: number) => {
+  dragOverLevel.value = level;
+};
+
+const onDragLeaveGroup = (e: DragEvent, level: number) => {
+  const related = e.relatedTarget as HTMLElement | null;
+  const currentTarget = e.currentTarget as HTMLElement;
+  if (!related || !currentTarget.contains(related)) {
+    if (dragOverLevel.value === level) {
+      dragOverLevel.value = null;
+    }
+    dropTargetIndex.value = null;
+    dropPosition.value = null;
+  }
+};
+
+const onDragOverTag = (e: DragEvent, targetIndex: number) => {
+  const target = e.currentTarget as HTMLElement;
+  const rect = target.getBoundingClientRect();
+  const midX = rect.left + rect.width / 2;
+  dropTargetIndex.value = targetIndex;
+  dropPosition.value = e.clientX < midX ? 'before' : 'after';
+};
+
+const onDropToGroup = (level: number) => {
+  if (draggingSkillIndex.value === null) return;
+
+  const dragIdx = draggingSkillIndex.value;
+  const removed = skillsForm.value.splice(dragIdx, 1);
+  const skill = removed[0];
+  if (!skill) return;
+  skill.level = level;
+
+  if (dropTargetIndex.value !== null && dropPosition.value) {
+    // Adjust target index after splice
+    let targetIdx = dropTargetIndex.value;
+    if (dragIdx < targetIdx) targetIdx--;
+    const insertIdx = dropPosition.value === 'after' ? targetIdx + 1 : targetIdx;
+    skillsForm.value.splice(insertIdx, 0, skill);
+  } else {
+    // No specific target — append after the last item of this level
+    const lastIdx = skillsForm.value.map((s, i) => ({ s, i }))
+      .filter(x => x.s.level === level)
+      .pop()?.i;
+    if (lastIdx !== undefined) {
+      skillsForm.value.splice(lastIdx + 1, 0, skill);
+    } else {
+      skillsForm.value.push(skill);
+    }
+  }
+
+  draggingSkillIndex.value = null;
+  dragOverLevel.value = null;
+  dropTargetIndex.value = null;
+  dropPosition.value = null;
+};
+
+// 快速添加表单
+const newSkillName = ref('');
+const newSkillLevel = ref('2');
+
 /**
- * 添加技能
+ * 快速添加技能
  */
-const addSkill = () => {
-  skillsForm.value.push({ name: '', level: 1 });
+const addSkillQuick = () => {
+  const name = newSkillName.value.trim();
+  if (!name) return;
+  skillsForm.value.push({ name, level: Number(newSkillLevel.value), order: skillsForm.value.length });
+  newSkillName.value = '';
 };
 
 /**
@@ -467,6 +587,9 @@ const resetSkillsForm = () => {
 const handleSaveSkills = async () => {
   skillsLoading.value = true;
   try {
+    // Auto-assign order based on current array position
+    skillsForm.value.forEach((s, i) => s.order = i);
+
     const data = await userStore.updateProfile({
       skills: skillsForm.value,
     });
@@ -741,51 +864,87 @@ const handleSaveSkills = async () => {
           </CardHeader>
 
           <CardContent class="space-y-4">
-            <!-- 技能列表 -->
-            <div v-if="skillsForm.length > 0" class="space-y-3">
+            <!-- 技能标签展示（按等级分组，支持拖拽） -->
+            <div v-if="skillsForm.length > 0 || draggingSkillIndex !== null" class="space-y-3">
               <div
-                  v-for="(skill, index) in skillsForm"
-                  :key="index"
-                  class="flex items-center gap-3"
+                  v-for="group in skillLevelGroups"
+                  :key="group.level"
+                  class="rounded-lg p-3 transition-all duration-150"
+                  :class="[
+                    dragOverLevel === group.level && draggingSkillIndex !== null
+                      ? 'bg-slate-100 ring-2 ring-slate-300 ring-dashed'
+                      : 'bg-slate-50/50',
+                  ]"
+                  @dragover.prevent
+                  @dragenter.prevent="onDragEnterGroup(group.level)"
+                  @dragleave="onDragLeaveGroup($event, group.level)"
+                  @drop.prevent="onDropToGroup(group.level)"
               >
-                <!-- 技能名称 -->
-                <Input
-                    v-model="skill.name"
-                    placeholder="Skill name"
-                    class="flex-1"
-                    :disabled="skillsLoading"
-                />
-
-                <!-- 等级选择 -->
-                <Select
-                    :model-value="String(skill.level)"
-                    @update:model-value="(v) => skill.level = Number(v)"
-                    :disabled="skillsLoading"
-                >
-                  <SelectTrigger class="w-36">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                        v-for="option in skillLevelOptions"
-                        :key="option.value"
-                        :value="option.value"
+                <p class="text-xs font-medium text-slate-400 mb-2">{{ group.label }}</p>
+                <div class="flex flex-wrap gap-2 min-h-8">
+                  <template v-for="item in group.items" :key="item.index">
+                    <!-- Drop indicator before -->
+                    <div
+                        v-if="dropTargetIndex === item.index && dropPosition === 'before' && draggingSkillIndex !== null"
+                        class="w-0.5 self-stretch rounded-full bg-blue-500 -mx-0.5"
+                    />
+                    <div
+                        draggable="true"
+                        class="group/tag flex items-center gap-1 px-2.5 py-1 text-sm font-medium rounded-md transition-all cursor-grab active:cursor-grabbing"
+                        :class="[
+                          group.tagClass,
+                          draggingSkillIndex === item.index ? 'opacity-40 scale-95' : '',
+                        ]"
+                        @dragstart="onDragStart(item.index)"
+                        @dragend="onDragEnd"
+                        @dragover.prevent="onDragOverTag($event, item.index)"
                     >
-                      {{ option.label }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <!-- 删除按钮 -->
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    @click="removeSkill(index)"
-                    :disabled="skillsLoading"
-                    class="text-slate-400 hover:text-red-500"
-                >
-                  <Trash2 class="w-4 h-4" />
-                </Button>
+                    <!-- 编辑态 -->
+                    <template v-if="editingSkillIndex === item.index">
+                      <input
+                          ref="skillEditInput"
+                          :value="item.skill.name"
+                          @input="(e: Event) => item.skill.name = (e.target as HTMLInputElement).value"
+                          class="bg-transparent border-none outline-none text-sm font-medium w-20 min-w-0"
+                          :class="group.editTextClass"
+                          @blur="editingSkillIndex = null"
+                          @keydown.enter="editingSkillIndex = null"
+                          @keydown.escape="editingSkillIndex = null"
+                      />
+                    </template>
+                    <!-- 展示态 -->
+                    <template v-else>
+                      <span
+                          class="cursor-pointer select-none"
+                          @click="editingSkillIndex = item.index"
+                          :title="'Click to edit · Drag to change level'"
+                      >
+                        {{ item.skill.name || 'Unnamed' }}
+                      </span>
+                    </template>
+                    <!-- 删除按钮 -->
+                    <button
+                        class="opacity-0 group-hover/tag:opacity-100 transition-opacity text-current hover:text-red-500 hover:scale-110"
+                        @click="removeSkill(item.index)"
+                        :disabled="skillsLoading"
+                    >
+                      <X class="w-3 h-3" />
+                    </button>
+                  </div>
+                    <!-- Drop indicator after -->
+                    <div
+                        v-if="dropTargetIndex === item.index && dropPosition === 'after' && draggingSkillIndex !== null"
+                        class="w-0.5 self-stretch rounded-full bg-blue-500 -mx-0.5"
+                    />
+                  </template>
+                  <!-- 空组占位 -->
+                  <span
+                      v-if="group.items.length === 0"
+                      class="text-xs text-slate-300 italic py-0.5"
+                  >
+                    {{ draggingSkillIndex !== null ? 'Drop here' : 'No skills' }}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -794,16 +953,39 @@ const handleSaveSkills = async () => {
               No skills configured
             </div>
 
-            <!-- 添加按钮 -->
-            <Button
-                variant="outline"
-                @click="addSkill"
-                :disabled="skillsLoading"
-                class="gap-2"
-            >
-              <Plus class="w-4 h-4" />
-              Add Skill
-            </Button>
+            <!-- 快速添加技能 -->
+            <div class="flex items-center gap-2">
+              <Input
+                  v-model="newSkillName"
+                  placeholder="New skill name"
+                  class="flex-1"
+                  :disabled="skillsLoading"
+                  @keydown.enter="addSkillQuick"
+              />
+              <Select v-model="newSkillLevel" :disabled="skillsLoading">
+                <SelectTrigger class="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                      v-for="option in skillLevelOptions"
+                      :key="option.value"
+                      :value="option.value"
+                  >
+                    {{ option.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                  variant="outline"
+                  size="icon"
+                  @click="addSkillQuick"
+                  :disabled="skillsLoading || !newSkillName.trim()"
+                  title="Add Skill"
+              >
+                <Plus class="w-4 h-4" />
+              </Button>
+            </div>
 
             <!-- 操作按钮 -->
             <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
