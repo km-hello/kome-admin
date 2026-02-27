@@ -1,77 +1,84 @@
 
 import request from '@/request';
 
-// ==================== 类型定义 ====================
+/* ========== 类型定义 ========== */
 
 /**
- * 社交链接
+ * 社交链接。
+ * 管理员的社交媒体账号信息，用于个人资料页面展示和编辑。
  */
 export interface SocialLink {
-    platform: string;
-    url: string;
+    platform: string;      // 社交平台名称（如 GitHub、Twitter）
+    url: string;           // 社交链接 URL
 }
 
 /**
- * 技能项
+ * 技能项。
+ * 管理员的技术技能信息，支持拖拽排序，用于设置页面的技能管理。
  */
 export interface SkillItem {
-    name: string;
-    level: number;  // 1=Basic, 2=Familiar, 3=Proficient
-    order?: number;
+    name: string;          // 技能名称
+    level: number;         // 技能等级: 1=入门(Basic), 2=熟悉(Familiar), 3=精通(Proficient)
+    order?: number;        // 排序序号（拖拽排序）
 }
 
 /**
- * 登录请求参数
+ * 登录请求参数。
+ * 提交用户名和密码进行身份验证。
  */
 export interface UserLoginRequest {
-    username: string;
-    password?: string;
+    username: string;      // 用户名
+    password?: string;     // 密码
 }
 
 /**
- * 修改用户信息请求参数
+ * 修改用户信息请求参数。
+ * 支持部分更新，可单独修改昵称、头像、社交链接、技能等字段。
  */
 export interface UserUpdateRequest {
-    username?: string;
-    nickname?: string;
-    avatar?: string;
-    email?: string;
-    description?: string;
-    socialLinks?: SocialLink[];
-    skills?: SkillItem[];
+    username?: string;             // 用户名
+    nickname?: string;             // 昵称
+    avatar?: string;               // 头像 URL
+    email?: string;                // 邮箱地址
+    description?: string;          // 个人简介
+    socialLinks?: SocialLink[];    // 社交链接列表
+    skills?: SkillItem[];          // 技能列表
 }
 
 /**
- * 修改密码请求参数
+ * 修改密码请求参数。
+ * 需验证当前密码后才可设置新密码。
  */
 export interface UserUpdatePasswordRequest {
-    oldPassword: string;
-    newPassword: string;
+    oldPassword: string;   // 当前密码
+    newPassword: string;   // 新密码（min 6, max 50）
 }
 
 /**
- * 用户信息
+ * 用户信息。
+ * 包含管理员的完整个人资料，用于设置页面回填和 Header 展示。
  */
 export interface UserInfoResponse {
-    id?: number;
-    username: string;
-    nickname: string;
-    avatar: string;
-    email: string;
-    description?: string;
-    socialLinks?: SocialLink[];
-    skills?: SkillItem[];
+    id?: number;                   // 用户 ID
+    username: string;              // 用户名
+    nickname: string;              // 昵称
+    avatar: string;                // 头像 URL
+    email: string;                 // 邮箱地址
+    description?: string;          // 个人简介
+    socialLinks?: SocialLink[];    // 社交链接列表
+    skills?: SkillItem[];          // 技能列表
 }
 
 /**
- * 登录响应数据
+ * 登录响应数据。
+ * 继承用户信息，额外包含 JWT Token 和过期时间，用于客户端鉴权。
  */
 export interface UserLoginResponse extends UserInfoResponse {
     token: string;        // JWT Token
     expiresIn: number;    // 过期时间（秒）
 }
 
-// ==================== API 接口 ====================
+/* ========== API 接口 ========== */
 
 /**
  * 执行用户登录请求的函数。
