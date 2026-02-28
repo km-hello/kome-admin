@@ -1,3 +1,4 @@
+<!-- PostEditor.vue - 文章编辑器页面 -->
 
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
@@ -14,10 +15,8 @@ import {
 import {getAdminTagListApi, type TagResponse} from '@/api/tag';
 import {generateSummaryApi, generateSlugApi} from '@/api/ai';
 
-// 图标
 import {ArrowLeft, Eye, EyeOff, FileEdit, FileText, Globe, Image as ImageIcon, Loader2, Pin, Save, Sparkles, Tag as TagIcon} from 'lucide-vue-next';
 
-// Shadcn 组件
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -25,27 +24,47 @@ import {Label} from '@/components/ui/label';
 import {Textarea} from '@/components/ui/textarea';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
-
-// 自定义组件
 import TagSelector from '@/components/common/TagSelector.vue';
 import {useSiteStore} from "@/stores/site.ts";
 
-// ========== 路由和状态 ==========
 
 const route = useRoute();
 const router = useRouter();
 const siteStore = useSiteStore();
 
+/**
+ * 是否为编辑模式（路由含 id 参数时为 true）
+ */
 const isEditMode = computed(() => route.params.id !== undefined);
+/**
+ * 当前编辑的文章 ID
+ */
 const postId = computed(() => Number(route.params.id));
 
+/**
+ * 加载状态
+ */
 const loading = ref(true);
+/**
+ * 保存中状态
+ */
 const saving = ref(false);
+/**
+ * AI 摘要生成中
+ */
 const generatingSummary = ref(false);
+/**
+ * AI Slug 生成中
+ */
 const generatingSlug = ref(false);
+/**
+ * 全部标签列表
+ */
 const allTags = ref<TagResponse[]>([]);
 
-// 表单数据
+/**
+ * 文章表单数据
+ */
 const formData = ref({
   title: '',
   slug: '',
@@ -57,14 +76,27 @@ const formData = ref({
   tagIds: [] as number[],
 });
 
-// ========== 预览功能 ==========
 
+/**
+ * 是否显示预览面板
+ */
 const showPreview = ref(false);
+/**
+ * 预览 iframe 引用
+ */
 const previewIframe = ref<HTMLIFrameElement | null>(null);
+/**
+ * 预览页面 URL
+ */
 const previewUrl = import.meta.env.VITE_PREVIEW_URL || '/preview';
+/**
+ * 预览 postMessage 的目标 origin
+ */
 const previewOrigin = import.meta.env.VITE_PREVIEW_ORIGIN || window.location.origin;
 
-// 防抖发送预览内容
+/**
+ * 防抖发送预览内容
+ */
 const sendPreviewContent = useDebounceFn(() => {
   if (!previewIframe.value?.contentWindow) return;
   previewIframe.value.contentWindow.postMessage({
@@ -73,19 +105,26 @@ const sendPreviewContent = useDebounceFn(() => {
   }, previewOrigin);
 }, 300);
 
-// 监听内容变化，在预览模式下同步
+/**
+ * 监听内容变化，在预览模式下同步
+ */
 watch(() => formData.value.content, () => {
   if (showPreview.value) {
     sendPreviewContent();
   }
 });
 
-// iframe 加载完成后立即发送当前内容
+/**
+ * iframe 加载完成后立即发送当前内容
+ */
 const onPreviewLoad = () => {
   sendPreviewContent();
 };
 
-// 切换预览模式
+/**
+ * 切换预览模式。
+ * 开启时等待 iframe 加载后自动触发 onPreviewLoad 发送内容。
+ */
 const togglePreview = () => {
   showPreview.value = !showPreview.value;
   if (showPreview.value) {
@@ -93,20 +132,38 @@ const togglePreview = () => {
   }
 };
 
-// ========== 拖动分割条 ==========
 
+/**
+ * 编辑区宽度百分比
+ */
 const editorWidthPercent = ref(50);
+/**
+ * 是否正在拖动分割条
+ */
 const isDragging = ref(false);
+/**
+ * 分割容器引用
+ */
 const splitContainerRef = ref<HTMLDivElement | null>(null);
 
+/**
+ * 编辑区动态样式
+ */
 const editorStyle = computed(() => ({
   width: showPreview.value ? `${editorWidthPercent.value}%` : '100%',
 }));
 
+/**
+ * 预览区动态样式
+ */
 const previewStyle = computed(() => ({
   width: `${100 - editorWidthPercent.value}%`,
 }));
 
+/**
+ * 开始拖动分割条。
+ * 阻止默认行为并注册全局鼠标事件监听。
+ */
 const startDrag = (e: MouseEvent) => {
   e.preventDefault();
   isDragging.value = true;
@@ -114,6 +171,10 @@ const startDrag = (e: MouseEvent) => {
   document.addEventListener('mouseup', stopDrag);
 };
 
+/**
+ * 拖动中处理。
+ * 根据鼠标位置计算编辑区宽度百分比，限制在 20%–80% 之间。
+ */
 const onDrag = (e: MouseEvent) => {
   if (!isDragging.value || !splitContainerRef.value) return;
 
@@ -129,6 +190,9 @@ const onDrag = (e: MouseEvent) => {
   editorWidthPercent.value = percent;
 };
 
+/**
+ * 停止拖动并移除全局事件监听
+ */
 const stopDrag = () => {
   isDragging.value = false;
   document.removeEventListener('mousemove', onDrag);
@@ -140,7 +204,6 @@ onUnmounted(() => {
   document.removeEventListener('mouseup', stopDrag);
 });
 
-// ========== 生命周期 ==========
 
 onMounted(async () => {
   try {
@@ -159,10 +222,10 @@ onMounted(async () => {
   }
 });
 
-// ========== 方法 ==========
 
 /**
- * 获取标签列表
+ * 获取标签列表。
+ * 请求全部标签数据供标签选择器使用。
  */
 const fetchTags = async () => {
   try {
@@ -174,7 +237,8 @@ const fetchTags = async () => {
 };
 
 /**
- * 加载文章详情
+ * 加载文章详情。
+ * 根据路由中的文章 ID 获取详情并填充表单，失败时跳回列表。
  */
 const loadPost = async () => {
   try {
@@ -197,7 +261,8 @@ const loadPost = async () => {
 };
 
 /**
- * 表单验证
+ * 表单验证。
+ * 检查标题、Slug、内容、摘要和封面图片的格式及长度限制。
  */
 const validateForm = (): boolean => {
   if (!formData.value.title.trim()) {
@@ -245,7 +310,8 @@ const validateForm = (): boolean => {
 };
 
 /**
- * 保存文章
+ * 保存文章。
+ * 验证表单后根据模式执行创建或更新操作，成功后失效统计并跳回列表。
  */
 const handleSave = async () => {
   if (!validateForm()) return;
@@ -295,14 +361,15 @@ const handleSave = async () => {
 };
 
 /**
- * 返回列表
+ * 返回文章列表页
  */
 const handleBack = () => {
   router.push('/posts');
 };
 
 /**
- * AI 生成摘要
+ * AI 生成摘要。
+ * 基于文章内容调用 AI 接口生成摘要，截取前 500 字符填入表单。
  */
 const aiGenerateSummary = async () => {
   if (!formData.value.content.trim()) {
@@ -322,7 +389,8 @@ const aiGenerateSummary = async () => {
 };
 
 /**
- * AI 生成 Slug
+ * AI 生成 Slug。
+ * 基于文章标题调用 AI 接口生成 URL-friendly 的 slug。
  */
 const aiGenerateSlug = async () => {
   if (!formData.value.title.trim()) {
@@ -342,7 +410,10 @@ const aiGenerateSlug = async () => {
 };
 
 /**
- * 处理新标签创建
+ * 处理新标签创建。
+ * 将 TagSelector 中新创建的标签追加到本地标签列表。
+ *
+ * @param newTag 新创建的标签对象
  */
 const handleTagCreated = (newTag: TagResponse) => {
   // 将新创建的标签添加到列表中
@@ -350,7 +421,10 @@ const handleTagCreated = (newTag: TagResponse) => {
 };
 
 /**
- * 获取状态配置
+ * 获取状态配置。
+ * 根据状态值返回对应的显示标签、图标组件和样式类名。
+ *
+ * @param status 状态值 (0: 草稿, 1: 已发布)
  */
 const getStatusConfig = (status: number) => {
   const configs = {
@@ -361,7 +435,10 @@ const getStatusConfig = (status: number) => {
 };
 
 /**
- * 从 Markdown 内容中提取第一张图片的 URL
+ * 从 Markdown 内容中提取第一张图片的 URL。
+ * 依次匹配 Markdown 图片语法和 HTML img 标签。
+ *
+ * @param markdown Markdown 格式的文章内容
  */
 const extractFirstImage = (markdown: string): string | null => {
   // 匹配 Markdown 图片语法: ![alt](url)
@@ -379,7 +456,8 @@ const extractFirstImage = (markdown: string): string | null => {
 };
 
 /**
- * 使用内容中的第一张图片作为封面
+ * 使用内容中的第一张图片作为封面。
+ * 从文章内容提取首张图片 URL 并填入封面字段。
  */
 const useFirstImageAsCover = () => {
   const imageUrl = extractFirstImage(formData.value.content);
@@ -394,7 +472,7 @@ const useFirstImageAsCover = () => {
 
 <template>
   <div class="min-h-screen bg-background">
-    <!-- ========== 顶部操作栏 ========== -->
+    <!-- 顶部操作栏（px 响应式 4 → md 6） -->
     <div class="sticky top-0 z-10 pt-4">
       <div class="max-w-400 mx-auto bg-white/95 backdrop-blur-sm border border-slate-100 rounded-xl shadow-xs px-4 md:px-6 py-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
@@ -436,16 +514,16 @@ const useFirstImageAsCover = () => {
       </div>
     </div>
 
-    <!-- ========== 加载状态 ========== -->
+    <!-- 加载状态 -->
     <div v-if="loading" class="flex justify-center items-center gap-2 py-20">
       <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
       <span class="text-sm text-slate-400">Loading...</span>
     </div>
 
-    <!-- ========== 编辑器主体 ========== -->
+    <!-- 编辑器主体（py 响应式 6 → md 8，预览时 max-w-450 / 默认 max-w-400） -->
     <div v-else class="mx-auto py-6 md:py-8" :class="showPreview ? 'max-w-450' : 'max-w-400'">
       <div class="grid grid-cols-1 gap-6" :class="showPreview ? '' : 'lg:grid-cols-3'">
-        <!-- ========== 左侧：内容编辑区 ========== -->
+        <!-- 内容编辑区（预览时全宽 / 默认 lg 占 2 栏） -->
         <div class="space-y-6" :class="showPreview ? '' : 'lg:col-span-2'">
           <!-- 标题 -->
           <Card>
@@ -603,7 +681,7 @@ const useFirstImageAsCover = () => {
           </Card>
         </div>
 
-        <!-- ========== 右侧：设置区（预览时隐藏） ========== -->
+        <!-- 设置区（预览时隐藏） -->
         <div v-show="!showPreview" class="space-y-6">
           <!-- 发布设置 -->
           <Card>
