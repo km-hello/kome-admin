@@ -3,31 +3,33 @@ import type { RouteRecordRaw } from 'vue-router';
 import { useUserStore } from "@/stores/user.ts";
 import { useSiteStore } from "@/stores/site.ts";
 
-// 路由懒加载
-const Login = () => import('@/views/Login.vue');
-const Setup = () => import('@/views/Setup.vue');
-const AdminLayout = () => import('@/layout/AdminLayout.vue');
-const Dashboard = () => import('@/views/Dashboard.vue');
-const Tag = () => import('@/views/Tag.vue');
-const Link = () => import('@/views/Link.vue');
-const Memo = () => import('@/views/Memo.vue');
-const Post = () => import('@/views/Post.vue');
-const PostEditor = () => import('@/views/PostEditor.vue');
-const Settings = () => import('@/views/Settings.vue');
-
 /**
  * 需要刷新统计数据的页面路径
  */
 const STATS_DEPENDENT_ROUTES = ['/dashboard', '/posts', '/tags', '/memos', '/links'];
 
 /**
- * 定义应用的路由配置。
+ * 路由配置表
+ *
+ * 路由结构：
+ *   /login                → Login         登录页
+ *   /setup                → Setup         初始化设置页
+ *   /                     → AdminLayout   管理后台布局
+ *     ├─ /dashboard       → Dashboard     仪表盘
+ *     ├─ /posts           → Posts         文章列表
+ *     │  ├─ /posts/new    → PostCreate    新建文章
+ *     │  └─ /posts/edit/:id → PostEdit    编辑文章
+ *     ├─ /memos           → Memos         动态列表
+ *     ├─ /tags            → Tags          标签管理
+ *     ├─ /links           → Links         友链管理
+ *     └─ /settings        → Settings      系统设置
+ *   /*                    → Redirect /    404 重定向到首页
  */
 const routes: RouteRecordRaw[] = [
     {
         path: '/login',
         name: 'Login',
-        component: Login,
+        component: () => import('@/views/Login.vue'),
         meta: {
             title: 'Login',
             guest: true
@@ -36,7 +38,7 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/setup',
         name: 'Setup',
-        component: Setup,
+        component: () => import('@/views/Setup.vue'),
         meta: {
             title: 'Setup',
             setup: true
@@ -44,7 +46,7 @@ const routes: RouteRecordRaw[] = [
     },
     {
         path: '/',
-        component: AdminLayout,
+        component: () => import('@/layout/AdminLayout.vue'),
         meta: { requiresAuth: true },
         children: [
             {
@@ -54,7 +56,7 @@ const routes: RouteRecordRaw[] = [
             {
                 path: 'dashboard',
                 name: 'Dashboard',
-                component: Dashboard,
+                component: () => import('@/views/Dashboard.vue'),
                 meta: { title: 'Dashboard' },
             },
             {
@@ -64,19 +66,19 @@ const routes: RouteRecordRaw[] = [
                     {
                         path: '',
                         name: 'Posts',
-                        component: Post,
-                        meta: { breadcrumb: false },  // 不单独显示，使用父级的 title
+                        component: () => import('@/views/Post.vue'),
+                        meta: { breadcrumb: false },
                     },
                     {
                         path: 'new',
                         name: 'PostCreate',
-                        component: PostEditor,
+                        component: () => import('@/views/PostEditor.vue'),
                         meta: { title: 'New Post' },
                     },
                     {
                         path: 'edit/:id',
                         name: 'PostEdit',
-                        component: PostEditor,
+                        component: () => import('@/views/PostEditor.vue'),
                         meta: { title: 'Edit Post' },
                     },
                 ],
@@ -85,25 +87,25 @@ const routes: RouteRecordRaw[] = [
             {
                 path: 'memos',
                 name: 'Memos',
-                component: Memo,
+                component: () => import('@/views/Memo.vue'),
                 meta: { title: 'Memos' },
             },
             {
                 path: 'tags',
                 name: 'Tags',
-                component: Tag,
+                component: () => import('@/views/Tag.vue'),
                 meta: { title: 'Tags' },
             },
             {
                 path: 'links',
                 name: 'Links',
-                component: Link,
+                component: () => import('@/views/Link.vue'),
                 meta: { title: 'Links' },
             },
             {
                 path: 'settings',
                 name: 'Settings',
-                component: Settings,
+                component: () => import('@/views/Settings.vue'),
                 meta: { title: 'Settings' },
             },
         ],
@@ -119,34 +121,37 @@ const router: Router = createRouter({
     routes,
 });
 
+/**
+ * 路由前置守卫：处理认证和初始化检查
+ */
 router.beforeEach(async (to, _from, next) => {
     const userStore = useUserStore();
     const siteStore = useSiteStore();
 
-    // 1. 首次加载时检查初始化状态（跳过 /setup 页面避免死循环）
+    // 首次加载时检查初始化状态（跳过 /setup 页面避免死循环）
     if (siteStore.initialized === null && to.path !== '/setup') {
         await siteStore.checkInitialized();
     }
 
-    // 2. 未初始化 → 强制去 /setup
+    // 未初始化 → 强制去 /setup
     if (siteStore.initialized === false && to.path !== '/setup') {
         next('/setup');
         return;
     }
 
-    // 3. 已初始化 → 不能访问 /setup
+    // 已初始化 → 不能访问 /setup
     if (siteStore.initialized === true && to.path === '/setup') {
         next('/login');
         return;
     }
 
-    // 4. 需要登录 但 未登录 -> 去登录页
+    // 需要登录但未登录 → 去登录页
     if (to.meta.requiresAuth && !userStore.isLoggedIn) {
         next('/login');
         return;
     }
 
-    // 5. 已登录 但 访问登录页 -> 去首页
+    // 已登录但访问登录页 → 去首页
     if (to.path === '/login' && userStore.isLoggedIn) {
         next('/');
         return;
@@ -161,7 +166,7 @@ router.beforeEach(async (to, _from, next) => {
 });
 
 /**
- * 路由切换后，检查是否需要刷新统计数据
+ * 路由后置守卫：检查是否需要刷新统计数据
  */
 router.afterEach((to) => {
     // 只在需要统计数据的页面检查刷新
