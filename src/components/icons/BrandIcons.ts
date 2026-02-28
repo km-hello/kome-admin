@@ -1,7 +1,13 @@
+/**
+ * components/icons/BrandIcons.ts - 品牌图标组件
+ *
+ * 提供 GitHub、X (Twitter) 等第三方品牌的 SVG 图标组件，
+ * 样式与 Lucide 图标库保持一致。
+ */
 import { h } from 'vue'
 
 /**
- * GitHub 图标 (stroke style, matches Lucide aesthetic)
+ * GitHub 图标（描边风格，匹配 Lucide 风格）
  */
 export const IconGithub = {
   name: 'IconGithub',
