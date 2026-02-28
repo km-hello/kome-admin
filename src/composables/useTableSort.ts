@@ -29,7 +29,9 @@ export interface SortState {
  * @returns 排序相关的状态与方法
  */
 export function useTableSort<T extends Record<string, any>>(data: Ref<T[]>) {
-  /** 当前排序状态 */
+  /**
+   * 当前排序状态
+   */
   const sortState = ref<SortState>({ key: '', order: null })
 
   /**
