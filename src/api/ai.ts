@@ -1,3 +1,8 @@
+/**
+ * api/ai.ts - AI 辅助接口
+ *
+ * 提供文章摘要生成、Slug 生成等 AI 辅助功能的 API 调用。
+ */
 import request from '@/request'
 
 /* ========== 类型定义 ========== */

@@ -1,4 +1,8 @@
-
+/**
+ * api/memo.ts - 动态管理接口
+ *
+ * 提供动态（Memo）的增删改及分页查询，供后台动态管理页面使用。
+ */
 import request from '@/request';
 import type {BaseQuery, PageResult} from '@/types/api.ts';
 

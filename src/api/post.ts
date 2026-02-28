@@ -1,3 +1,8 @@
+/**
+ * api/post.ts - 文章管理接口
+ *
+ * 提供文章的增删改查、分页查询及详情获取，供后台文章管理与编辑页面使用。
+ */
 import request from '@/request';
 import type { BaseQuery, PageResult } from '@/types/api.ts';
 import type {TagResponse} from "@/api/tag.ts";

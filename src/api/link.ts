@@ -1,4 +1,8 @@
-
+/**
+ * api/link.ts - 友链管理接口
+ *
+ * 提供友链的增删改查及分页查询，供后台友链管理页面使用。
+ */
 import request from '@/request';
 import type {BaseQuery, PageResult} from '@/types/api.ts';
 

@@ -1,4 +1,8 @@
-
+/**
+ * api/tag.ts - 标签管理接口
+ *
+ * 提供标签的增删改查、分页查询及全量列表获取，供后台标签管理页面使用。
+ */
 import request from '@/request';
 import type { PageResult, BaseQuery } from '../types/api.ts';
 
