@@ -7,7 +7,7 @@ import { getAdminSiteInfoApi, checkInitializedApi, type SiteStats } from '@/api/
  * 用于全局共享站点统计信息，避免重复请求
  */
 export const useSiteStore = defineStore('site', () => {
-    // ========== State ==========
+    /* ========== State ========== */
 
     /**
      * 系统初始化状态
@@ -49,7 +49,7 @@ export const useSiteStore = defineStore('site', () => {
      */
     const isStale = ref(false);
 
-    // ========== Getters ==========
+    /* ========== Getters ========== */
 
     /**
      * 文章总数
@@ -88,7 +88,7 @@ export const useSiteStore = defineStore('site', () => {
         return !lastUpdated.value || now - lastUpdated.value > 30000;
     });
 
-    // ========== Actions ==========
+    /* ========== Actions ========== */
 
     /**
      * 获取站点统计数据
@@ -173,7 +173,7 @@ export const useSiteStore = defineStore('site', () => {
         initialized.value = true;
     };
 
-    // ========== Return ==========
+    /* ========== Return ========== */
 
     return {
         // State

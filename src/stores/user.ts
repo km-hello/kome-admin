@@ -18,7 +18,7 @@ import {
  * 使用 Pinia 框架定义的 Store 模块，用于管理和维护用户相关的数据状态。
  */
 export const useUserStore = defineStore('user', () => {
-    // ========== State ==========
+    /* ========== State ========== */
 
     /**
      * 用户信息
@@ -33,7 +33,7 @@ export const useUserStore = defineStore('user', () => {
     );
 
 
-    // ========== Getters ==========
+    /* ========== Getters ========== */
 
     /**
      * 检查用户是否已登录
@@ -46,7 +46,7 @@ export const useUserStore = defineStore('user', () => {
     const isRemembered = computed(() => !!localStorage.getItem('userInfo'));
 
 
-    // ========== Actions ==========
+    /* ========== Actions ========== */
 
     /**
      * 用户登录方法，用于处理用户的认证与信息存储
@@ -143,7 +143,7 @@ export const useUserStore = defineStore('user', () => {
         sessionStorage.removeItem('userInfo');
     };
 
-    // ========== Return ==========
+    /* ========== Return ========== */
 
     return {
         // State
