@@ -1,24 +1,23 @@
-<!--
-  StatsCard.vue - 统计卡片组件
-
-  用于展示统计数值，支持自定义图标和颜色
--->
+<!-- StatsCard.vue - 统计卡片组件 -->
 <script setup lang="ts">
-import type { Component } from 'vue'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type {Component} from 'vue'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 
+/**
+ * Props 定义
+ * @property title 卡片标题
+ * @property value 主要数值
+ * @property description 描述文字
+ * @property icon 图标组件
+ * @property iconBgClass 图标容器背景色 class
+ * @property iconClass 图标颜色 class
+ */
 interface Props {
-  /** 卡片标题 */
   title: string
-  /** 主要数值 */
   value: number | string
-  /** 描述文字 */
   description?: string
-  /** 图标组件 */
   icon?: Component
-  /** 图标容器背景色 class */
   iconBgClass?: string
-  /** 图标颜色 class */
   iconClass?: string
 }
 
@@ -29,21 +28,25 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
+  <!-- 统计卡片（sm+ padding 和 gap 增大） -->
   <Card class="relative py-4 gap-2 sm:py-6 sm:gap-6">
+    <!-- 卡片头部（标题 + 图标） -->
     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-0 px-4 sm:px-6">
       <CardTitle class="text-xs sm:text-sm font-medium text-slate-600">{{ title }}</CardTitle>
+      <!-- 图标容器 -->
       <div
           v-if="icon"
           class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center"
           :class="iconBgClass"
       >
-        <component :is="icon" class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="iconClass" />
+        <component :is="icon" class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="iconClass"/>
       </div>
     </CardHeader>
+    <!-- 卡片内容（数值 + 描述） -->
     <CardContent class="px-4 sm:px-6 pr-12 sm:pr-14">
       <div class="text-xl sm:text-2xl font-bold text-slate-900">{{ value }}</div>
       <p v-if="description" class="text-xs text-slate-400 mt-1">{{ description }}</p>
-      <slot />
+      <slot/>
     </CardContent>
   </Card>
 </template>

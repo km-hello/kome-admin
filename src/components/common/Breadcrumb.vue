@@ -1,23 +1,28 @@
-
+<!-- Breadcrumb.vue - 面包屑导航组件 -->
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { Menu } from 'lucide-vue-next';
+import {computed} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {Menu} from 'lucide-vue-next';
 
+const route = useRoute();
+const router = useRouter();
+
+/**
+ * 面包屑项数据结构
+ * @property label 显示文字
+ * @property path 跳转路径（可选）
+ */
 interface BreadcrumbItem {
   label: string;
   path?: string;
 }
-
-const route = useRoute();
-const router = useRouter();
 
 /**
  * 根据当前路由动态生成面包屑数据
  */
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [
-    { label: 'Home', path: '/' }
+    {label: 'Home', path: '/'}
   ];
 
   // 获取路由的 matched 数组，生成面包屑路径
@@ -55,12 +60,13 @@ const isLast = (index: number) => index === breadcrumbs.value.length - 1;
 
 <template>
   <div class="flex items-center gap-2 text-sm">
+    <!-- 移动端侧边栏切换按钮（< md 显示） -->
     <button class="md:hidden p-2 hover:bg-slate-100 rounded-lg" @click="$emit('toggleSidebar')">
-      <Menu class="w-5 h-5" />
+      <Menu class="w-5 h-5"/>
     </button>
 
     <template v-for="(item, index) in breadcrumbs" :key="index">
-      <!-- 面包屑项 -->
+      <!-- 可点击的面包屑项 -->
       <button
           v-if="!isLast(index)"
           @click="handleClick(item)"
@@ -68,6 +74,7 @@ const isLast = (index: number) => index === breadcrumbs.value.length - 1;
       >
         {{ item.label }}
       </button>
+      <!-- 当前页面（最后一项） -->
       <span
           v-else
           class="text-slate-900 font-medium"

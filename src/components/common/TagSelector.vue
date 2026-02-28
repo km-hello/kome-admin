@@ -1,30 +1,27 @@
-
+<!-- TagSelector.vue - 标签选择器组件 -->
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
-import { toast } from 'vue-sonner';
-import { createTagApi, type TagResponse } from '@/api/tag.ts';
-import { useSiteStore } from '@/stores/site.ts';
-
-// 图标
-import { X, Plus, Search, Check, Loader2 } from 'lucide-vue-next';
-
-// Shadcn 组件
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import {ref, computed, watch, nextTick} from 'vue';
+import {toast} from 'vue-sonner';
+import {createTagApi, type TagResponse} from '@/api/tag.ts';
+import {useSiteStore} from '@/stores/site.ts';
+import {X, Plus, Search, Check, Loader2} from 'lucide-vue-next';
+import {Badge} from '@/components/ui/badge';
+import {Input} from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-// ========== Props & Emits ==========
-
+/**
+ * Props 定义
+ * @property tags 所有可选标签
+ * @property selectedIds 已选中的标签ID列表
+ * @property disabled 是否禁用
+ */
 interface Props {
-  /** 所有可选标签 */
   tags: TagResponse[];
-  /** 已选中的标签ID列表 */
   selectedIds: number[];
-  /** 是否禁用 */
   disabled?: boolean;
 }
 
@@ -32,32 +29,45 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 });
 
+/**
+ * 事件定义
+ * @event update:selectedIds 选中标签变化
+ * @event tagCreated 新标签创建成功
+ */
 const emit = defineEmits<{
-  /** 选中标签变化 */
   (e: 'update:selectedIds', value: number[]): void;
-  /** 新标签创建成功 */
   (e: 'tagCreated', tag: TagResponse): void;
 }>();
 
-// ========== Store ==========
-
 const siteStore = useSiteStore();
 
-// ========== 状态 ==========
-
+/**
+ *  Popover 打开状态
+ */
 const popoverOpen = ref(false);
+/**
+ * 搜索关键词
+ */
 const searchQuery = ref('');
+/**
+ * 是否正在创建标签
+ */
 const creating = ref(false);
+/**
+ * 输入框引用
+ */
 const inputRef = ref<HTMLInputElement | null>(null);
 
-// ========== 计算属性 ==========
-
-/** 已选中的标签对象列表 */
+/**
+ * 已选中的标签对象列表
+ */
 const selectedTags = computed(() => {
   return props.tags.filter(tag => props.selectedIds.includes(tag.id));
 });
 
-/** 过滤后的标签列表 */
+/**
+ * 过滤后的标签列表
+ */
 const filteredTags = computed(() => {
   if (!searchQuery.value.trim()) {
     return props.tags;
@@ -68,15 +78,15 @@ const filteredTags = computed(() => {
   );
 });
 
-/** 是否显示创建新标签选项 */
+/**
+ * 是否显示创建新标签选项
+ */
 const showCreateOption = computed(() => {
   if (!searchQuery.value.trim()) return false;
   const query = searchQuery.value.toLowerCase().trim();
   // 检查是否已存在完全匹配的标签
   return !props.tags.some(tag => tag.name.toLowerCase() === query);
 });
-
-// ========== 方法 ==========
 
 /**
  * 切换标签选中状态
@@ -112,7 +122,7 @@ const createTag = async () => {
 
   creating.value = true;
   try {
-    const newTag = await createTagApi({ name: tagName });
+    const newTag = await createTagApi({name: tagName});
     toast.success(`标签 "${tagName}" 创建成功`);
 
     // 标记统计数据已失效，让其他页面在进入时自动刷新
@@ -176,7 +186,7 @@ watch(popoverOpen, (open) => {
             @click="removeTag(tag.id, $event)"
             :disabled="disabled"
         >
-          <X class="w-3 h-3" />
+          <X class="w-3 h-3"/>
         </button>
       </Badge>
 
@@ -188,7 +198,7 @@ watch(popoverOpen, (open) => {
               class="inline-flex items-center gap-1 px-2 py-1 text-sm text-slate-500 border border-dashed border-slate-300 rounded-md hover:border-slate-400 hover:text-slate-600 transition-colors"
               :disabled="disabled"
           >
-            <Plus class="w-3 h-3" />
+            <Plus class="w-3 h-3"/>
             Add tag
           </button>
         </PopoverTrigger>
@@ -200,7 +210,7 @@ watch(popoverOpen, (open) => {
           <!-- 搜索输入框 -->
           <div class="p-2 border-b border-slate-200">
             <div class="relative">
-              <Search class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search class="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
               <Input
                   ref="inputRef"
                   v-model="searchQuery"
@@ -244,8 +254,8 @@ watch(popoverOpen, (open) => {
                 :disabled="creating"
                 @click="createTag"
             >
-              <Loader2 v-if="creating" class="w-4 h-4 animate-spin" />
-              <Plus v-else class="w-4 h-4" />
+              <Loader2 v-if="creating" class="w-4 h-4 animate-spin"/>
+              <Plus v-else class="w-4 h-4"/>
               <span>Create "{{ searchQuery.trim() }}"</span>
             </button>
           </div>
