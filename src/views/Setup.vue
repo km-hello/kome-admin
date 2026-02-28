@@ -1,3 +1,4 @@
+<!-- Setup.vue - 初始化设置页面 -->
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
@@ -7,7 +8,6 @@ import { setupAdminApi } from '@/api/site';
 import { toast } from 'vue-sonner';
 import { Loader2, User, Lock, Mail, Eye, EyeOff, Check, X, Image, FileText, UserCircle, ChevronDown } from 'lucide-vue-next';
 
-// Shadcn 组件
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,17 +15,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-// ========== 常量 ==========
+/**
+ * 默认头像 URL
+ */
 const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/notionists/svg?seed=kome';
+/**
+ * 默认昵称
+ */
 const DEFAULT_NICKNAME = 'Admin';
+/**
+ * 默认简介
+ */
 const DEFAULT_BIO = 'Hello World!';
+/**
+ * 默认邮箱
+ */
 const DEFAULT_EMAIL = 'admin@example.com';
 
-// ========== 状态定义 ==========
 const router = useRouter();
 const siteStore = useSiteStore();
 const userStore = useUserStore();
 
+/**
+ * 初始化表单数据
+ */
 const form = ref({
   username: '',
   password: '',
@@ -36,12 +49,27 @@ const form = ref({
   email: '',
 });
 
+/**
+ * 加载状态
+ */
 const isLoading = ref(false);
+/**
+ * 密码可见性
+ */
 const showPassword = ref(false);
+/**
+ * 确认密码可见性
+ */
 const showConfirmPassword = ref(false);
+/**
+ * 可选项折叠状态
+ */
 const showOptional = ref(false);
 
-// ========== 密码强度检查 ==========
+/**
+ * 密码强度检查。
+ * 检测长度、字母、数字和特殊字符四项要求。
+ */
 const passwordChecks = computed(() => ({
   length: form.value.password.length >= 8 && form.value.password.length <= 64,
   hasLetter: /[a-zA-Z]/.test(form.value.password),
@@ -49,6 +77,10 @@ const passwordChecks = computed(() => ({
   hasSpecial: /[\W_]/.test(form.value.password),
 }));
 
+/**
+ * 密码强度等级。
+ * 根据满足的检查项数量返回 Weak / Medium / Strong 及对应颜色。
+ */
 const passwordStrength = computed(() => {
   const checks = Object.values(passwordChecks.value).filter(Boolean).length;
   if (checks === 0) return { level: 0, text: '', color: '' };
@@ -57,17 +89,26 @@ const passwordStrength = computed(() => {
   return { level: 3, text: 'Strong', color: 'bg-green-500' };
 });
 
+/**
+ * 密码是否满足全部格式要求
+ */
 const isPasswordValid = computed(() =>
   Object.values(passwordChecks.value).every(Boolean)
 );
 
+/**
+ * 表单整体是否可提交（用户名 >= 4 位、密码合规、两次密码一致）
+ */
 const isFormValid = computed(() =>
   form.value.username.length >= 4 &&
   isPasswordValid.value &&
   form.value.password === form.value.confirmPassword
 );
 
-// ========== 方法 ==========
+/**
+ * 处理初始化设置。
+ * 验证表单后提交管理员账户设置，成功后跳转到登录页。
+ */
 const handleSetup = async (): Promise<void> => {
   // 表单验证
   if (!form.value.username) {

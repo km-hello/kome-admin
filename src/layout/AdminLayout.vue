@@ -1,27 +1,9 @@
-<!--
-  AdminLayout.vue - 管理后台主布局
-
-  功能：
-  - 组合侧边栏和主内容区
-  - 配置导航菜单数据
-  - 处理全局事件（如登出）
-
-  结构：
-  ┌─────────────────────────────────────┐
-  │  Sidebar  │       Header            │
-  │           ├─────────────────────────┤
-  │           │                         │
-  │           │     router-view         │
-  │           │                         │
-  └───────────┴─────────────────────────┘
--->
+<!-- AdminLayout.vue - 管理后台主布局 -->
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { toast } from 'vue-sonner';
-
-// 导航图标
 import {
   LayoutDashboard,
   PenTool,
@@ -30,14 +12,16 @@ import {
   Link as LinkIcon,
   Settings,
 } from 'lucide-vue-next';
-
-// 布局子组件
 import Sidebar, { type NavGroup } from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 const router = useRouter();
 const userStore = useUserStore();
+
+/**
+ * 移动端侧边栏打开状态
+ */
 const sidebarOpen = ref(false);
 
 /**
@@ -81,7 +65,7 @@ const handleLogout = async () => {
 
 <template>
   <div class="flex h-screen w-full overflow-hidden bg-background">
-    <!-- 桌面端侧边栏 -->
+    <!-- 桌面端侧边栏（>= md 显示） -->
     <Sidebar
         :nav-groups="navGroups"
         :user-avatar="userStore.userInfo.avatar"
@@ -90,7 +74,7 @@ const handleLogout = async () => {
         @logout="handleLogout"
     />
 
-    <!-- 移动端侧边栏抽屉 -->
+    <!-- 移动端侧边栏抽屉（< md 显示） -->
     <Sheet v-model:open="sidebarOpen">
       <SheetContent side="left" class="w-64 p-0">
         <Sidebar
@@ -110,7 +94,7 @@ const handleLogout = async () => {
       <!-- 顶部导航栏 -->
       <Header @toggle-sidebar="sidebarOpen = true" />
 
-      <!-- 页面内容区域 -->
+      <!-- 页面内容区域（padding 响应式 p-4 → md:p-6 → lg:p-8） -->
       <div class="flex-1 overflow-y-auto scrollbar-thin p-4 md:p-6 lg:p-8">
         <div class="max-w-7xl mx-auto">
           <router-view />

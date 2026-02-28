@@ -1,3 +1,4 @@
+<!-- Memo.vue - 动态管理页面 -->
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
@@ -18,10 +19,8 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import StatsCard from '@/components/common/StatsCard.vue';
 import SortableHead from '@/components/common/SortableHead.vue';
 
-// 图标
 import { Plus, Search, Edit, Trash2, Activity, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
 
-// Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -55,30 +54,45 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-// ========== 状态定义 ==========
-
-// 使用站点统计 Store
 const siteStore = useSiteStore();
 
+/**
+ * 备忘录列表数据
+ */
 const memos = ref<MemoResponse[]>([]);
 const { sortedData: sortedMemos, toggleSort, getSortOrder, resetSort } = useTableSort(memos);
+/**
+ * 加载状态
+ */
 const loading = ref(true);
+/**
+ * 搜索关键词
+ */
 const searchKeyword = ref('');
+/**
+ * 状态筛选值
+ */
 const statusFilter = ref<number | undefined>(undefined);
 
-// 分页状态
+/**
+ * 分页状态
+ */
 const pagination = ref({
   current: 1,
   pageSize: 10,
   total: 0,
 });
 
-// 对话框状态
+/**
+ * 对话框状态
+ */
 const dialogVisible = ref(false);
 const dialogMode = ref<'create' | 'edit'>('create');
 const dialogLoading = ref(false);
 
-// 表单数据
+/**
+ * 表单数据
+ */
 const formData = ref({
   id: 0,
   content: '',
@@ -86,12 +100,13 @@ const formData = ref({
   status: 0,
 });
 
-// 删除确认对话框
+/**
+ * 删除确认对话框
+ */
 const deleteDialogVisible = ref(false);
 const deleteTarget = ref<MemoResponse | null>(null);
 const deleteLoading = ref(false);
 
-// ========== 生命周期 ==========
 
 onMounted(async () => {
   try {
@@ -105,10 +120,10 @@ onMounted(async () => {
   }
 });
 
-// ========== 方法 ==========
 
 /**
- * 获取备忘录列表
+ * 获取备忘录列表。
+ * 根据当前分页、搜索关键词和状态筛选条件请求备忘录数据。
  */
 const fetchMemos = async () => {
   loading.value = true;
@@ -131,7 +146,8 @@ const fetchMemos = async () => {
 };
 
 /**
- * 搜索处理
+ * 搜索处理。
+ * 重置页码到第一页并重新请求备忘录列表。
  */
 const handleSearch = () => {
   pagination.value.current = 1;
@@ -139,7 +155,10 @@ const handleSearch = () => {
 };
 
 /**
- * 状态筛选变化
+ * 状态筛选变化。
+ * 将选中值转换为数字状态码，重置页码并刷新列表。
+ *
+ * @param value 选中的筛选值，'all' 表示全部
  */
 const handleStatusFilterChange = (value: string | null | undefined) => {
   // 处理空值或 'all' 的情况
@@ -200,7 +219,8 @@ const validateForm = (): boolean => {
 };
 
 /**
- * 提交表单
+ * 提交表单。
+ * 验证后根据对话框模式执行创建或更新操作，成功后刷新列表和统计。
  */
 const handleSubmit = async () => {
   if (!validateForm()) return;
@@ -249,7 +269,8 @@ const openDeleteDialog = (memo: MemoResponse) => {
 };
 
 /**
- * 确认删除
+ * 确认删除备忘录。
+ * 删除成功后自动处理末页空数据回退，并刷新列表和统计。
  */
 const handleDelete = async () => {
   if (!deleteTarget.value) return;
@@ -279,7 +300,9 @@ const handleDelete = async () => {
 };
 
 /**
- * 分页变化
+ * 分页变化。
+ *
+ * @param page 目标页码
  */
 const handlePageChange = (page: number) => {
   pagination.value.current = page;
@@ -287,7 +310,10 @@ const handlePageChange = (page: number) => {
 };
 
 /**
- * 每页数量变化
+ * 每页数量变化。
+ * 更新每页数量并重置到第一页。
+ *
+ * @param size 每页显示数量
  */
 const handlePageSizeChange = (size: number) => {
   pagination.value.pageSize = size;
@@ -296,7 +322,10 @@ const handlePageSizeChange = (size: number) => {
 };
 
 /**
- * 获取状态配置
+ * 获取状态配置。
+ * 根据状态值返回对应的显示标签、图标组件和样式类名。
+ *
+ * @param status 状态值 (0: 草稿, 1: 已发布)
  */
 const getStatusConfig = (status: number) => {
   const configs = {
@@ -307,7 +336,10 @@ const getStatusConfig = (status: number) => {
 };
 
 /**
- * 格式化日期
+ * 格式化日期为中文格式。
+ * 将 ISO 日期字符串转换为 "YYYY/MM/DD HH:mm" 格式。
+ *
+ * @param dateString ISO 格式的日期字符串
  */
 const formatDate = (dateString: string) => {
   if (!dateString) return '-';
@@ -322,7 +354,11 @@ const formatDate = (dateString: string) => {
 };
 
 /**
- * 截断文本
+ * 截断文本。
+ * 超过最大长度时截断并追加省略号。
+ *
+ * @param text 原始文本
+ * @param maxLength 最大字符数，默认 100
  */
 const truncateText = (text: string, maxLength: number = 100) => {
   if (text.length <= maxLength) return text;
@@ -332,7 +368,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
 <template>
   <div class="space-y-6">
-    <!-- ========== 页面标题 ========== -->
+    <!-- 页面标题 -->
     <PageHeader title="Memos" description="Manage your quick thoughts and notes">
       <template #actions>
         <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
@@ -342,7 +378,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
       </template>
     </PageHeader>
 
-    <!-- ========== 统计卡片 ========== -->
+    <!-- 统计卡片（2列 → md 3列，gap 响应式 3 → sm 4） -->
     <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
       <StatsCard
           class="col-span-2 md:col-span-1"
@@ -371,7 +407,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
       />
     </div>
 
-    <!-- ========== 备忘录列表 ========== -->
+    <!-- 备忘录列表 -->
     <Card class="overflow-hidden">
       <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -392,7 +428,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
               </SelectContent>
             </Select>
 
-            <!-- 搜索框 -->
+            <!-- 搜索框（< sm 全宽 / >= sm 固定 w-64） -->
             <div class="relative w-full sm:w-64">
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
@@ -534,7 +570,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
       </CardContent>
     </Card>
 
-    <!-- ========== 创建/编辑对话框 ========== -->
+    <!-- 创建/编辑对话框 -->
     <Dialog v-model:open="dialogVisible">
       <DialogContent class="sm:max-w-150">
         <DialogHeader>
@@ -618,7 +654,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
       </DialogContent>
     </Dialog>
 
-    <!-- ========== 删除确认对话框 ========== -->
+    <!-- 删除确认对话框 -->
     <AlertDialog v-model:open="deleteDialogVisible">
       <AlertDialogContent>
         <AlertDialogHeader>

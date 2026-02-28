@@ -1,24 +1,16 @@
-
-<!--
-  Header.vue - 顶部导航栏组件
-
-  功能：
-  - 显示面包屑导航
-  - 提供快捷操作按钮（查看站点、通知、主题切换、设置）
-
-  Props:
-  - siteUrl: 前台站点链接
-  - showNotificationBadge: 是否显示通知红点
--->
+<!-- Header.vue - 顶部导航栏 -->
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { Bell, ExternalLink, Sun, Settings } from 'lucide-vue-next';
 import Breadcrumb from '@/components/common/Breadcrumb.vue';
 
+/**
+ * Props 定义
+ * @property siteUrl 前台站点 URL
+ * @property showNotificationBadge 是否显示通知红点
+ */
 interface Props {
-  /** 前台站点 URL */
   siteUrl?: string
-  /** 是否显示通知红点 */
   showNotificationBadge?: boolean
 }
 
@@ -27,6 +19,10 @@ withDefaults(defineProps<Props>(), {
   showNotificationBadge: false,
 });
 
+/**
+ * 事件定义
+ * @event toggleSidebar 切换侧边栏显示状态
+ */
 const emit = defineEmits<{
   (e: 'toggleSidebar'): void
 }>();
@@ -36,10 +32,10 @@ const router = useRouter();
 
 <template>
   <header class="h-16 bg-white/80 backdrop-blur-md border-b px-4 md:px-6 flex items-center justify-between shrink-0 z-10">
-    <!-- 左侧：面包屑导航 -->
+    <!-- 面包屑导航 -->
     <Breadcrumb @toggle-sidebar="emit('toggleSidebar')" />
 
-    <!-- 右侧：操作按钮组 -->
+    <!-- 操作按钮组 -->
     <div class="flex items-center gap-1.5">
       <!-- 查看前台站点 -->
       <a
@@ -67,7 +63,7 @@ const router = useRouter();
         />
       </button>
 
-      <!-- 主题切换按钮（预留功能） -->
+      <!-- 主题切换按钮 -->
       <button
           class="inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
           title="Toggle Theme"

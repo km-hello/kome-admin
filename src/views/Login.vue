@@ -1,31 +1,37 @@
+<!-- Login.vue - 登录页面 -->
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { toast } from 'vue-sonner';
 import { Loader2, User, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-vue-next';
-
-// Shadcn 组件
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 
-// ========== 状态定义 ==========
 const router = useRouter();
 const userStore = useUserStore();
 
+/**
+ * 登录表单数据
+ */
 const form = ref({
   username: '',
   password: '',
   remember: false,
 });
 
+/**
+ * 加载状态
+ */
 const isLoading = ref(false);
-const showPassword = ref(false);
 
-// ========== 方法 ==========
+/**
+ * 是否显示密码
+ */
+const showPassword = ref(false);
 
 /**
  * 异步处理用户登录的回调函数。

@@ -1,12 +1,10 @@
-
+<!-- Dashboard.vue - 仪表盘页面 -->
 <script setup lang="ts">
 import {ref, onMounted} from 'vue';
 import { useRouter } from 'vue-router';
 import { useSiteStore } from '@/stores/site';
 import { getAdminPostsApi, type PostSimpleResponse } from '@/api/post';
 import { getAdminMemosApi, type MemoResponse } from '@/api/memo';
-
-// 图标
 import {
   FileText,
   Hash,
@@ -19,37 +17,35 @@ import {
   Loader2,
   Plus,
 } from 'lucide-vue-next';
-
-// 通用组件
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatsCard from '@/components/common/StatsCard.vue';
-
-// Shadcn 组件
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 
-// ========== 状态定义 ==========
-
-// 使用站点统计 Store
 const siteStore = useSiteStore();
 const router = useRouter();
 
-// 最近文章列表
+/**
+ * 最近文章列表
+ */
 const recentPosts = ref<PostSimpleResponse[]>([]);
-// 最近备忘录列表
+
+/**
+ * 最近备忘录列表
+ */
 const recentMemos = ref<MemoResponse[]>([]);
 
-// 加载状态
+/**
+ * 加载状态
+ */
 const loading = ref(true);
 
-// ========== 生命周期 ==========
 
 /**
  * 组件挂载时获取数据
  */
 onMounted(async () => {
-
   try {
     // 并行请求多个接口，提高加载速度
     await Promise.all([
@@ -64,11 +60,9 @@ onMounted(async () => {
   }
 });
 
-
-// ========== 方法 ==========
-
 /**
- * 获取最近文章
+ * 获取最近文章列表。
+ * 获取最新的 5 条文章记录,忽略置顶状态,仅按创建时间倒序排列。
  */
 const fetchRecentPosts = async () => {
   const postsData = await getAdminPostsApi({
@@ -80,7 +74,8 @@ const fetchRecentPosts = async () => {
 };
 
 /**
- * 获取最近备忘录
+ * 获取最近备忘录列表。
+ * 获取最新的 5 条备忘录记录,忽略置顶状态,仅按创建时间倒序排列。
  */
 const fetchRecentMemos = async () => {
   const memosData = await getAdminMemosApi({
@@ -92,7 +87,10 @@ const fetchRecentMemos = async () => {
 };
 
 /**
- * 获取状态配置
+ * 获取状态配置。
+ * 根据状态值返回对应的显示标签、图标组件和样式类名。
+ *
+ * @param status 状态值 (0: 草稿, 1: 已发布)
  */
 const getStatusConfig = (status: number) => {
   const configs = {
@@ -103,7 +101,10 @@ const getStatusConfig = (status: number) => {
 };
 
 /**
- * 格式化日期
+ * 格式化日期为中文格式。
+ * 将 ISO 日期字符串转换为 "YYYY/MM/DD HH:mm" 格式。
+ *
+ * @param dateString ISO 格式的日期字符串
  */
 const formatDate = (dateString: string) => {
   if (!dateString) return '-';
@@ -120,13 +121,13 @@ const formatDate = (dateString: string) => {
 
 <template>
   <div class="space-y-6">
-    <!-- ========== 页面标题 ========== -->
+    <!-- 页面标题 -->
     <PageHeader
         title="Dashboard"
         description="Welcome back! Here's an overview of your blog."
     />
 
-    <!-- ========== 统计卡片网格 ========== -->
+    <!-- 统计卡片网格（2列 → lg 4列，gap 响应式 3 → sm 4） -->
     <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       <StatsCard
           title="Total Posts"
@@ -139,6 +140,7 @@ const formatDate = (dateString: string) => {
           <span>Published: <span class="font-semibold text-blue-600">{{ siteStore.stats.publishedPostCount }}</span></span>
           <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftPostCount }}</span></span>
         </div>
+        <!-- 快捷新建按钮（右下角，尺寸响应式 w-7 → sm w-8） -->
         <button @click="router.push('/posts/new')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors" title="New Post">
           <Plus class="w-3.5 h-3.5 text-blue-600" />
         </button>
@@ -193,9 +195,9 @@ const formatDate = (dateString: string) => {
       </StatsCard>
     </div>
 
-    <!-- ========== 内容列表区域 ========== -->
+    <!-- 内容列表区域（1列 → lg 2列） -->
     <div class="grid gap-6 lg:grid-cols-2">
-      <!-- 最近文章 -->
+      <!-- 最近文章卡片 -->
       <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
@@ -215,6 +217,7 @@ const formatDate = (dateString: string) => {
           <Table>
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
+                <!-- 表头（padding 响应式 pl-4 → sm pl-6） -->
                 <TableHead class="w-15 pl-4 sm:pl-6">ID</TableHead>
                 <TableHead class="w-[50%]">Title</TableHead>
                 <TableHead class="w-20">Status</TableHead>
@@ -254,7 +257,6 @@ const formatDate = (dateString: string) => {
                     post.isPinned ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-slate-50/50'
                   ]"
               >
-                <!-- ID 列 -->
                 <TableCell class="font-mono text-xs text-slate-500 pl-4 sm:pl-6">
                   <div class="flex items-center">
                     <span class="mr-1">#{{ post.id }}</span>
@@ -262,7 +264,6 @@ const formatDate = (dateString: string) => {
                   </div>
                 </TableCell>
 
-                <!-- 标题列 -->
                 <TableCell>
                   <div class="flex flex-col gap-1">
                     <span class="block font-semibold text-slate-900 truncate" :title="post.title">
@@ -274,7 +275,6 @@ const formatDate = (dateString: string) => {
                   </div>
                 </TableCell>
 
-                <!-- 状态列 -->
                 <TableCell>
                   <div
                       class="inline-flex items-center gap-1.5 text-xs"
@@ -285,7 +285,6 @@ const formatDate = (dateString: string) => {
                   </div>
                 </TableCell>
 
-                <!-- 日期列 -->
                 <TableCell class="text-right pr-4 sm:pr-6">
                   <div class="flex items-center justify-end gap-1.5 text-xs text-slate-500">
                     <Calendar class="w-3 h-3" />
@@ -298,7 +297,7 @@ const formatDate = (dateString: string) => {
         </CardContent>
       </Card>
 
-      <!-- 最近备忘录 -->
+      <!-- 最近备忘录卡片 -->
       <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
@@ -357,7 +356,6 @@ const formatDate = (dateString: string) => {
                     memo.isPinned ? 'bg-amber-50/40 hover:bg-amber-50/60' : 'hover:bg-slate-50/50'
                   ]"
               >
-                <!-- ID 列 -->
                 <TableCell class="font-mono text-xs text-slate-500 pl-4 sm:pl-6">
                   <div class="flex items-center">
                     <span class="mr-1">#{{ memo.id }}</span>
@@ -365,14 +363,12 @@ const formatDate = (dateString: string) => {
                   </div>
                 </TableCell>
 
-                <!-- 内容列 -->
                 <TableCell class="whitespace-normal">
                   <p class="text-sm text-slate-700 line-clamp-2" :title="memo.content">
                     {{ memo.content }}
                   </p>
                 </TableCell>
 
-                <!-- 状态列 -->
                 <TableCell>
                   <div
                       class="inline-flex items-center gap-1.5 text-xs"
@@ -383,7 +379,6 @@ const formatDate = (dateString: string) => {
                   </div>
                 </TableCell>
 
-                <!-- 日期列 -->
                 <TableCell class="text-right pr-4 sm:pr-6">
                   <div class="flex items-center justify-end gap-1.5 text-xs text-slate-500">
                     <Calendar class="w-3 h-3" />

@@ -1,3 +1,4 @@
+<!-- App.vue - 应用根组件 -->
 <script setup lang="ts">
 import { Toaster } from 'vue-sonner';
 </script>
