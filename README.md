@@ -3,7 +3,7 @@
 The admin dashboard for the Kome blogging platform, built with Vue 3, TypeScript, and shadcn-vue.
 
 > For overall architecture, deployment guide, and roadmap,
-> see [this blog post](https://blog.km-o.com/post/kome-blog-overview) *(coming soon)*.
+> see [this blog post](https://kome.km-o.com/post/kome-blog-overview).
 
 ## Related Projects
 
