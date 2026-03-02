@@ -1,8 +1,11 @@
 <!-- Header.vue - 顶部导航栏 -->
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { Bell, ExternalLink, Sun, Settings } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+import { Bell, ExternalLink, Sun, Settings, Languages } from 'lucide-vue-next';
 import Breadcrumb from '@/components/common/Breadcrumb.vue';
+import { setLocale } from '@/i18n';
+import i18n from '@/i18n';
 
 /**
  * Props 定义
@@ -28,6 +31,20 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
+const { t } = useI18n();
+
+/**
+ * 切换当前语言。
+ *
+ * 读取 `i18n.global.locale` 的当前值，若为 `'zh-CN'` 则切换为 `'en'`，否则切换回 `'zh-CN'`。
+ * 通过 `setLocale` 更新全局语言设置。
+ *
+ * @returns {void}
+ */
+const toggleLanguage = (): void => {
+  const current = (i18n.global.locale as any).value;
+  setLocale(current === 'zh-CN' ? 'en' : 'zh-CN');
+};
 </script>
 
 <template>
@@ -42,18 +59,27 @@ const router = useRouter();
           :href="siteUrl"
           target="_blank"
           class="inline-flex items-center justify-center gap-1.5 h-9 px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors group"
-          title="View Site"
+          :title="t('header.viewSite')"
       >
-        <span class="hidden sm:inline">View Site</span>
+        <span class="hidden sm:inline">{{ t('header.viewSite') }}</span>
         <ExternalLink class="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
       </a>
 
       <div class="w-px h-5 bg-slate-200 mx-1" />
 
+      <!-- 语言切换按钮 -->
+      <button
+          class="inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          :title="t('header.language')"
+          @click="toggleLanguage"
+      >
+        <Languages class="w-4 h-4" />
+      </button>
+
       <!-- 通知按钮 -->
       <button
           class="relative inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-          title="Notifications"
+          :title="t('header.notifications')"
       >
         <Bell class="w-4 h-4" />
         <!-- 未读通知红点 -->
@@ -66,7 +92,7 @@ const router = useRouter();
       <!-- 主题切换按钮 -->
       <button
           class="inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-          title="Toggle Theme"
+          :title="t('header.toggleTheme')"
       >
         <Sun class="w-4 h-4" />
       </button>
@@ -74,7 +100,7 @@ const router = useRouter();
       <!-- 设置按钮 -->
       <button
           class="inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-          title="Settings"
+          :title="t('header.settings')"
           @click="router.push('/settings')"
       >
         <Settings class="w-4 h-4" />
