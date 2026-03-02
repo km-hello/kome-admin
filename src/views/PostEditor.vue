@@ -5,6 +5,7 @@ import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {toast} from 'vue-sonner';
 import {useDebounceFn} from '@vueuse/core';
+import {useI18n} from 'vue-i18n';
 import {
   createPostApi,
   getPostByIdApi,
@@ -31,6 +32,7 @@ import {useSiteStore} from "@/stores/site.ts";
 const route = useRoute();
 const router = useRouter();
 const siteStore = useSiteStore();
+const { t } = useI18n();
 
 /**
  * 是否为编辑模式（路由含 id 参数时为 true）
@@ -75,7 +77,6 @@ const formData = ref({
   status: 0,
   tagIds: [] as number[],
 });
-
 
 /**
  * 是否显示预览面板
@@ -131,7 +132,6 @@ const togglePreview = () => {
     // 切换到预览模式时，等待 iframe 加载后会触发 onPreviewLoad
   }
 };
-
 
 /**
  * 编辑区宽度百分比
@@ -216,7 +216,7 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Failed to initialize editor:', error);
-    toast.error('加载编辑器失败');
+    toast.error(t('postEditor.editorInitFailed'));
   } finally {
     loading.value = false;
   }
@@ -232,7 +232,7 @@ const fetchTags = async () => {
     allTags.value = await getAdminTagListApi();
   } catch (error) {
     console.error('Failed to fetch tags:', error);
-    toast.error('加载标签列表失败');
+    toast.error(t('postEditor.tagsLoadFailed'));
   }
 };
 
@@ -251,11 +251,11 @@ const loadPost = async () => {
       coverImage: detail.coverImage || '',
       isPinned: detail.isPinned,
       status: detail.status,
-      tagIds: detail.tags?.map(t => t.id) || [],
+      tagIds: detail.tags?.map((t: TagResponse) => t.id) || [],
     };
   } catch (error) {
     console.error('Failed to load post:', error);
-    toast.error('加载文章失败');
+    toast.error(t('postEditor.loadFailed'));
     await router.push('/posts');
   }
 };
@@ -266,43 +266,43 @@ const loadPost = async () => {
  */
 const validateForm = (): boolean => {
   if (!formData.value.title.trim()) {
-    toast.warning('请输入文章标题');
+    toast.warning(t('postEditor.validation.titleRequired'));
     return false;
   }
 
   if (formData.value.title.length > 255) {
-    toast.warning('标题过长（最多255个字符）');
+    toast.warning(t('postEditor.validation.titleTooLong'));
     return false;
   }
 
   if (!formData.value.slug.trim()) {
-    toast.warning('请输入文章 Slug');
+    toast.warning(t('postEditor.validation.slugRequired'));
     return false;
   }
 
   const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   if (!slugPattern.test(formData.value.slug)) {
-    toast.warning('Slug 只能包含小写字母、数字和连字符');
+    toast.warning(t('postEditor.validation.slugInvalid'));
     return false;
   }
 
   if (formData.value.slug.length > 255) {
-    toast.warning('Slug 过长（最多255个字符）');
+    toast.warning(t('postEditor.validation.slugTooLong'));
     return false;
   }
 
   if (!formData.value.content.trim()) {
-    toast.warning('请输入文章内容');
+    toast.warning(t('postEditor.validation.contentRequired'));
     return false;
   }
 
   if (formData.value.summary && formData.value.summary.length > 500) {
-    toast.warning('摘要过长（最多500个字符）');
+    toast.warning(t('postEditor.validation.summaryTooLong'));
     return false;
   }
 
   if (formData.value.coverImage && formData.value.coverImage.length > 255) {
-    toast.warning('封面图片链接过长（最多255个字符）');
+    toast.warning(t('postEditor.validation.coverTooLong'));
     return false;
   }
 
@@ -331,7 +331,7 @@ const handleSave = async () => {
         tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : undefined,
       };
       await updatePostApi(postId.value, request);
-      toast.success('文章更新成功');
+      toast.success(t('postEditor.updateSuccess'));
     } else {
       const request: PostCreateRequest = {
         title: formData.value.title.trim(),
@@ -344,7 +344,7 @@ const handleSave = async () => {
         tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : undefined,
       };
       await createPostApi(request);
-      toast.success('文章创建成功');
+      toast.success(t('postEditor.createSuccess'));
     }
 
     // 标记统计数据已失效，让 Post 页面进入时自动刷新
@@ -354,7 +354,7 @@ const handleSave = async () => {
     await router.push('/posts');
   } catch (error) {
     console.error('Failed to save post:', error);
-    toast.error('保存文章失败');
+    toast.error(t('postEditor.saveFailed'));
   } finally {
     saving.value = false;
   }
@@ -373,14 +373,14 @@ const handleBack = () => {
  */
 const aiGenerateSummary = async () => {
   if (!formData.value.content.trim()) {
-    toast.warning('请先输入文章内容');
+    toast.warning(t('postEditor.validation.contentFirst'));
     return;
   }
   generatingSummary.value = true;
   try {
     const res = await generateSummaryApi(formData.value.content);
     formData.value.summary = res.result.slice(0, 500);
-    toast.success('摘要已生成');
+    toast.success(t('postEditor.summaryGenerated'));
   } catch {
     // 错误已由 request 拦截器 toast 处理
   } finally {
@@ -394,14 +394,14 @@ const aiGenerateSummary = async () => {
  */
 const aiGenerateSlug = async () => {
   if (!formData.value.title.trim()) {
-    toast.warning('请先输入文章标题');
+    toast.warning(t('postEditor.validation.titleFirst'));
     return;
   }
   generatingSlug.value = true;
   try {
     const res = await generateSlugApi(formData.value.title);
     formData.value.slug = res.result;
-    toast.success('Slug 已生成');
+    toast.success(t('postEditor.slugGenerated'));
   } catch {
     // 错误已由 request 拦截器 toast 处理
   } finally {
@@ -428,8 +428,8 @@ const handleTagCreated = (newTag: TagResponse) => {
  */
 const getStatusConfig = (status: number) => {
   const configs = {
-    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
-    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
+    0: { label: t('status.draft'), icon: FileEdit, class: 'text-slate-400' },
+    1: { label: t('status.published'), icon: Globe, class: 'text-slate-600' },
   };
   return configs[status as keyof typeof configs] || configs[0];
 };
@@ -463,9 +463,9 @@ const useFirstImageAsCover = () => {
   const imageUrl = extractFirstImage(formData.value.content);
   if (imageUrl) {
     formData.value.coverImage = imageUrl;
-    toast.success('已从内容中提取封面图片');
+    toast.success(t('postEditor.coverExtracted'));
   } else {
-    toast.warning('内容中未找到图片');
+    toast.warning(t('postEditor.noImageInContent'));
   }
 };
 </script>
@@ -484,11 +484,11 @@ const useFirstImageAsCover = () => {
                 class="gap-2 rounded-lg hover:bg-slate-100"
             >
               <ArrowLeft class="w-4 h-4" />
-              Back
+              {{ t('postEditor.back') }}
             </Button>
             <div class="h-6 w-px bg-slate-200"></div>
             <h1 class="text-lg md:text-xl font-semibold text-slate-900">
-              {{ isEditMode ? 'Edit Post' : 'New Post' }}
+              {{ isEditMode ? t('postEditor.editPost') : t('postEditor.newPost') }}
             </h1>
           </div>
 
@@ -507,7 +507,7 @@ const useFirstImageAsCover = () => {
             >
               <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
               <Save v-else class="w-4 h-4" />
-              {{ saving ? 'Saving...' : 'Save Post' }}
+              {{ saving ? t('postEditor.saving') : t('postEditor.savePost') }}
             </Button>
           </div>
         </div>
@@ -517,7 +517,7 @@ const useFirstImageAsCover = () => {
     <!-- 加载状态 -->
     <div v-if="loading" class="flex justify-center items-center gap-2 py-20">
       <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
-      <span class="text-sm text-slate-400">Loading...</span>
+      <span class="text-sm text-slate-400">{{ t('postEditor.loading') }}</span>
     </div>
 
     <!-- 编辑器主体（py 响应式 6 → md 8，预览时 max-w-450 / 默认 max-w-400） -->
@@ -531,12 +531,12 @@ const useFirstImageAsCover = () => {
               <div class="space-y-4">
                 <div class="space-y-2">
                   <Label for="title" class="text-base font-semibold">
-                    Title <span class="text-red-500">*</span>
+                    {{ t('postEditor.titleLabel') }} <span class="text-red-500">*</span>
                   </Label>
                   <Input
                       id="title"
                       v-model="formData.title"
-                      placeholder="Enter your post title"
+                      :placeholder="t('postEditor.titlePlaceholder')"
                       class="text-2xl font-bold border-0 px-0 focus-visible:ring-0 placeholder:text-slate-300"
                       maxlength="255"
                   />
@@ -548,7 +548,7 @@ const useFirstImageAsCover = () => {
                 <div class="space-y-2">
                   <div class="flex items-center justify-between">
                     <Label for="slug" class="text-sm">
-                      URL Slug <span class="text-red-500">*</span>
+                      {{ t('postEditor.slugLabel') }} <span class="text-red-500">*</span>
                     </Label>
                     <Button
                         type="button"
@@ -560,18 +560,18 @@ const useFirstImageAsCover = () => {
                     >
                       <Loader2 v-if="generatingSlug" class="w-3 h-3 animate-spin mr-1" />
                       <Sparkles v-else class="w-3 h-3 mr-1" />
-                      AI Generate
+                      {{ t('postEditor.aiGenerate') }}
                     </Button>
                   </div>
                   <Input
                       id="slug"
                       v-model="formData.slug"
-                      placeholder="post-url-slug"
+                      :placeholder="t('postEditor.slugPlaceholder')"
                       maxlength="255"
                       class="font-mono text-sm"
                   />
                   <p class="text-xs text-slate-500">
-                    {{ formData.slug.length }}/255 · Only lowercase letters, numbers, and hyphens
+                    {{ formData.slug.length }}/255 · {{ t('postEditor.slugHint') }}
                   </p>
                 </div>
               </div>
@@ -583,7 +583,7 @@ const useFirstImageAsCover = () => {
             <CardHeader class="flex flex-row items-center justify-between">
               <CardTitle class="text-base flex items-center gap-2">
                 <FileText class="w-4 h-4" />
-                Summary
+                {{ t('postEditor.summaryLabel') }}
               </CardTitle>
               <Button
                   type="button"
@@ -595,13 +595,13 @@ const useFirstImageAsCover = () => {
               >
                 <Loader2 v-if="generatingSummary" class="w-3 h-3 animate-spin mr-1" />
                 <Sparkles v-else class="w-3 h-3 mr-1" />
-                AI Generate
+                {{ t('postEditor.aiGenerate') }}
               </Button>
             </CardHeader>
             <CardContent>
               <Textarea
                   v-model="formData.summary"
-                  placeholder="Write a brief summary of your post"
+                  :placeholder="t('postEditor.summaryPlaceholder')"
                   rows="4"
                   maxlength="500"
                   class="resize-none"
@@ -618,7 +618,7 @@ const useFirstImageAsCover = () => {
               <div class="flex items-center justify-between">
                 <CardTitle class="text-base flex items-center gap-2">
                   <FileText class="w-4 h-4" />
-                  Content <span class="text-red-500">*</span>
+                  {{ t('postEditor.contentLabel') }} <span class="text-red-500">*</span>
                 </CardTitle>
                 <Button
                     variant="outline"
@@ -628,7 +628,7 @@ const useFirstImageAsCover = () => {
                 >
                   <Eye v-if="!showPreview" class="w-4 h-4" />
                   <EyeOff v-else class="w-4 h-4" />
-                  {{ showPreview ? 'Hide Preview' : 'Preview' }}
+                  {{ showPreview ? t('postEditor.hidePreview') : t('postEditor.preview') }}
                 </Button>
               </div>
             </CardHeader>
@@ -645,7 +645,7 @@ const useFirstImageAsCover = () => {
                 <div :style="editorStyle">
                   <Textarea
                       v-model="formData.content"
-                      placeholder="Write your post content here... (Markdown supported)"
+                      :placeholder="t('postEditor.contentPlaceholder')"
                       :rows="showPreview ? undefined : 20"
                       class="font-mono text-sm resize-none scrollbar-thin"
                       :class="showPreview ? 'h-full' : 'max-h-[60vh]'"
@@ -675,7 +675,7 @@ const useFirstImageAsCover = () => {
                 </div>
               </div>
               <p class="text-xs text-slate-500 mt-2">
-                {{ formData.content.length }} characters
+                {{ formData.content.length }} {{ t('common.characters') }}
               </p>
             </CardContent>
           </Card>
@@ -688,14 +688,14 @@ const useFirstImageAsCover = () => {
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <Eye class="w-4 h-4" />
-                Publish Settings
+                {{ t('postEditor.publishSettings') }}
               </CardTitle>
             </CardHeader>
             <CardContent class="space-y-4">
               <!-- 状态 -->
               <div class="space-y-2">
                 <Label for="status">
-                  Status <span class="text-red-500">*</span>
+                  {{ t('postEditor.statusLabel') }} <span class="text-red-500">*</span>
                 </Label>
                 <Select
                     :model-value="formData.status.toString()"
@@ -708,13 +708,13 @@ const useFirstImageAsCover = () => {
                     <SelectItem value="0">
                       <div class="flex items-center gap-2">
                         <FileEdit class="w-3 h-3 text-slate-400" />
-                        Draft
+                        {{ t('status.draft') }}
                       </div>
                     </SelectItem>
                     <SelectItem value="1">
                       <div class="flex items-center gap-2">
                         <Globe class="w-3 h-3 text-slate-600" />
-                        Published
+                        {{ t('status.published') }}
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -732,7 +732,7 @@ const useFirstImageAsCover = () => {
                     class="text-sm font-normal cursor-pointer flex items-center gap-2"
                 >
                   <Pin class="w-4 h-4" />
-                  Pin to top <span class="text-red-500">*</span>
+                  {{ t('postEditor.pinToTop') }}
                 </Label>
               </div>
             </CardContent>
@@ -743,13 +743,13 @@ const useFirstImageAsCover = () => {
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <ImageIcon class="w-4 h-4" />
-                Cover Image
+                {{ t('postEditor.coverImage') }}
               </CardTitle>
             </CardHeader>
             <CardContent class="space-y-3">
               <Input
                   v-model="formData.coverImage"
-                  placeholder="https://example.com/image.jpg"
+                  :placeholder="t('postEditor.coverImagePlaceholder')"
                   maxlength="255"
               />
               <p class="text-xs text-slate-500">
@@ -763,7 +763,7 @@ const useFirstImageAsCover = () => {
                   class="w-full"
               >
                 <ImageIcon class="w-4 h-4 mr-2" />
-                Use first image from content
+                {{ t('postEditor.useFirstImage') }}
               </Button>
               <div
                   v-if="formData.coverImage"
@@ -784,7 +784,7 @@ const useFirstImageAsCover = () => {
             <CardHeader>
               <CardTitle class="text-base flex items-center gap-2">
                 <TagIcon class="w-4 h-4" />
-                Tags
+                {{ t('postEditor.tagsLabel') }}
               </CardTitle>
             </CardHeader>
             <CardContent>

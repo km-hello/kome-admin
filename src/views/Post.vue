@@ -4,6 +4,8 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+import i18n from '@/i18n';
 import { useSiteStore } from '@/stores/site';
 import { useTableSort } from '@/composables/useTableSort';
 import {
@@ -50,6 +52,7 @@ import type {AcceptableValue} from "reka-ui";
 
 const router = useRouter();
 const siteStore = useSiteStore();
+const { t } = useI18n();
 
 /**
  *  文章列表数据
@@ -127,7 +130,7 @@ const fetchPosts = async () => {
     resetSort();
   } catch (error) {
     console.error('Failed to fetch posts:', error);
-    toast.error('加载文章列表失败');
+    toast.error(t('post.loadFailed'));
   } finally {
     loading.value = false;
   }
@@ -219,7 +222,7 @@ const handleDelete = async () => {
 
   try {
     await deletePostApi(deleteTarget.value.id);
-    toast.success('文章删除成功');
+    toast.success(t('post.deleteSuccess'));
     deleteDialogVisible.value = false;
 
     if (posts.value.length === 1 && pagination.value.current > 1) {
@@ -232,7 +235,7 @@ const handleDelete = async () => {
     ]);
   } catch (error) {
     console.error('Failed to delete post:', error);
-    toast.error('删除文章失败');
+    toast.error(t('post.deleteFailed'));
   } finally {
     deleteLoading.value = false;
   }
@@ -268,8 +271,8 @@ const handlePageSizeChange = (size: number) => {
  */
 const getStatusConfig = (status: number) => {
   const configs = {
-    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
-    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
+    0: { label: t('status.draft'), icon: FileEdit, class: 'text-slate-400' },
+    1: { label: t('status.published'), icon: Globe, class: 'text-slate-600' },
   };
   return configs[status as keyof typeof configs] || configs[0];
 };
@@ -283,7 +286,8 @@ const getStatusConfig = (status: number) => {
 const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleDateString('zh-CN', {
+  const locale = (i18n.global.locale as any).value === 'zh-CN' ? 'zh-CN' : 'en-US';
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -309,11 +313,11 @@ const truncateText = (text: string, maxLength: number = 60) => {
 <template>
   <div class="space-y-6">
     <!-- 页面标题 -->
-    <PageHeader title="Posts" description="Manage your blog articles and content">
+    <PageHeader :title="t('post.title')" :description="t('post.description')">
       <template #actions>
         <Button @click="goToCreate" class="bg-slate-900 hover:bg-slate-800 gap-2">
           <Plus class="w-4 h-4" />
-          New Post
+          {{ t('post.newPost') }}
         </Button>
       </template>
     </PageHeader>
@@ -322,25 +326,25 @@ const truncateText = (text: string, maxLength: number = 60) => {
     <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
       <StatsCard
           class="col-span-2 md:col-span-1"
-          title="Total Posts"
+          :title="t('statsCard.totalPosts')"
           :value="siteStore.totalPosts"
-          description="All articles"
+          :description="t('statsCard.allArticles')"
           :icon="FileText"
           icon-bg-class="bg-blue-50"
           icon-class="text-blue-600"
       />
       <StatsCard
-          title="Published"
+          :title="t('statsCard.published')"
           :value="siteStore.stats.publishedPostCount"
-          description="Live on site"
+          :description="t('statsCard.liveOnSite')"
           :icon="FileText"
           icon-bg-class="bg-teal-50"
           icon-class="text-teal-600"
       />
       <StatsCard
-          title="Drafts"
+          :title="t('statsCard.drafts')"
           :value="siteStore.stats.draftPostCount"
-          description="Work in progress"
+          :description="t('statsCard.workInProgress')"
           :icon="FileText"
           icon-bg-class="bg-slate-50"
           icon-class="text-slate-600"
@@ -352,30 +356,30 @@ const truncateText = (text: string, maxLength: number = 60) => {
       <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle class="text-lg font-bold text-slate-800">All Posts</CardTitle>
-            <CardDescription class="mt-1">Manage your blog articles and content</CardDescription>
+            <CardTitle class="text-lg font-bold text-slate-800">{{ t('post.allPosts') }}</CardTitle>
+            <CardDescription class="mt-1">{{ t('post.description') }}</CardDescription>
           </div>
           <!-- 筛选和搜索工具栏（< sm 纵向堆叠 / >= sm 水平排列） -->
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="handleStatusFilterChange">
               <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
-                <SelectValue placeholder="All Status" />
+                <SelectValue :placeholder="t('post.allStatus')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="0">Draft</SelectItem>
-                <SelectItem value="1">Published</SelectItem>
+                <SelectItem value="all">{{ t('post.allStatus') }}</SelectItem>
+                <SelectItem value="0">{{ t('status.draft') }}</SelectItem>
+                <SelectItem value="1">{{ t('status.published') }}</SelectItem>
               </SelectContent>
             </Select>
 
             <!-- 标签筛选 -->
             <Select @update:model-value="handleTagFilterChange">
               <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
-                <SelectValue placeholder="All Tags" />
+                <SelectValue :placeholder="t('post.allTags')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Tags</SelectItem>
+                <SelectItem value="all">{{ t('post.allTags') }}</SelectItem>
                 <SelectItem v-for="tag in allTags" :key="tag.id" :value="tag.id.toString()">
                   {{ tag.name }}
                 </SelectItem>
@@ -387,14 +391,14 @@ const truncateText = (text: string, maxLength: number = 60) => {
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                   v-model="searchKeyword"
-                  placeholder="Search posts..."
+                  :placeholder="t('post.searchPlaceholder')"
                   class="pl-9 pr-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
               <button
                   @click="handleSearch"
                   class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                  title="Search"
+                  :title="t('common.search')"
               >
                 <Search class="w-4 h-4" />
               </button>
@@ -407,13 +411,13 @@ const truncateText = (text: string, maxLength: number = 60) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <SortableHead class="w-15 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
-              <TableHead class="w-[35%]">Title</TableHead>
-              <TableHead>Tags</TableHead>
-              <SortableHead :sort-order="getSortOrder('views')" @sort="toggleSort('views')">Views</SortableHead>
-              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
-              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
-              <TableHead class="text-right pr-4 sm:pr-6">Actions</TableHead>
+              <SortableHead class="w-15 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">{{ t('table.id') }}</SortableHead>
+              <TableHead class="w-[35%]">{{ t('table.title') }}</TableHead>
+              <TableHead>{{ t('table.tags') }}</TableHead>
+              <SortableHead :sort-order="getSortOrder('views')" @sort="toggleSort('views')">{{ t('table.views') }}</SortableHead>
+              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">{{ t('table.status') }}</SortableHead>
+              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">{{ t('table.createdAt') }}</SortableHead>
+              <TableHead class="text-right pr-4 sm:pr-6">{{ t('table.actions') }}</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -423,7 +427,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
               <TableCell colspan="7" class="text-center py-12">
                 <div class="flex items-center justify-center gap-2 text-slate-500">
                   <Loader2 class="w-5 h-5 animate-spin" />
-                  <span>Loading posts...</span>
+                  <span>{{ t('post.loadingPosts') }}</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -434,10 +438,10 @@ const truncateText = (text: string, maxLength: number = 60) => {
                 <div class="flex flex-col items-center justify-center text-slate-400">
                   <FileText class="w-12 h-12 mb-2 opacity-20" />
                   <p class="text-sm font-medium">
-                    {{ searchKeyword || statusFilter !== undefined ? 'No posts found' : 'No posts yet' }}
+                    {{ searchKeyword || statusFilter !== undefined ? t('post.noPostsFound') : t('post.noPostsYet') }}
                   </p>
                   <p class="text-xs mt-1">
-                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first post to get started' }}
+                    {{ searchKeyword || statusFilter !== undefined ? t('post.tryAdjustingFilters') : t('post.createFirstPost') }}
                   </p>
                 </div>
               </TableCell>
@@ -495,7 +499,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
                         </Badge>
                       </PopoverTrigger>
                       <PopoverContent class="w-auto p-3" align="start">
-                        <div class="text-xs font-medium text-slate-500 mb-2">All Tags</div>
+                        <div class="text-xs font-medium text-slate-500 mb-2">{{ t('table.allTags') }}</div>
                         <div class="flex flex-wrap gap-1 max-w-50">
                           <Badge
                               v-for="tag in post.tags"
@@ -548,7 +552,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
                       variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                      title="Edit"
+                      :title="t('common.edit')"
                   >
                     <Edit class="w-4 h-4" />
                   </Button>
@@ -557,7 +561,7 @@ const truncateText = (text: string, maxLength: number = 60) => {
                       variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Delete"
+                      :title="t('common.delete')"
                   >
                     <Trash2 class="w-4 h-4" />
                   </Button>
@@ -584,24 +588,24 @@ const truncateText = (text: string, maxLength: number = 60) => {
     <AlertDialog v-model:open="deleteDialogVisible">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>{{ t('post.deleteConfirmTitle') }}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the post
+            {{ t('post.deleteConfirmDesc') }}
             <span v-if="deleteTarget" class="font-semibold text-slate-700">
               "{{ truncateText(deleteTarget.title, 50) }}"
             </span>.
-            This action cannot be undone.
+            {{ t('post.deleteCannotUndo') }}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel :disabled="deleteLoading">Cancel</AlertDialogCancel>
+          <AlertDialogCancel :disabled="deleteLoading">{{ t('common.cancel') }}</AlertDialogCancel>
           <AlertDialogAction
               @click="handleDelete"
               :disabled="deleteLoading"
               class="bg-red-600 hover:bg-red-700 gap-2"
           >
             <Loader2 v-if="deleteLoading" class="w-4 h-4 animate-spin" />
-            Delete
+            {{ t('common.delete') }}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

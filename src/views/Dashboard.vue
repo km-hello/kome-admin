@@ -3,6 +3,8 @@
 import {ref, onMounted} from 'vue';
 import { useRouter } from 'vue-router';
 import { useSiteStore } from '@/stores/site';
+import { useI18n } from 'vue-i18n';
+import i18n from '@/i18n';
 import { getAdminPostsApi, type PostSimpleResponse } from '@/api/post';
 import { getAdminMemosApi, type MemoResponse } from '@/api/memo';
 import {
@@ -25,6 +27,7 @@ import { Button } from '@/components/ui/button';
 
 const siteStore = useSiteStore();
 const router = useRouter();
+const { t } = useI18n();
 
 /**
  * 最近文章列表
@@ -40,7 +43,6 @@ const recentMemos = ref<MemoResponse[]>([]);
  * 加载状态
  */
 const loading = ref(true);
-
 
 /**
  * 组件挂载时获取数据
@@ -94,22 +96,23 @@ const fetchRecentMemos = async () => {
  */
 const getStatusConfig = (status: number) => {
   const configs = {
-    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
-    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
+    0: { label: t('status.draft'), icon: FileEdit, class: 'text-slate-400' },
+    1: { label: t('status.published'), icon: Globe, class: 'text-slate-600' },
   };
   return configs[status as keyof typeof configs] || configs[0];
 };
 
 /**
- * 格式化日期为中文格式。
- * 将 ISO 日期字符串转换为 "YYYY/MM/DD HH:mm" 格式。
+ * 格式化日期。
+ * 将 ISO 日期字符串转换为本地化日期格式。
  *
  * @param dateString ISO 格式的日期字符串
  */
 const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleDateString('zh-CN', {
+  const locale = (i18n.global.locale as any).value === 'zh-CN' ? 'zh-CN' : 'en-US';
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -123,73 +126,73 @@ const formatDate = (dateString: string) => {
   <div class="space-y-6">
     <!-- 页面标题 -->
     <PageHeader
-        title="Dashboard"
-        description="Welcome back! Here's an overview of your blog."
+        :title="t('dashboard.title')"
+        :description="t('dashboard.description')"
     />
 
     <!-- 统计卡片网格（2列 → lg 4列，gap 响应式 3 → sm 4） -->
     <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       <StatsCard
-          title="Total Posts"
+          :title="t('statsCard.totalPosts')"
           :value="siteStore.totalPosts"
           :icon="FileText"
           icon-bg-class="bg-blue-50"
           icon-class="text-blue-600"
       >
         <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-          <span>Published: <span class="font-semibold text-blue-600">{{ siteStore.stats.publishedPostCount }}</span></span>
-          <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftPostCount }}</span></span>
+          <span>{{ t('statsCard.published') }}: <span class="font-semibold text-blue-600">{{ siteStore.stats.publishedPostCount }}</span></span>
+          <span>{{ t('statsCard.draft') }}: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftPostCount }}</span></span>
         </div>
         <!-- 快捷新建按钮（右下角，尺寸响应式 w-7 → sm w-8） -->
-        <button @click="router.push('/posts/new')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors" title="New Post">
+        <button @click="router.push('/posts/new')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center justify-center transition-colors" :title="t('post.newPost')">
           <Plus class="w-3.5 h-3.5 text-blue-600" />
         </button>
       </StatsCard>
 
       <StatsCard
-          title="Total Memos"
+          :title="t('statsCard.totalMemos')"
           :value="siteStore.totalMemos"
           :icon="Activity"
           icon-bg-class="bg-amber-50"
           icon-class="text-amber-600"
       >
         <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-          <span>Published: <span class="font-semibold text-amber-600">{{ siteStore.stats.publishedMemoCount }}</span></span>
-          <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftMemoCount }}</span></span>
+          <span>{{ t('statsCard.published') }}: <span class="font-semibold text-amber-600">{{ siteStore.stats.publishedMemoCount }}</span></span>
+          <span>{{ t('statsCard.draft') }}: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftMemoCount }}</span></span>
         </div>
-        <button @click="router.push('/memos')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-50 hover:bg-amber-100 flex items-center justify-center transition-colors" title="New Memo">
+        <button @click="router.push('/memos')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-50 hover:bg-amber-100 flex items-center justify-center transition-colors" :title="t('memo.newMemo')">
           <Plus class="w-3.5 h-3.5 text-amber-600" />
         </button>
       </StatsCard>
 
       <StatsCard
-          title="Total Tags"
+          :title="t('statsCard.totalTags')"
           :value="siteStore.totalTags"
           :icon="Hash"
           icon-bg-class="bg-emerald-50"
           icon-class="text-emerald-600"
       >
         <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-          <span>Used: <span class="font-semibold text-emerald-600">{{ siteStore.stats.usedTagCount }}</span></span>
-          <span>Unused: <span class="font-semibold text-slate-600">{{ siteStore.stats.unusedTagCount }}</span></span>
+          <span>{{ t('statsCard.used') }}: <span class="font-semibold text-emerald-600">{{ siteStore.stats.usedTagCount }}</span></span>
+          <span>{{ t('statsCard.unused') }}: <span class="font-semibold text-slate-600">{{ siteStore.stats.unusedTagCount }}</span></span>
         </div>
-        <button @click="router.push('/tags')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-50 hover:bg-emerald-100 flex items-center justify-center transition-colors" title="New Tag">
+        <button @click="router.push('/tags')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-50 hover:bg-emerald-100 flex items-center justify-center transition-colors" :title="t('tag.newTag')">
           <Plus class="w-3.5 h-3.5 text-emerald-600" />
         </button>
       </StatsCard>
 
       <StatsCard
-          title="Friend Links"
+          :title="t('statsCard.friendLinks')"
           :value="siteStore.totalLinks"
           :icon="LinkIcon"
           icon-bg-class="bg-purple-50"
           icon-class="text-purple-600"
       >
         <div class="flex items-center gap-3 mt-2 text-xs text-slate-500">
-          <span>Published: <span class="font-semibold text-purple-600">{{ siteStore.stats.publishedLinkCount }}</span></span>
-          <span>Draft: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftLinkCount }}</span></span>
+          <span>{{ t('statsCard.published') }}: <span class="font-semibold text-purple-600">{{ siteStore.stats.publishedLinkCount }}</span></span>
+          <span>{{ t('statsCard.draft') }}: <span class="font-semibold text-slate-600">{{ siteStore.stats.draftLinkCount }}</span></span>
         </div>
-        <button @click="router.push('/links')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-50 hover:bg-purple-100 flex items-center justify-center transition-colors" title="New Link">
+        <button @click="router.push('/links')" class="absolute right-4 bottom-3 sm:right-6 sm:bottom-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-50 hover:bg-purple-100 flex items-center justify-center transition-colors" :title="t('link.newLink')">
           <Plus class="w-3.5 h-3.5 text-purple-600" />
         </button>
       </StatsCard>
@@ -201,14 +204,14 @@ const formatDate = (dateString: string) => {
       <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
-            <CardTitle class="text-lg font-bold text-slate-800">Recent Posts</CardTitle>
+            <CardTitle class="text-lg font-bold text-slate-800">{{ t('dashboard.recentPosts') }}</CardTitle>
             <Button
                 variant="ghost"
                 size="sm"
                 class="text-slate-600 hover:text-slate-900"
                 @click="router.push('/posts')"
             >
-              View All →
+              {{ t('dashboard.viewAll') }}
             </Button>
           </div>
         </CardHeader>
@@ -218,10 +221,10 @@ const formatDate = (dateString: string) => {
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
                 <!-- 表头（padding 响应式 pl-4 → sm pl-6） -->
-                <TableHead class="w-15 pl-4 sm:pl-6">ID</TableHead>
-                <TableHead class="w-[50%]">Title</TableHead>
-                <TableHead class="w-20">Status</TableHead>
-                <TableHead class="w-25 text-right pr-4 sm:pr-6">Date</TableHead>
+                <TableHead class="w-15 pl-4 sm:pl-6">{{ t('table.id') }}</TableHead>
+                <TableHead class="w-[50%]">{{ t('table.title') }}</TableHead>
+                <TableHead class="w-20">{{ t('table.status') }}</TableHead>
+                <TableHead class="w-25 text-right pr-4 sm:pr-6">{{ t('table.createdAt') }}</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -231,7 +234,7 @@ const formatDate = (dateString: string) => {
                 <TableCell colspan="4" class="h-32 text-center">
                   <div class="flex items-center justify-center gap-2 text-slate-500">
                     <Loader2 class="w-5 h-5 animate-spin" />
-                    <span>Loading...</span>
+                    <span>{{ t('common.loading') }}</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -241,8 +244,8 @@ const formatDate = (dateString: string) => {
                 <TableCell colspan="4" class="h-32 text-center">
                   <div class="flex flex-col items-center justify-center text-slate-400">
                     <FileText class="w-12 h-12 mb-2 opacity-20" />
-                    <p class="text-sm font-medium">No posts yet</p>
-                    <p class="text-xs mt-1">Create your first post</p>
+                    <p class="text-sm font-medium">{{ t('dashboard.noPostsYet') }}</p>
+                    <p class="text-xs mt-1">{{ t('dashboard.createFirstPost') }}</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -301,14 +304,14 @@ const formatDate = (dateString: string) => {
       <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
-            <CardTitle class="text-lg font-bold text-slate-800">Recent Memos</CardTitle>
+            <CardTitle class="text-lg font-bold text-slate-800">{{ t('dashboard.recentMemos') }}</CardTitle>
             <Button
                 variant="ghost"
                 size="sm"
                 class="text-slate-600 hover:text-slate-900"
                 @click="router.push('/memos')"
             >
-              View All →
+              {{ t('dashboard.viewAll') }}
             </Button>
           </div>
         </CardHeader>
@@ -317,10 +320,10 @@ const formatDate = (dateString: string) => {
           <Table>
             <TableHeader>
               <TableRow class="hover:bg-transparent border-slate-100">
-                <TableHead class="w-15 pl-4 sm:pl-6">ID</TableHead>
-                <TableHead class="w-[50%]">Content</TableHead>
-                <TableHead class="w-20">Status</TableHead>
-                <TableHead class="w-25 text-right pr-4 sm:pr-6">Date</TableHead>
+                <TableHead class="w-15 pl-4 sm:pl-6">{{ t('table.id') }}</TableHead>
+                <TableHead class="w-[50%]">{{ t('table.content') }}</TableHead>
+                <TableHead class="w-20">{{ t('table.status') }}</TableHead>
+                <TableHead class="w-25 text-right pr-4 sm:pr-6">{{ t('table.createdAt') }}</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -330,7 +333,7 @@ const formatDate = (dateString: string) => {
                 <TableCell colspan="4" class="h-32 text-center">
                   <div class="flex items-center justify-center gap-2 text-slate-500">
                     <Loader2 class="w-5 h-5 animate-spin" />
-                    <span>Loading...</span>
+                    <span>{{ t('common.loading') }}</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -340,8 +343,8 @@ const formatDate = (dateString: string) => {
                 <TableCell colspan="4" class="h-32 text-center">
                   <div class="flex flex-col items-center justify-center text-slate-400">
                     <Activity class="w-12 h-12 mb-2 opacity-20" />
-                    <p class="text-sm font-medium">No memos yet</p>
-                    <p class="text-xs mt-1">Create your first memo</p>
+                    <p class="text-sm font-medium">{{ t('dashboard.noMemosYet') }}</p>
+                    <p class="text-xs mt-1">{{ t('dashboard.createFirstMemo') }}</p>
                   </div>
                 </TableCell>
               </TableRow>

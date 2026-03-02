@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
 import { Loader2, User, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 const router = useRouter();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 /**
  * 登录表单数据
@@ -54,7 +56,7 @@ const showPassword = ref(false);
 const handleLogin = async (): Promise<void> => {
   // 表单验证
   if (!form.value.username || !form.value.password) {
-    toast.warning('请输入用户名和密码');
+    toast.warning(t('auth.enterCredentials'));
     return;
   }
 
@@ -70,7 +72,7 @@ const handleLogin = async (): Promise<void> => {
         form.value.remember
     );
 
-    toast.success('登录成功！');
+    toast.success(t('auth.loginSuccess'));
 
     // 跳转到首页
     await router.push('/');
@@ -95,20 +97,20 @@ const handleLogin = async (): Promise<void> => {
         <div class="mx-auto w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-2 shadow-lg">
           K
         </div>
-        <CardTitle class="text-2xl font-bold text-slate-800">Welcome Back</CardTitle>
-        <CardDescription class="text-slate-500">Sign in to manage your blog system</CardDescription>
+        <CardTitle class="text-2xl font-bold text-slate-800">{{ t('auth.welcomeBack') }}</CardTitle>
+        <CardDescription class="text-slate-500">{{ t('auth.signInDescription') }}</CardDescription>
       </CardHeader>
 
       <CardContent class="space-y-4">
         <!-- 用户名输入 -->
         <div class="space-y-2">
-          <Label htmlFor="username" class="text-slate-700 font-medium">Account</Label>
+          <Label htmlFor="username" class="text-slate-700 font-medium">{{ t('auth.account') }}</Label>
           <div class="relative">
             <User class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
                 id="username"
                 v-model="form.username"
-                placeholder="Enter your username"
+                :placeholder="t('auth.enterUsername')"
                 class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 placeholder:text-slate-400"
                 :disabled="isLoading"
                 @keyup.enter="handleLogin"
@@ -118,14 +120,14 @@ const handleLogin = async (): Promise<void> => {
 
         <!-- 密码输入 -->
         <div class="space-y-2">
-          <Label htmlFor="password" class="text-slate-700 font-medium">Password</Label>
+          <Label htmlFor="password" class="text-slate-700 font-medium">{{ t('auth.password') }}</Label>
           <div class="relative">
             <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
                 id="password"
                 :type="showPassword ? 'text' : 'password'"
                 v-model="form.password"
-                placeholder="Enter your password"
+                :placeholder="t('auth.enterPassword')"
                 class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 pr-10 placeholder:text-slate-400"
                 :disabled="isLoading"
                 @keyup.enter="handleLogin"
@@ -149,7 +151,7 @@ const handleLogin = async (): Promise<void> => {
               for="remember"
               class="text-sm text-slate-700 font-medium cursor-pointer select-none"
           >
-            Remember me for 3 days
+            {{ t('auth.rememberMe') }}
           </label>
         </div>
 
@@ -160,9 +162,8 @@ const handleLogin = async (): Promise<void> => {
             @click="handleLogin"
         >
           <Loader2 v-if="isLoading" class="h-4 w-4 animate-spin" />
-          {{ isLoading ? 'Signing in...' : 'Sign In' }}
+          {{ isLoading ? t('auth.signingIn') : t('auth.signIn') }}
         </Button>
-
 
         <!-- 底部提示 -->
         <div class="text-center">
@@ -171,7 +172,7 @@ const handleLogin = async (): Promise<void> => {
               class="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-800 transition-colors group"
           >
             <ArrowLeft class="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-            Back to Blog
+            {{ t('auth.backToBlog') }}
           </a>
         </div>
       </CardContent>

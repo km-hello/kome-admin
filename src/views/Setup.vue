@@ -6,6 +6,7 @@ import { useSiteStore } from '@/stores/site';
 import { useUserStore } from '@/stores/user';
 import { setupAdminApi } from '@/api/site';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
 import { Loader2, User, Lock, Mail, Eye, EyeOff, Check, X, Image, FileText, UserCircle, ChevronDown } from 'lucide-vue-next';
 
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ const DEFAULT_EMAIL = 'admin@example.com';
 const router = useRouter();
 const siteStore = useSiteStore();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 /**
  * 初始化表单数据
@@ -84,9 +86,9 @@ const passwordChecks = computed(() => ({
 const passwordStrength = computed(() => {
   const checks = Object.values(passwordChecks.value).filter(Boolean).length;
   if (checks === 0) return { level: 0, text: '', color: '' };
-  if (checks <= 2) return { level: 1, text: 'Weak', color: 'bg-red-500' };
-  if (checks <= 3) return { level: 2, text: 'Medium', color: 'bg-yellow-500' };
-  return { level: 3, text: 'Strong', color: 'bg-green-500' };
+  if (checks <= 2) return { level: 1, text: t('setup.passwordStrength.weak'), color: 'bg-red-500' };
+  if (checks <= 3) return { level: 2, text: t('setup.passwordStrength.medium'), color: 'bg-yellow-500' };
+  return { level: 3, text: t('setup.passwordStrength.strong'), color: 'bg-green-500' };
 });
 
 /**
@@ -112,32 +114,32 @@ const isFormValid = computed(() =>
 const handleSetup = async (): Promise<void> => {
   // 表单验证
   if (!form.value.username) {
-    toast.warning('Please enter a username');
+    toast.warning(t('setup.validation.enterUsername'));
     return;
   }
 
   if (form.value.username.length < 4) {
-    toast.warning('Username must be at least 4 characters');
+    toast.warning(t('setup.validation.usernameTooShort'));
     return;
   }
 
   if (!/^[a-zA-Z0-9_-]+$/.test(form.value.username)) {
-    toast.warning('Username can only contain letters, numbers, underscores and hyphens');
+    toast.warning(t('setup.validation.usernameInvalid'));
     return;
   }
 
   if (!isPasswordValid.value) {
-    toast.warning('Password must contain letters, numbers, special characters, and be 8-64 characters long');
+    toast.warning(t('setup.validation.passwordInvalid'));
     return;
   }
 
   if (form.value.password !== form.value.confirmPassword) {
-    toast.warning('Passwords do not match');
+    toast.warning(t('setup.validation.passwordMismatch'));
     return;
   }
 
   if (form.value.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-    toast.warning('Please enter a valid email address');
+    toast.warning(t('setup.validation.emailInvalid'));
     return;
   }
 
@@ -160,7 +162,7 @@ const handleSetup = async (): Promise<void> => {
     // 清除任何残留的登录状态，确保用户必须使用新账户登录
     userStore.logout();
 
-    toast.success('Setup completed! Please login with your new account.');
+    toast.success(t('setup.validation.setupComplete'));
 
     // 跳转到登录页
     await router.push('/login');
@@ -184,15 +186,15 @@ const handleSetup = async (): Promise<void> => {
         <div class="mx-auto w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-2 shadow-lg">
           K
         </div>
-        <CardTitle class="text-2xl font-bold text-slate-800">Welcome to Kome</CardTitle>
-        <CardDescription class="text-slate-500">Set up your admin account to get started</CardDescription>
+        <CardTitle class="text-2xl font-bold text-slate-800">{{ t('setup.welcome') }}</CardTitle>
+        <CardDescription class="text-slate-500">{{ t('setup.description') }}</CardDescription>
       </CardHeader>
 
       <CardContent class="space-y-4">
         <!-- 用户名输入 -->
         <div class="space-y-2">
           <Label htmlFor="username" class="text-slate-700 font-medium">
-            Username <span class="text-red-500">*</span>
+            {{ t('setup.username') }} <span class="text-red-500">*</span>
           </Label>
           <div class="relative">
             <User class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -209,7 +211,7 @@ const handleSetup = async (): Promise<void> => {
         <!-- 密码输入 -->
         <div class="space-y-2">
           <Label htmlFor="password" class="text-slate-700 font-medium">
-            Password <span class="text-red-500">*</span>
+            {{ t('setup.password') }} <span class="text-red-500">*</span>
           </Label>
           <div class="relative">
             <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -217,7 +219,7 @@ const handleSetup = async (): Promise<void> => {
                 id="password"
                 :type="showPassword ? 'text' : 'password'"
                 v-model="form.password"
-                placeholder="Create a strong password"
+                :placeholder="t('setup.createStrongPassword')"
                 class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 pr-10 placeholder:text-slate-400"
                 :disabled="isLoading"
             />
@@ -246,22 +248,22 @@ const handleSetup = async (): Promise<void> => {
               <span :class="passwordChecks.length ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
                 <Check v-if="passwordChecks.length" class="h-3 w-3" />
                 <X v-else class="h-3 w-3" />
-                8-64 characters
+                {{ t('setup.passwordStrength.length') }}
               </span>
               <span :class="passwordChecks.hasLetter ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
                 <Check v-if="passwordChecks.hasLetter" class="h-3 w-3" />
                 <X v-else class="h-3 w-3" />
-                Letter
+                {{ t('setup.passwordStrength.letter') }}
               </span>
               <span :class="passwordChecks.hasNumber ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
                 <Check v-if="passwordChecks.hasNumber" class="h-3 w-3" />
                 <X v-else class="h-3 w-3" />
-                Number
+                {{ t('setup.passwordStrength.number') }}
               </span>
               <span :class="passwordChecks.hasSpecial ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
                 <Check v-if="passwordChecks.hasSpecial" class="h-3 w-3" />
                 <X v-else class="h-3 w-3" />
-                Special char
+                {{ t('setup.passwordStrength.specialChar') }}
               </span>
             </div>
           </div>
@@ -270,7 +272,7 @@ const handleSetup = async (): Promise<void> => {
         <!-- 确认密码输入 -->
         <div class="space-y-2">
           <Label htmlFor="confirmPassword" class="text-slate-700 font-medium">
-            Confirm Password <span class="text-red-500">*</span>
+            {{ t('setup.confirmPassword') }} <span class="text-red-500">*</span>
           </Label>
           <div class="relative">
             <Lock class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -278,7 +280,7 @@ const handleSetup = async (): Promise<void> => {
                 id="confirmPassword"
                 :type="showConfirmPassword ? 'text' : 'password'"
                 v-model="form.confirmPassword"
-                placeholder="Confirm your password"
+                :placeholder="t('setup.confirmYourPassword')"
                 class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 pr-10 placeholder:text-slate-400"
                 :class="{ 'border-red-300 focus:border-red-400': form.confirmPassword && form.password !== form.confirmPassword }"
                 :disabled="isLoading"
@@ -297,7 +299,7 @@ const handleSetup = async (): Promise<void> => {
               v-if="form.confirmPassword && form.password !== form.confirmPassword"
               class="text-xs text-red-500"
           >
-            Passwords do not match
+            {{ t('setup.passwordsDoNotMatch') }}
           </p>
         </div>
 
@@ -306,7 +308,7 @@ const handleSetup = async (): Promise<void> => {
           <CollapsibleTrigger class="flex items-center justify-center w-full py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors group">
             <span class="border-t border-slate-200 flex-1"></span>
             <span class="px-3 flex items-center gap-1">
-              Customize Profile
+              {{ t('setup.customizeProfile') }}
               <ChevronDown
                   class="h-4 w-4 transition-transform duration-200"
                   :class="{ 'rotate-180': showOptional }"
@@ -318,7 +320,7 @@ const handleSetup = async (): Promise<void> => {
           <CollapsibleContent class="space-y-4 pt-2">
             <!-- 昵称输入 -->
             <div class="space-y-2">
-              <Label htmlFor="nickname" class="text-slate-700 font-medium text-sm">Nickname</Label>
+              <Label htmlFor="nickname" class="text-slate-700 font-medium text-sm">{{ t('setup.nickname') }}</Label>
               <div class="relative">
                 <UserCircle class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -333,7 +335,7 @@ const handleSetup = async (): Promise<void> => {
 
             <!-- 个人简介输入 -->
             <div class="space-y-2">
-              <Label htmlFor="description" class="text-slate-700 font-medium text-sm">Bio</Label>
+              <Label htmlFor="description" class="text-slate-700 font-medium text-sm">{{ t('setup.bio') }}</Label>
               <div class="relative">
                 <FileText class="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <Textarea
@@ -349,7 +351,7 @@ const handleSetup = async (): Promise<void> => {
 
             <!-- 头像 URL 输入 -->
             <div class="space-y-2">
-              <Label htmlFor="avatar" class="text-slate-700 font-medium text-sm">Avatar URL</Label>
+              <Label htmlFor="avatar" class="text-slate-700 font-medium text-sm">{{ t('setup.avatarUrl') }}</Label>
               <div class="relative">
                 <Image class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -364,7 +366,7 @@ const handleSetup = async (): Promise<void> => {
 
             <!-- 邮箱输入 -->
             <div class="space-y-2">
-              <Label htmlFor="email" class="text-slate-700 font-medium text-sm">Email</Label>
+              <Label htmlFor="email" class="text-slate-700 font-medium text-sm">{{ t('setup.email') }}</Label>
               <div class="relative">
                 <Mail class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -387,7 +389,7 @@ const handleSetup = async (): Promise<void> => {
             @click="handleSetup"
         >
           <Loader2 v-if="isLoading" class="h-4 w-4 animate-spin" />
-          {{ isLoading ? 'Setting up...' : 'Complete Setup' }}
+          {{ isLoading ? t('setup.settingUp') : t('setup.completeSetup') }}
         </Button>
       </CardContent>
     </Card>
