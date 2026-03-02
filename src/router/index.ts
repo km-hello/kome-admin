@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type Router } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
 import { useUserStore } from "@/stores/user.ts";
 import { useSiteStore } from "@/stores/site.ts";
+import i18n from "@/i18n";
 
 /**
  * 需要刷新统计数据的页面路径
@@ -159,7 +160,9 @@ router.beforeEach(async (to, _from, next) => {
 
     // 设置页面标题
     if (to.meta.title) {
-        document.title = `${to.meta.title} - Kome Admin`;
+        const titleKey = `nav.${(to.meta.title as string).toLowerCase()}`;
+        const translated = i18n.global.t(titleKey);
+        document.title = `${translated !== titleKey ? translated : to.meta.title} - ${i18n.global.t('brand.name')}`;
     }
 
     next();
