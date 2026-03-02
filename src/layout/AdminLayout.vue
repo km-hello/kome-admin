@@ -1,9 +1,10 @@
 <!-- AdminLayout.vue - 管理后台主布局 -->
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
 import {
   LayoutDashboard,
   PenTool,
@@ -18,6 +19,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 const router = useRouter();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 /**
  * 移动端侧边栏打开状态
@@ -25,32 +27,31 @@ const userStore = useUserStore();
 const sidebarOpen = ref(false);
 
 /**
- * 导航菜单配置
- * 采用数据驱动方式，便于维护和扩展
+ * 导航菜单配置（computed 以响应语言切换）
  */
-const navGroups: NavGroup[] = [
+const navGroups = computed<NavGroup[]>(() => [
   {
-    title: 'Overview',
+    title: t('nav.overview'),
     items: [
-      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
     ],
   },
   {
-    title: 'Content',
+    title: t('nav.content'),
     items: [
-      { to: '/posts', icon: PenTool, label: 'Posts' },
-      { to: '/memos', icon: StickyNote, label: 'Memos' },
-      { to: '/tags', icon: Hash, label: 'Tags' },
-      { to: '/links', icon: LinkIcon, label: 'Links' },
+      { to: '/posts', icon: PenTool, label: t('nav.posts') },
+      { to: '/memos', icon: StickyNote, label: t('nav.memos') },
+      { to: '/tags', icon: Hash, label: t('nav.tags') },
+      { to: '/links', icon: LinkIcon, label: t('nav.links') },
     ],
   },
   {
-    title: 'System',
+    title: t('nav.system'),
     items: [
-      { to: '/settings', icon: Settings, label: 'Settings' },
+      { to: '/settings', icon: Settings, label: t('nav.settings') },
     ],
   },
-];
+]);
 
 /**
  * 处理用户登出
@@ -58,7 +59,7 @@ const navGroups: NavGroup[] = [
  */
 const handleLogout = async () => {
   userStore.logout();
-  toast.success('已退出登录');
+  toast.success(t('logout.success'));
   await router.push('/login');
 };
 </script>
