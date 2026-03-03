@@ -221,6 +221,15 @@
       "nameTooLong": "Tag name cannot exceed 50 characters"
     }
   },
+  "tagSelector": {
+    "addTag": "Add tag",
+    "searchOrCreate": "Search or create...",
+    "noTagsFound": "No tags found",
+    "createTag": "Create \"{name}\"",
+    "enterToCreate": "Press Enter to create new tag",
+    "createSuccess": "Tag \"{name}\" created successfully",
+    "createFailed": "Failed to create tag"
+  },
   "link": {
     "title": "Friend Links",
     "description": "Manage your blog's friendship links",

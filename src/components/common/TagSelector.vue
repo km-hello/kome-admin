@@ -1,6 +1,7 @@
 <!-- TagSelector.vue - 标签选择器组件 -->
 <script setup lang="ts">
 import {ref, computed, watch, nextTick} from 'vue';
+import {useI18n} from 'vue-i18n';
 import {toast} from 'vue-sonner';
 import {createTagApi, type TagResponse} from '@/api/tag.ts';
 import {useSiteStore} from '@/stores/site.ts';
@@ -12,6 +13,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+
+const {t} = useI18n();
 
 /**
  * Props 定义
@@ -123,7 +126,7 @@ const createTag = async () => {
   creating.value = true;
   try {
     const newTag = await createTagApi({name: tagName});
-    toast.success(`标签 "${tagName}" 创建成功`);
+    toast.success(t('tagSelector.createSuccess', {name: tagName}));
 
     // 标记统计数据已失效，让其他页面在进入时自动刷新
     siteStore.invalidateStats();
@@ -139,7 +142,7 @@ const createTag = async () => {
     searchQuery.value = '';
   } catch (error) {
     console.error('Failed to create tag:', error);
-    toast.error('创建标签失败');
+    toast.error(t('tagSelector.createFailed'));
   } finally {
     creating.value = false;
   }
@@ -199,7 +202,7 @@ watch(popoverOpen, (open) => {
               :disabled="disabled"
           >
             <Plus class="w-3 h-3"/>
-            Add tag
+            {{ t('tagSelector.addTag') }}
           </button>
         </PopoverTrigger>
 
@@ -214,7 +217,7 @@ watch(popoverOpen, (open) => {
               <Input
                   ref="inputRef"
                   v-model="searchQuery"
-                  placeholder="Search or create..."
+                  :placeholder="t('tagSelector.searchOrCreate')"
                   class="pl-8 h-8 text-sm"
                   @keydown="handleKeydown"
               />
@@ -228,7 +231,7 @@ watch(popoverOpen, (open) => {
                 v-if="filteredTags.length === 0 && !showCreateOption"
                 class="px-2 py-3 text-center text-sm text-slate-500"
             >
-              No tags found
+              {{ t('tagSelector.noTagsFound') }}
             </div>
 
             <!-- 标签选项 -->
@@ -256,14 +259,14 @@ watch(popoverOpen, (open) => {
             >
               <Loader2 v-if="creating" class="w-4 h-4 animate-spin"/>
               <Plus v-else class="w-4 h-4"/>
-              <span>Create "{{ searchQuery.trim() }}"</span>
+              <span>{{ t('tagSelector.createTag', {name: searchQuery.trim()}) }}</span>
             </button>
           </div>
 
           <!-- 提示 -->
           <div class="px-2 py-1.5 border-t border-slate-200 bg-slate-50">
             <p class="text-xs text-slate-500">
-              Press Enter to create new tag
+              {{ t('tagSelector.enterToCreate') }}
             </p>
           </div>
         </PopoverContent>
