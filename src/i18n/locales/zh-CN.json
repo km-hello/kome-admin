@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Kome 管理",
+    "name": "Kome Admin",
     "tagline": "管理系统"
   },
   "nav": {
@@ -21,10 +21,11 @@
   },
   "header": {
     "viewSite": "查看站点",
-    "notifications": "通知",
     "toggleTheme": "切换主题",
     "settings": "设置",
-    "language": "语言"
+    "language": "语言",
+    "english": "English",
+    "chinese": "中文"
   },
   "sidebar": {
     "logout": "退出登录"

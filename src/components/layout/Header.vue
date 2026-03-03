@@ -1,25 +1,23 @@
 <!-- Header.vue - 顶部导航栏 -->
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { Bell, ExternalLink, Sun, Settings, Languages } from 'lucide-vue-next';
+import { ExternalLink, Sun, Settings, Languages, Check } from 'lucide-vue-next';
 import Breadcrumb from '@/components/common/Breadcrumb.vue';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { setLocale } from '@/i18n';
-import i18n from '@/i18n';
 
 /**
  * Props 定义
  * @property siteUrl 前台站点 URL
- * @property showNotificationBadge 是否显示通知红点
  */
 interface Props {
   siteUrl?: string
-  showNotificationBadge?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   siteUrl: '/',
-  showNotificationBadge: false,
 });
 
 /**
@@ -31,19 +29,28 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
-const { t } = useI18n();
+const { locale, t } = useI18n();
 
 /**
- * 切换当前语言。
- *
- * 读取 `i18n.global.locale` 的当前值，若为 `'zh-CN'` 则切换为 `'en'`，否则切换回 `'zh-CN'`。
- * 通过 `setLocale` 更新全局语言设置。
- *
- * @returns {void}
+ * 语言选择器弹出层开关状态
  */
-const toggleLanguage = (): void => {
-  const current = (i18n.global.locale as any).value;
-  setLocale(current === 'zh-CN' ? 'en' : 'zh-CN');
+const langOpen = ref(false);
+
+/**
+ * 可选语言列表，code 对应 i18n locale，label 对应翻译键
+ */
+const languages = [
+  { code: 'en', label: 'header.english' },
+  { code: 'zh-CN', label: 'header.chinese' },
+] as const;
+
+/**
+ * 切换至指定语言并关闭下拉弹出层。
+ * @param code - 目标语言 locale 代码
+ */
+const switchLanguage = (code: 'en' | 'zh-CN'): void => {
+  setLocale(code);
+  langOpen.value = false;
 };
 </script>
 
@@ -67,27 +74,29 @@ const toggleLanguage = (): void => {
 
       <div class="w-px h-5 bg-slate-200 mx-1" />
 
-      <!-- 语言切换按钮 -->
-      <button
-          class="inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-          :title="t('header.language')"
-          @click="toggleLanguage"
-      >
-        <Languages class="w-4 h-4" />
-      </button>
-
-      <!-- 通知按钮 -->
-      <button
-          class="relative inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-          :title="t('header.notifications')"
-      >
-        <Bell class="w-4 h-4" />
-        <!-- 未读通知红点 -->
-        <span
-            v-if="showNotificationBadge"
-            class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"
-        />
-      </button>
+      <!-- 语言选择器 -->
+      <Popover v-model:open="langOpen">
+        <PopoverTrigger as-child>
+          <button
+              class="inline-flex items-center justify-center w-9 h-9 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              :title="t('header.language')"
+          >
+            <Languages class="w-4 h-4" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" :side-offset="8" class="w-40 p-1">
+          <button
+              v-for="lang in languages"
+              :key="lang.code"
+              class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors"
+              :class="locale === lang.code ? 'bg-slate-100 font-medium' : 'hover:bg-slate-50'"
+              @click="switchLanguage(lang.code)"
+          >
+            {{ t(lang.label) }}
+            <Check v-if="locale === lang.code" class="w-4 h-4 text-slate-600" />
+          </button>
+        </PopoverContent>
+      </Popover>
 
       <!-- 主题切换按钮 -->
       <button

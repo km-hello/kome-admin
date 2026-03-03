@@ -21,10 +21,11 @@
   },
   "header": {
     "viewSite": "View Site",
-    "notifications": "Notifications",
     "toggleTheme": "Toggle Theme",
     "settings": "Settings",
-    "language": "Language"
+    "language": "Language",
+    "english": "English",
+    "chinese": "中文"
   },
   "sidebar": {
     "logout": "Logout"
