@@ -35,7 +35,7 @@ const { t } = useI18n();
 const recentPosts = ref<PostSimpleResponse[]>([]);
 
 /**
- * 最近备忘录列表
+ * 最近动态列表
  */
 const recentMemos = ref<MemoResponse[]>([]);
 
@@ -76,8 +76,8 @@ const fetchRecentPosts = async () => {
 };
 
 /**
- * 获取最近备忘录列表。
- * 获取最新的 5 条备忘录记录,忽略置顶状态,仅按创建时间倒序排列。
+ * 获取最近动态列表。
+ * 获取最新的 5 条动态记录,忽略置顶状态,仅按创建时间倒序排列。
  */
 const fetchRecentMemos = async () => {
   const memosData = await getAdminMemosApi({
@@ -300,7 +300,7 @@ const formatDate = (dateString: string) => {
         </CardContent>
       </Card>
 
-      <!-- 最近备忘录卡片 -->
+      <!-- 最近动态卡片 -->
       <Card class="overflow-hidden">
         <CardHeader class="border-b border-slate-100 py-3">
           <div class="flex items-center justify-between">
@@ -349,7 +349,7 @@ const formatDate = (dateString: string) => {
                 </TableCell>
               </TableRow>
 
-              <!-- 备忘录列表 -->
+              <!-- 动态列表 -->
               <TableRow
                   v-else
                   v-for="memo in recentMemos"

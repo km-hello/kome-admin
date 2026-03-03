@@ -9,7 +9,7 @@ import type {BaseQuery, PageResult} from '@/types/api.ts';
 /* ========== 类型定义 ========== */
 
 /**
- * 备忘录查询参数。
+ * 动态查询参数。
  * 继承基础分页参数，支持关键词搜索和状态筛选。
  */
 export interface MemoQuery extends BaseQuery {
@@ -20,17 +20,17 @@ export interface MemoQuery extends BaseQuery {
 }
 
 /**
- * 备忘录创建请求。
+ * 动态创建请求。
  * 提交新动态数据，支持草稿保存和直接发布。
  */
 export interface MemoCreateRequest {
-    content: string;      // 备忘录内容 (min 1)
+    content: string;      // 动态内容 (min 1)
     isPinned: boolean;    // 是否置顶
     status: number;       // 状态 (0: 草稿 Draft, 1: 已发布 Published)
 }
 
 /**
- * 备忘录更新请求。
+ * 动态更新请求。
  * 支持部分更新，可单独修改内容、置顶状态或发布状态。
  */
 export interface MemoUpdateRequest {
@@ -40,7 +40,7 @@ export interface MemoUpdateRequest {
 }
 
 /**
- * 备忘录响应数据。
+ * 动态响应数据。
  * 包含动态的完整信息，用于动态管理页面的列表和编辑展示。
  */
 export interface MemoResponse {
@@ -54,7 +54,7 @@ export interface MemoResponse {
 /* ========== API 接口 ========== */
 
 /**
- * 获取备忘录分页列表（管理端）
+ * 获取动态分页列表（管理端）
  * 支持按关键词、状态筛选，支持分页、排序等通用查询参数
  * @param params 查询参数
  * @returns Promise<PageResult<MemoResponse>> 分页结果
@@ -64,19 +64,19 @@ export const getAdminMemosApi = (params: MemoQuery): Promise<PageResult<MemoResp
 };
 
 /**
- * 创建备忘录
- * 新建备忘录时状态可选择草稿或直接发布
+ * 创建动态
+ * 新建动态时状态可选择草稿或直接发布
  * @param data 创建请求数据
- * @returns Promise<number> 创建的备忘录ID
+ * @returns Promise<number> 创建的动态ID
  */
 export const createMemoApi = (data: MemoCreateRequest): Promise<number> => {
     return request.post<number>('/api/admin/memos', data);
 };
 
 /**
- * 更新备忘录
+ * 更新动态
  * 支持部分更新，可单独修改内容、置顶状态或发布状态
- * @param id 备忘录ID
+ * @param id 动态ID
  * @param data 更新请求数据
  * @returns Promise<void>
  */
@@ -85,8 +85,8 @@ export const updateMemoApi = (id: number, data: MemoUpdateRequest): Promise<void
 };
 
 /**
- * 删除备忘录
- * @param id 备忘录ID
+ * 删除动态
+ * @param id 动态ID
  * @returns Promise<void>
  */
 export const deleteMemoApi = (id: number): Promise<void> => {

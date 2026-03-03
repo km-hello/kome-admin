@@ -60,7 +60,7 @@ const siteStore = useSiteStore();
 const { t } = useI18n();
 
 /**
- * 备忘录列表数据
+ * 动态列表数据
  */
 const memos = ref<MemoResponse[]>([]);
 const { sortedData: sortedMemos, toggleSort, getSortOrder, resetSort } = useTableSort(memos);
@@ -113,7 +113,7 @@ const deleteLoading = ref(false);
 
 onMounted(async () => {
   try {
-    // 并行请求统计数据和备忘录列表
+    // 并行请求统计数据和动态列表
     await Promise.all([
       siteStore.fetchStats(),
       fetchMemos(),
@@ -125,8 +125,8 @@ onMounted(async () => {
 
 
 /**
- * 获取备忘录列表。
- * 根据当前分页、搜索关键词和状态筛选条件请求备忘录数据。
+ * 获取动态列表。
+ * 根据当前分页、搜索关键词和状态筛选条件请求动态数据。
  */
 const fetchMemos = async () => {
   loading.value = true;
@@ -150,7 +150,7 @@ const fetchMemos = async () => {
 
 /**
  * 搜索处理。
- * 重置页码到第一页并重新请求备忘录列表。
+ * 重置页码到第一页并重新请求动态列表。
  */
 const handleSearch = () => {
   pagination.value.current = 1;
@@ -272,7 +272,7 @@ const openDeleteDialog = (memo: MemoResponse) => {
 };
 
 /**
- * 确认删除备忘录。
+ * 确认删除动态。
  * 删除成功后自动处理末页空数据回退，并刷新列表和统计。
  */
 const handleDelete = async () => {
@@ -411,7 +411,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
       />
     </div>
 
-    <!-- 备忘录列表 -->
+    <!-- 动态列表 -->
     <Card class="overflow-hidden">
       <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -491,7 +491,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
               </TableCell>
             </TableRow>
 
-            <!-- 备忘录列表 -->
+            <!-- 动态列表 -->
             <TableRow
                 v-for="memo in sortedMemos"
                 :key="memo.id"
