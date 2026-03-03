@@ -2,6 +2,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+import i18n from '@/i18n';
 import { useSiteStore } from '@/stores/site';
 import { useTableSort } from '@/composables/useTableSort';
 import {
@@ -46,6 +48,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const siteStore = useSiteStore();
+const { t } = useI18n();
 
 /**
  * 标签列表数据
@@ -163,12 +166,12 @@ const openEditDialog = (tag: TagPostCountResponse) => {
 const handleSubmit = async () => {
   // 表单验证
   if (!formData.value.name.trim()) {
-    toast.warning('请输入标签名称');
+    toast.warning(t('tag.validation.nameRequired'));
     return;
   }
 
   if (formData.value.name.length > 50) {
-    toast.warning('标签名称不能超过 50 个字符');
+    toast.warning(t('tag.validation.nameTooLong'));
     return;
   }
 
@@ -178,11 +181,11 @@ const handleSubmit = async () => {
     if (dialogMode.value === 'create') {
       const request: TagCreateRequest = { name: formData.value.name.trim() };
       await createTagApi(request);
-      toast.success('标签创建成功');
+      toast.success(t('tag.createSuccess'));
     } else {
       const request: TagUpdateRequest = { name: formData.value.name.trim() };
       await updateTagApi(formData.value.id, request);
-      toast.success('标签更新成功');
+      toast.success(t('tag.updateSuccess'));
     }
 
     dialogVisible.value = false;
@@ -218,7 +221,7 @@ const handleDelete = async () => {
 
   try {
     await deleteTagApi(deleteTarget.value.id);
-    toast.success('标签删除成功');
+    toast.success(t('tag.deleteSuccess'));
     deleteDialogVisible.value = false;
 
     // 如果当前页没有数据了，回到上一页
@@ -269,7 +272,8 @@ const handlePageSizeChange = (size: number) => {
 const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleDateString('zh-CN', {
+  const locale = (i18n.global.locale as any).value === 'zh-CN' ? 'zh-CN' : 'en-US';
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -282,11 +286,11 @@ const formatDate = (dateString: string) => {
 <template>
   <div class="space-y-6">
     <!-- 页面标题 -->
-    <PageHeader title="Tags" description="Manage and organize your content tags">
+    <PageHeader :title="t('tag.title')" :description="t('tag.description')">
       <template #actions>
         <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
           <Plus class="w-4 h-4" />
-          New Tag
+          {{ t('tag.newTag') }}
         </Button>
       </template>
     </PageHeader>
@@ -295,25 +299,25 @@ const formatDate = (dateString: string) => {
     <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
       <StatsCard
           class="col-span-2 md:col-span-1"
-          title="Total Tags"
+          :title="t('statsCard.totalTags')"
           :value="siteStore.totalTags"
-          description="All classification tags"
+          :description="t('statsCard.allClassificationTags')"
           :icon="Hash"
           icon-bg-class="bg-emerald-50"
           icon-class="text-emerald-600"
       />
       <StatsCard
-          title="Used Tags"
+          :title="t('statsCard.used')"
           :value="siteStore.stats.usedTagCount"
-          description="With published posts"
+          :description="t('statsCard.withPublishedPosts')"
           :icon="Hash"
           icon-bg-class="bg-teal-50"
           icon-class="text-teal-600"
       />
       <StatsCard
-          title="Unused Tags"
+          :title="t('statsCard.unused')"
           :value="siteStore.stats.unusedTagCount"
-          description="No published posts"
+          :description="t('statsCard.noPublishedPosts')"
           :icon="Hash"
           icon-bg-class="bg-slate-50"
           icon-class="text-slate-600"
@@ -325,8 +329,8 @@ const formatDate = (dateString: string) => {
       <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle class="text-lg font-bold text-slate-800">All Tags</CardTitle>
-            <CardDescription class="mt-1">Manage and organize your content tags</CardDescription>
+            <CardTitle class="text-lg font-bold text-slate-800">{{ t('tag.allTags') }}</CardTitle>
+            <CardDescription class="mt-1">{{ t('tag.description') }}</CardDescription>
           </div>
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <!-- 搜索框（< sm 全宽 / >= sm 固定 w-64） -->
@@ -334,14 +338,14 @@ const formatDate = (dateString: string) => {
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                   v-model="searchKeyword"
-                  placeholder="Search tags..."
+                  :placeholder="t('tag.searchPlaceholder')"
                   class="pl-9 pr-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
               <button
                   @click="handleSearch"
                   class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                  title="Search"
+                  :title="t('common.search')"
               >
                 <Search class="w-4 h-4" />
               </button>
@@ -354,11 +358,11 @@ const formatDate = (dateString: string) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <SortableHead class="w-16 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
-              <SortableHead class="w-[30%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">Tag Name</SortableHead>
-              <SortableHead :sort-order="getSortOrder('postCount')" @sort="toggleSort('postCount')">Post Count</SortableHead>
-              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
-              <TableHead class="text-right pr-4 sm:pr-6">Actions</TableHead>
+              <SortableHead class="w-16 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">{{ t('table.id') }}</SortableHead>
+              <SortableHead class="w-[30%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">{{ t('table.tagName') }}</SortableHead>
+              <SortableHead :sort-order="getSortOrder('postCount')" @sort="toggleSort('postCount')">{{ t('table.postCount') }}</SortableHead>
+              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">{{ t('table.createdAt') }}</SortableHead>
+              <TableHead class="text-right pr-4 sm:pr-6">{{ t('table.actions') }}</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -389,7 +393,7 @@ const formatDate = (dateString: string) => {
                 <div class="flex items-center gap-1.5">
                   <FileText class="w-3.5 h-3.5 text-slate-400" />
                   <span class="font-mono text-sm text-slate-600">{{ tag.postCount }}</span>
-                  <span class="text-xs text-slate-400">posts</span>
+                  <span class="text-xs text-slate-400">{{ t('tag.posts') }}</span>
                 </div>
               </TableCell>
 
@@ -409,7 +413,7 @@ const formatDate = (dateString: string) => {
                       variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                      title="Edit"
+                      :title="t('common.edit')"
                   >
                     <Edit class="w-4 h-4" />
                   </Button>
@@ -418,7 +422,7 @@ const formatDate = (dateString: string) => {
                       variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Delete"
+                      :title="t('common.delete')"
                   >
                     <Trash2 class="w-4 h-4" />
                   </Button>
@@ -431,7 +435,7 @@ const formatDate = (dateString: string) => {
               <TableCell colspan="5" class="text-center py-12">
                 <div class="flex items-center justify-center gap-2 text-slate-500">
                   <Loader2 class="w-5 h-5 animate-spin" />
-                  <span>Loading tags...</span>
+                  <span>{{ t('tag.loadingTags') }}</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -442,10 +446,10 @@ const formatDate = (dateString: string) => {
                 <div class="flex flex-col items-center justify-center text-slate-400">
                   <Hash class="w-12 h-12 mb-2 opacity-20" />
                   <p class="text-sm font-medium">
-                    {{ searchKeyword ? 'No tags found' : 'No tags yet' }}
+                    {{ searchKeyword ? t('tag.noTagsFound') : t('tag.noTagsYet') }}
                   </p>
                   <p class="text-xs mt-1">
-                    {{ searchKeyword ? 'Try adjusting your filters' : 'Create your first tag to get started' }}
+                    {{ searchKeyword ? t('tag.tryAdjustingFilters') : t('tag.createFirstTag') }}
                   </p>
                 </div>
               </TableCell>
@@ -470,21 +474,21 @@ const formatDate = (dateString: string) => {
     <Dialog v-model:open="dialogVisible">
       <DialogContent class="sm:max-w-106.25">
         <DialogHeader>
-          <DialogTitle>{{ dialogMode === 'create' ? 'Create New Tag' : 'Edit Tag' }}</DialogTitle>
+          <DialogTitle>{{ dialogMode === 'create' ? t('tag.createNewTag') : t('tag.editTag') }}</DialogTitle>
           <DialogDescription>
-            {{ dialogMode === 'create' ? 'Add a new tag to organize your content' : 'Update the tag information' }}
+            {{ dialogMode === 'create' ? t('tag.addTagDesc') : t('tag.updateTagDesc') }}
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-4 py-4">
           <div class="space-y-2">
             <Label htmlFor="tag-name">
-              Tag Name <span class="text-red-500">*</span>
+              {{ t('tag.tagNameLabel') }} <span class="text-red-500">*</span>
             </Label>
             <Input
                 id="tag-name"
                 v-model="formData.name"
-                placeholder="Enter tag name"
+                :placeholder="t('tag.tagNamePlaceholder')"
                 maxlength="50"
                 :disabled="dialogLoading"
                 @keyup.enter="handleSubmit"
@@ -501,7 +505,7 @@ const formatDate = (dateString: string) => {
               variant="outline"
               :disabled="dialogLoading"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </Button>
           <Button
               @click="handleSubmit"
@@ -509,7 +513,7 @@ const formatDate = (dateString: string) => {
               :disabled="dialogLoading"
           >
             <Loader2 v-if="dialogLoading" class="h-4 w-4 animate-spin" />
-            {{ dialogMode === 'create' ? 'Create' : 'Update' }}
+            {{ dialogMode === 'create' ? t('common.create') : t('common.update') }}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -519,24 +523,24 @@ const formatDate = (dateString: string) => {
     <AlertDialog v-model:open="deleteDialogVisible">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>{{ t('tag.deleteConfirmTitle') }}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the tag
+            {{ t('tag.deleteConfirmDesc') }}
             <span class="font-semibold text-slate-900">"{{ deleteTarget?.name }}"</span>.
             <span v-if="deleteTarget && deleteTarget.postCount > 0" class="block mt-2 text-amber-600">
-                  ⚠️ This tag is used in {{ deleteTarget.postCount }} post(s).
-                </span>
+              {{ t('tag.tagUsedInPosts', { count: deleteTarget.postCount }) }}
+            </span>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel :disabled="deleteLoading">Cancel</AlertDialogCancel>
+          <AlertDialogCancel :disabled="deleteLoading">{{ t('common.cancel') }}</AlertDialogCancel>
           <AlertDialogAction
               @click="handleDelete"
               class="bg-red-600 hover:bg-red-700 gap-2"
               :disabled="deleteLoading"
           >
             <Loader2 v-if="deleteLoading" class="h-4 w-4 animate-spin" />
-            Delete
+            {{ t('common.delete') }}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

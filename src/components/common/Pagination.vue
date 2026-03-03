@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import {ref, computed, watch} from 'vue';
 import {ChevronLeft, ChevronRight} from 'lucide-vue-next';
+import {useI18n} from 'vue-i18n';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import type {AcceptableValue} from 'reka-ui';
@@ -12,6 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+
+const {t} = useI18n();
 
 /**
  * Props 定义
@@ -158,8 +162,8 @@ const handleJump = () => {
 
       <!-- 显示范围信息（< sm 隐藏） -->
       <span class="hidden sm:inline text-sm text-slate-500">
-        <template v-if="total > 0">{{ startItem }}-{{ endItem }} of {{ total }}</template>
-        <template v-else>No results</template>
+        <template v-if="total > 0">{{ startItem }}-{{ endItem }} {{ t('pagination.of') }} {{ total }}</template>
+        <template v-else>{{ t('pagination.noResults') }}</template>
       </span>
     </div>
 

@@ -2,6 +2,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+import i18n from '@/i18n';
 import { useSiteStore } from '@/stores/site';
 import { useTableSort } from '@/composables/useTableSort';
 import {
@@ -54,6 +56,7 @@ import {
 } from '@/components/ui/select';
 
 const siteStore = useSiteStore();
+const { t } = useI18n();
 
 /**
  * 友链列表数据
@@ -216,22 +219,22 @@ const openEditDialog = (link: LinkResponse) => {
  */
 const validateForm = (): boolean => {
   if (!formData.value.name.trim()) {
-    toast.warning('请输入友链名称');
+    toast.warning(t('link.validation.nameRequired'));
     return false;
   }
 
   if (formData.value.name.length > 100) {
-    toast.warning('友链名称不能超过 100 个字符');
+    toast.warning(t('link.validation.nameTooLong'));
     return false;
   }
 
   if (!formData.value.url.trim()) {
-    toast.warning('请输入友链地址');
+    toast.warning(t('link.validation.urlRequired'));
     return false;
   }
 
   if (formData.value.url.length > 255) {
-    toast.warning('友链地址不能超过 255 个字符');
+    toast.warning(t('link.validation.urlTooLong'));
     return false;
   }
 
@@ -239,17 +242,17 @@ const validateForm = (): boolean => {
   try {
     new URL(formData.value.url);
   } catch {
-    toast.warning('请输入有效的 URL 地址');
+    toast.warning(t('link.validation.urlInvalid'));
     return false;
   }
 
   if (formData.value.avatar && formData.value.avatar.length > 255) {
-    toast.warning('头像地址不能超过 255 个字符');
+    toast.warning(t('link.validation.avatarTooLong'));
     return false;
   }
 
   if (formData.value.description && formData.value.description.length > 255) {
-    toast.warning('描述不能超过 255 个字符');
+    toast.warning(t('link.validation.descriptionTooLong'));
     return false;
   }
 
@@ -275,7 +278,7 @@ const handleSubmit = async () => {
         status: formData.value.status,
       };
       await createLinkApi(request);
-      toast.success('友链创建成功');
+      toast.success(t('link.createSuccess'));
     } else {
       const request: LinkUpdateRequest = {
         name: formData.value.name.trim(),
@@ -285,7 +288,7 @@ const handleSubmit = async () => {
         status: formData.value.status,
       };
       await updateLinkApi(formData.value.id, request);
-      toast.success('友链更新成功');
+      toast.success(t('link.updateSuccess'));
     }
 
     dialogVisible.value = false;
@@ -323,7 +326,7 @@ const handleDelete = async () => {
 
   try {
     await deleteLinkApi(deleteTarget.value.id);
-    toast.success('友链删除成功');
+    toast.success(t('link.deleteSuccess'));
     deleteDialogVisible.value = false;
 
     // 如果当前页没有数据了，回到上一页
@@ -373,8 +376,8 @@ const handlePageSizeChange = (size: number) => {
  */
 const getStatusConfig = (status: number) => {
   const configs = {
-    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
-    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
+    0: { label: t('status.draft'), icon: FileEdit, class: 'text-slate-400' },
+    1: { label: t('status.published'), icon: Globe, class: 'text-slate-600' },
   };
   return configs[status as keyof typeof configs] || configs[0];
 };
@@ -386,8 +389,10 @@ const getStatusConfig = (status: number) => {
  * @param dateString ISO 格式的日期字符串
  */
 const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleDateString('zh-CN', {
+  const locale = (i18n.global.locale as any).value === 'zh-CN' ? 'zh-CN' : 'en-US';
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -400,11 +405,11 @@ const formatDate = (dateString: string) => {
 <template>
   <div class="space-y-6">
     <!-- 页面标题 -->
-    <PageHeader title="Friend Links" description="Manage your blog's friendship links">
+    <PageHeader :title="t('link.title')" :description="t('link.description')">
       <template #actions>
         <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
           <Plus class="w-4 h-4" />
-          New Link
+          {{ t('link.newLink') }}
         </Button>
       </template>
     </PageHeader>
@@ -413,25 +418,25 @@ const formatDate = (dateString: string) => {
     <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
       <StatsCard
           class="col-span-2 md:col-span-1"
-          title="Total Links"
+          :title="t('statsCard.friendLinks')"
           :value="siteStore.totalLinks"
-          description="Total friendship links"
+          :description="t('statsCard.totalFriendshipLinks')"
           :icon="LinkIcon"
           icon-bg-class="bg-purple-50"
           icon-class="text-purple-600"
       />
       <StatsCard
-          title="Published"
+          :title="t('statsCard.published')"
           :value="siteStore.stats.publishedLinkCount"
-          description="Active on website"
+          :description="t('statsCard.activeOnWebsite')"
           :icon="LinkIcon"
           icon-bg-class="bg-teal-50"
           icon-class="text-teal-600"
       />
       <StatsCard
-          title="Draft"
+          :title="t('statsCard.draft')"
           :value="siteStore.stats.draftLinkCount"
-          description="Pending links"
+          :description="t('statsCard.pendingLinks')"
           :icon="LinkIcon"
           icon-bg-class="bg-slate-50"
           icon-class="text-slate-600"
@@ -443,20 +448,20 @@ const formatDate = (dateString: string) => {
       <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle class="text-lg font-bold text-slate-800">All Links</CardTitle>
-            <CardDescription class="mt-1">Manage your blog's friendship links</CardDescription>
+            <CardTitle class="text-lg font-bold text-slate-800">{{ t('link.allLinks') }}</CardTitle>
+            <CardDescription class="mt-1">{{ t('link.description') }}</CardDescription>
           </div>
           <!-- 筛选和搜索工具栏（< sm 纵向堆叠 / >= sm 水平排列） -->
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="(value) => handleStatusFilterChange(value as string)">
               <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
-                <SelectValue placeholder="All Status" />
+                <SelectValue :placeholder="t('link.allStatus')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="1">Published</SelectItem>
-                <SelectItem value="0">Draft</SelectItem>
+                <SelectItem value="all">{{ t('link.allStatus') }}</SelectItem>
+                <SelectItem value="1">{{ t('status.published') }}</SelectItem>
+                <SelectItem value="0">{{ t('status.draft') }}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -465,14 +470,14 @@ const formatDate = (dateString: string) => {
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                   v-model="searchKeyword"
-                  placeholder="Search links..."
+                  :placeholder="t('link.searchPlaceholder')"
                   class="pl-9 pr-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
               <button
                   @click="handleSearch"
                   class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                  title="Search"
+                  :title="t('common.search')"
               >
                 <Search class="w-4 h-4" />
               </button>
@@ -485,12 +490,12 @@ const formatDate = (dateString: string) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <SortableHead class="w-15 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
-              <SortableHead class="w-[30%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">Info</SortableHead>
-              <TableHead class="w-[30%]">Description</TableHead>
-              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
-              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
-              <TableHead class="text-right pr-4 sm:pr-6">Actions</TableHead>
+              <SortableHead class="w-15 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">{{ t('table.id') }}</SortableHead>
+              <SortableHead class="w-[30%]" :sort-order="getSortOrder('name')" @sort="toggleSort('name')">{{ t('table.info') }}</SortableHead>
+              <TableHead class="w-[30%]">{{ t('table.description') }}</TableHead>
+              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">{{ t('table.status') }}</SortableHead>
+              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">{{ t('table.createdAt') }}</SortableHead>
+              <TableHead class="text-right pr-4 sm:pr-6">{{ t('table.actions') }}</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -535,9 +540,9 @@ const formatDate = (dateString: string) => {
 
               <!-- 描述列 -->
               <TableCell>
-                  <span class="text-sm text-slate-600 truncate block" :title="link.description">
-                    {{ link.description || '-' }}
-                  </span>
+                <span class="text-sm text-slate-600 truncate block" :title="link.description">
+                  {{ link.description || '-' }}
+                </span>
               </TableCell>
 
               <!-- 状态列 -->
@@ -567,7 +572,7 @@ const formatDate = (dateString: string) => {
                       variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                      title="Edit"
+                      :title="t('common.edit')"
                   >
                     <Edit class="w-4 h-4" />
                   </Button>
@@ -576,7 +581,7 @@ const formatDate = (dateString: string) => {
                       variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Delete"
+                      :title="t('common.delete')"
                   >
                     <Trash2 class="w-4 h-4" />
                   </Button>
@@ -589,7 +594,7 @@ const formatDate = (dateString: string) => {
               <TableCell colspan="6" class="text-center py-12">
                 <div class="flex items-center justify-center gap-2 text-slate-500">
                   <Loader2 class="w-5 h-5 animate-spin" />
-                  <span>Loading links...</span>
+                  <span>{{ t('link.loadingLinks') }}</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -600,10 +605,10 @@ const formatDate = (dateString: string) => {
                 <div class="flex flex-col items-center justify-center text-slate-400">
                   <LinkIcon class="w-12 h-12 mb-2 opacity-20" />
                   <p class="text-sm font-medium">
-                    {{ searchKeyword || statusFilter !== undefined ? 'No links found' : 'No links yet' }}
+                    {{ searchKeyword || statusFilter !== undefined ? t('link.noLinksFound') : t('link.noLinksYet') }}
                   </p>
                   <p class="text-xs mt-1">
-                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first link to get started' }}
+                    {{ searchKeyword || statusFilter !== undefined ? t('link.tryAdjustingFilters') : t('link.createFirstLink') }}
                   </p>
                 </div>
               </TableCell>
@@ -628,9 +633,9 @@ const formatDate = (dateString: string) => {
     <Dialog v-model:open="dialogVisible">
       <DialogContent class="sm:max-w-125">
         <DialogHeader>
-          <DialogTitle>{{ dialogMode === 'create' ? 'Create New Link' : 'Edit Link' }}</DialogTitle>
+          <DialogTitle>{{ dialogMode === 'create' ? t('link.createNewLink') : t('link.editLink') }}</DialogTitle>
           <DialogDescription>
-            {{ dialogMode === 'create' ? 'Add a new friendship link' : 'Update the link information' }}
+            {{ dialogMode === 'create' ? t('link.addLinkDesc') : t('link.updateLinkDesc') }}
           </DialogDescription>
         </DialogHeader>
 
@@ -638,12 +643,12 @@ const formatDate = (dateString: string) => {
           <!-- 名称 -->
           <div class="space-y-2">
             <Label htmlFor="link-name">
-              Name <span class="text-red-500">*</span>
+              {{ t('link.nameLabel') }} <span class="text-red-500">*</span>
             </Label>
             <Input
                 id="link-name"
                 v-model="formData.name"
-                placeholder="Enter the link name"
+                :placeholder="t('link.namePlaceholder')"
                 maxlength="100"
                 :disabled="dialogLoading"
             />
@@ -655,12 +660,12 @@ const formatDate = (dateString: string) => {
           <!-- URL -->
           <div class="space-y-2">
             <Label htmlFor="link-url">
-              URL <span class="text-red-500">*</span>
+              {{ t('link.urlLabel') }} <span class="text-red-500">*</span>
             </Label>
             <Input
                 id="link-url"
                 v-model="formData.url"
-                placeholder="https://example.com"
+                :placeholder="t('link.urlPlaceholder')"
                 maxlength="255"
                 :disabled="dialogLoading"
             />
@@ -671,11 +676,11 @@ const formatDate = (dateString: string) => {
 
           <!-- 头像 -->
           <div class="space-y-2">
-            <Label htmlFor="link-avatar">Avatar URL</Label>
+            <Label htmlFor="link-avatar">{{ t('link.avatarUrlLabel') }}</Label>
             <Input
                 id="link-avatar"
                 v-model="formData.avatar"
-                placeholder="https://example.com/avatar.jpg"
+                :placeholder="t('link.avatarUrlPlaceholder')"
                 maxlength="255"
                 :disabled="dialogLoading"
             />
@@ -686,11 +691,11 @@ const formatDate = (dateString: string) => {
 
           <!-- 描述 -->
           <div class="space-y-2">
-            <Label htmlFor="link-description">Description</Label>
+            <Label htmlFor="link-description">{{ t('link.descriptionLabel') }}</Label>
             <Textarea
                 id="link-description"
                 v-model="formData.description"
-                placeholder="Enter a brief description"
+                :placeholder="t('link.descriptionPlaceholder')"
                 maxlength="255"
                 rows="3"
                 :disabled="dialogLoading"
@@ -703,15 +708,15 @@ const formatDate = (dateString: string) => {
           <!-- 状态 -->
           <div class="space-y-2">
             <Label htmlFor="link-status">
-              Status <span class="text-red-500">*</span>
+              {{ t('link.statusLabel') }} <span class="text-red-500">*</span>
             </Label>
             <Select v-model="formData.status" :disabled="dialogLoading">
               <SelectTrigger id="link-status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem :value="1">Published</SelectItem>
-                <SelectItem :value="0">Draft</SelectItem>
+                <SelectItem :value="1">{{ t('status.published') }}</SelectItem>
+                <SelectItem :value="0">{{ t('status.draft') }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -723,7 +728,7 @@ const formatDate = (dateString: string) => {
               variant="outline"
               :disabled="dialogLoading"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </Button>
           <Button
               @click="handleSubmit"
@@ -731,7 +736,7 @@ const formatDate = (dateString: string) => {
               :disabled="dialogLoading"
           >
             <Loader2 v-if="dialogLoading" class="h-4 w-4 animate-spin" />
-            {{ dialogMode === 'create' ? 'Create' : 'Update' }}
+            {{ dialogMode === 'create' ? t('common.create') : t('common.update') }}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -741,22 +746,22 @@ const formatDate = (dateString: string) => {
     <AlertDialog v-model:open="deleteDialogVisible">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>{{ t('link.deleteConfirmTitle') }}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the link
+            {{ t('link.deleteConfirmDesc') }}
             <span class="font-semibold text-slate-900">"{{ deleteTarget?.name }}"</span>.
-            This action cannot be undone.
+            {{ t('link.deleteCannotUndo') }}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel :disabled="deleteLoading">Cancel</AlertDialogCancel>
+          <AlertDialogCancel :disabled="deleteLoading">{{ t('common.cancel') }}</AlertDialogCancel>
           <AlertDialogAction
               @click="handleDelete"
               class="bg-red-600 hover:bg-red-700 gap-2"
               :disabled="deleteLoading"
           >
             <Loader2 v-if="deleteLoading" class="h-4 w-4 animate-spin" />
-            Delete
+            {{ t('common.delete') }}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

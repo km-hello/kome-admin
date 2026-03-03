@@ -1,6 +1,8 @@
 import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from 'axios';
 import { toast } from 'vue-sonner';
 import type { Result } from '@/types/api.ts';
+import { getAcceptLanguage } from '@/i18n';
+import i18n from '@/i18n';
 
 /**
  * 定义 Axios 服务实例，用于执行 HTTP 请求。
@@ -39,6 +41,7 @@ service.interceptors.request.use(
                 console.error('Failed to parse userInfo:', e);
             }
         }
+        config.headers['Accept-Language'] = getAcceptLanguage();
         return config;
     },
     (error) => {
@@ -70,12 +73,12 @@ service.interceptors.response.use(
         }
 
         // 业务失败
-        const errorMessage = res.message || '操作失败';
+        const errorMessage = res.message || i18n.global.t('error.operationFailed');
         toast.error(errorMessage);
         return Promise.reject(new Error(errorMessage));
     },
     (error: AxiosError) => {
-        let message = '请求失败';
+        let message = i18n.global.t('error.requestFailed');
 
         if (error.response?.data) {
             const res = error.response.data as Result;
@@ -95,8 +98,8 @@ service.interceptors.response.use(
             }
         } else {
             // 网络层面的错误
-            if (error.message === 'Network Error') message = '网络连接失败';
-            else if (error.code === 'ECONNABORTED') message = '请求超时';
+            if (error.message === 'Network Error') message = i18n.global.t('error.networkError');
+            else if (error.code === 'ECONNABORTED') message = i18n.global.t('error.requestTimeout');
         }
 
         toast.error(message);

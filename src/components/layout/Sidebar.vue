@@ -1,6 +1,7 @@
 <!-- Sidebar.vue - 侧边栏组件 -->
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import type { Component } from 'vue'
 import { LogOut } from 'lucide-vue-next'
 
@@ -62,6 +63,7 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
+const { t } = useI18n()
 
 /**
  * 判断路径是否激活
@@ -91,8 +93,8 @@ const getNavItemClass = (path: string) => {
           K
         </div>
         <div class="flex flex-col">
-          <span class="font-bold text-slate-800 text-sm tracking-tight">Kome Admin</span>
-          <span class="text-[10px] text-slate-400 font-medium">Management System</span>
+          <span class="font-bold text-slate-800 text-sm tracking-tight">{{ t('brand.name') }}</span>
+          <span class="text-[10px] text-slate-400 font-medium">{{ t('brand.tagline') }}</span>
         </div>
       </div>
     </div>
@@ -140,7 +142,7 @@ const getNavItemClass = (path: string) => {
         <button
             @click="emit('logout')"
             class="text-slate-400 hover:text-red-500 transition-colors p-1.5 hover:bg-red-50 rounded"
-            title="Logout"
+            :title="t('sidebar.logout')"
         >
           <LogOut class="w-4 h-4" />
         </button>

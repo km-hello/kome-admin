@@ -2,6 +2,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+import i18n from '@/i18n';
 import { useSiteStore } from '@/stores/site';
 import { useTableSort } from '@/composables/useTableSort';
 import {
@@ -55,9 +57,10 @@ import {
 } from '@/components/ui/select';
 
 const siteStore = useSiteStore();
+const { t } = useI18n();
 
 /**
- * 备忘录列表数据
+ * 动态列表数据
  */
 const memos = ref<MemoResponse[]>([]);
 const { sortedData: sortedMemos, toggleSort, getSortOrder, resetSort } = useTableSort(memos);
@@ -110,7 +113,7 @@ const deleteLoading = ref(false);
 
 onMounted(async () => {
   try {
-    // 并行请求统计数据和备忘录列表
+    // 并行请求统计数据和动态列表
     await Promise.all([
       siteStore.fetchStats(),
       fetchMemos(),
@@ -122,8 +125,8 @@ onMounted(async () => {
 
 
 /**
- * 获取备忘录列表。
- * 根据当前分页、搜索关键词和状态筛选条件请求备忘录数据。
+ * 获取动态列表。
+ * 根据当前分页、搜索关键词和状态筛选条件请求动态数据。
  */
 const fetchMemos = async () => {
   loading.value = true;
@@ -147,7 +150,7 @@ const fetchMemos = async () => {
 
 /**
  * 搜索处理。
- * 重置页码到第一页并重新请求备忘录列表。
+ * 重置页码到第一页并重新请求动态列表。
  */
 const handleSearch = () => {
   pagination.value.current = 1;
@@ -206,12 +209,12 @@ const openEditDialog = (memo: MemoResponse) => {
  */
 const validateForm = (): boolean => {
   if (!formData.value.content.trim()) {
-    toast.warning('请输入Memo内容');
+    toast.warning(t('memo.validation.contentRequired'));
     return false;
   }
 
   if (formData.value.content.length > 2147483647) {
-    toast.warning('Memo内容过长');
+    toast.warning(t('memo.validation.contentTooLong'));
     return false;
   }
 
@@ -235,7 +238,7 @@ const handleSubmit = async () => {
         status: formData.value.status,
       };
       await createMemoApi(request);
-      toast.success('Memo创建成功');
+      toast.success(t('memo.createSuccess'));
     } else {
       const request: MemoUpdateRequest = {
         content: formData.value.content.trim(),
@@ -243,7 +246,7 @@ const handleSubmit = async () => {
         status: formData.value.status,
       };
       await updateMemoApi(formData.value.id, request);
-      toast.success('Memo更新成功');
+      toast.success(t('memo.updateSuccess'));
     }
 
     dialogVisible.value = false;
@@ -269,7 +272,7 @@ const openDeleteDialog = (memo: MemoResponse) => {
 };
 
 /**
- * 确认删除备忘录。
+ * 确认删除动态。
  * 删除成功后自动处理末页空数据回退，并刷新列表和统计。
  */
 const handleDelete = async () => {
@@ -279,7 +282,7 @@ const handleDelete = async () => {
 
   try {
     await deleteMemoApi(deleteTarget.value.id);
-    toast.success('Memo删除成功');
+    toast.success(t('memo.deleteSuccess'));
     deleteDialogVisible.value = false;
 
     // 如果当前页没有数据了，回到上一页
@@ -329,8 +332,8 @@ const handlePageSizeChange = (size: number) => {
  */
 const getStatusConfig = (status: number) => {
   const configs = {
-    0: { label: 'Draft', icon: FileEdit, class: 'text-slate-400' },
-    1: { label: 'Published', icon: Globe, class: 'text-slate-600' },
+    0: { label: t('status.draft'), icon: FileEdit, class: 'text-slate-400' },
+    1: { label: t('status.published'), icon: Globe, class: 'text-slate-600' },
   };
   return configs[status as keyof typeof configs] || configs[0];
 };
@@ -344,7 +347,8 @@ const getStatusConfig = (status: number) => {
 const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleDateString('zh-CN', {
+  const locale = (i18n.global.locale as any).value === 'zh-CN' ? 'zh-CN' : 'en-US';
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -369,11 +373,11 @@ const truncateText = (text: string, maxLength: number = 100) => {
 <template>
   <div class="space-y-6">
     <!-- 页面标题 -->
-    <PageHeader title="Memos" description="Manage your quick thoughts and notes">
+    <PageHeader :title="t('memo.title')" :description="t('memo.description')">
       <template #actions>
         <Button @click="openCreateDialog" class="bg-slate-900 hover:bg-slate-800 gap-2">
           <Plus class="w-4 h-4" />
-          New Memo
+          {{ t('memo.newMemo') }}
         </Button>
       </template>
     </PageHeader>
@@ -382,49 +386,49 @@ const truncateText = (text: string, maxLength: number = 100) => {
     <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
       <StatsCard
           class="col-span-2 md:col-span-1"
-          title="Total Memos"
+          :title="t('statsCard.totalMemos')"
           :value="siteStore.totalMemos"
-          description="Total quick notes"
+          :description="t('statsCard.totalQuickNotes')"
           :icon="Activity"
           icon-bg-class="bg-amber-50"
           icon-class="text-amber-600"
       />
       <StatsCard
-          title="Published"
+          :title="t('statsCard.published')"
           :value="siteStore.stats.publishedMemoCount"
-          description="Visible to public"
+          :description="t('statsCard.visibleToPublic')"
           :icon="Activity"
           icon-bg-class="bg-teal-50"
           icon-class="text-teal-600"
       />
       <StatsCard
-          title="Draft"
+          :title="t('statsCard.draft')"
           :value="siteStore.stats.draftMemoCount"
-          description="Private notes"
+          :description="t('statsCard.privateNotes')"
           :icon="Activity"
           icon-bg-class="bg-slate-50"
           icon-class="text-slate-600"
       />
     </div>
 
-    <!-- 备忘录列表 -->
+    <!-- 动态列表 -->
     <Card class="overflow-hidden">
       <CardHeader class="border-b border-slate-100 py-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle class="text-lg font-bold text-slate-800">All Memos</CardTitle>
-            <CardDescription class="mt-1">Manage your quick thoughts and notes</CardDescription>
+            <CardTitle class="text-lg font-bold text-slate-800">{{ t('memo.allMemos') }}</CardTitle>
+            <CardDescription class="mt-1">{{ t('memo.description') }}</CardDescription>
           </div>
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <!-- 状态筛选 -->
             <Select @update:model-value="(value) => handleStatusFilterChange(value as string)">
               <SelectTrigger class="w-35 h-9 bg-slate-50 border-slate-200">
-                <SelectValue placeholder="All Status" />
+                <SelectValue :placeholder="t('memo.allStatus')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="1">Published</SelectItem>
-                <SelectItem value="0">Draft</SelectItem>
+                <SelectItem value="all">{{ t('memo.allStatus') }}</SelectItem>
+                <SelectItem value="1">{{ t('status.published') }}</SelectItem>
+                <SelectItem value="0">{{ t('status.draft') }}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -433,14 +437,14 @@ const truncateText = (text: string, maxLength: number = 100) => {
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                   v-model="searchKeyword"
-                  placeholder="Search memos..."
+                  :placeholder="t('memo.searchPlaceholder')"
                   class="pl-9 pr-9 h-9 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
                   @keyup.enter="handleSearch"
               />
               <button
                   @click="handleSearch"
                   class="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                  title="Search"
+                  :title="t('common.search')"
               >
                 <Search class="w-4 h-4" />
               </button>
@@ -453,11 +457,11 @@ const truncateText = (text: string, maxLength: number = 100) => {
         <Table>
           <TableHeader>
             <TableRow class="hover:bg-transparent border-slate-100">
-              <SortableHead class="w-15 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">ID</SortableHead>
-              <TableHead class="w-[50%]">Content</TableHead>
-              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">Status</SortableHead>
-              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">Created At</SortableHead>
-              <TableHead class="text-right pr-4 sm:pr-6">Actions</TableHead>
+              <SortableHead class="w-15 pl-4 sm:pl-6" :sort-order="getSortOrder('id')" @sort="toggleSort('id')">{{ t('table.id') }}</SortableHead>
+              <TableHead class="w-[50%]">{{ t('table.content') }}</TableHead>
+              <SortableHead :sort-order="getSortOrder('status')" @sort="toggleSort('status')">{{ t('table.status') }}</SortableHead>
+              <SortableHead :sort-order="getSortOrder('createTime')" @sort="toggleSort('createTime')">{{ t('table.createdAt') }}</SortableHead>
+              <TableHead class="text-right pr-4 sm:pr-6">{{ t('table.actions') }}</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -467,7 +471,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
               <TableCell colspan="5" class="text-center py-12">
                 <div class="flex items-center justify-center gap-2 text-slate-500">
                   <Loader2 class="w-5 h-5 animate-spin" />
-                  <span>Loading memos...</span>
+                  <span>{{ t('memo.loadingMemos') }}</span>
                 </div>
               </TableCell>
             </TableRow>
@@ -478,16 +482,16 @@ const truncateText = (text: string, maxLength: number = 100) => {
                 <div class="flex flex-col items-center justify-center text-slate-400">
                   <Activity class="w-12 h-12 mb-2 opacity-20" />
                   <p class="text-sm font-medium">
-                    {{ searchKeyword || statusFilter !== undefined ? 'No memos found' : 'No memos yet' }}
+                    {{ searchKeyword || statusFilter !== undefined ? t('memo.noMemosFound') : t('memo.noMemosYet') }}
                   </p>
                   <p class="text-xs mt-1">
-                    {{ searchKeyword || statusFilter !== undefined ? 'Try adjusting your filters' : 'Create your first memo to get started' }}
+                    {{ searchKeyword || statusFilter !== undefined ? t('memo.tryAdjustingFilters') : t('memo.createFirstMemo') }}
                   </p>
                 </div>
               </TableCell>
             </TableRow>
 
-            <!-- 备忘录列表 -->
+            <!-- 动态列表 -->
             <TableRow
                 v-for="memo in sortedMemos"
                 :key="memo.id"
@@ -506,9 +510,9 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
               <!-- 内容列 -->
               <TableCell class="whitespace-normal">
-                  <p class="text-sm text-slate-700 line-clamp-2" :title="memo.content">
-                    {{ truncateText(memo.content, 100) }}
-                  </p>
+                <p class="text-sm text-slate-700 line-clamp-2" :title="memo.content">
+                  {{ truncateText(memo.content, 100) }}
+                </p>
               </TableCell>
 
               <!-- 状态列 -->
@@ -538,7 +542,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
                       variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                      title="Edit"
+                      :title="t('common.edit')"
                   >
                     <Edit class="w-4 h-4" />
                   </Button>
@@ -547,7 +551,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
                       variant="ghost"
                       size="sm"
                       class="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Delete"
+                      :title="t('common.delete')"
                   >
                     <Trash2 class="w-4 h-4" />
                   </Button>
@@ -575,10 +579,10 @@ const truncateText = (text: string, maxLength: number = 100) => {
       <DialogContent class="sm:max-w-150">
         <DialogHeader>
           <DialogTitle>
-            {{ dialogMode === 'create' ? 'Create New Memo' : 'Edit Memo' }}
+            {{ dialogMode === 'create' ? t('memo.createNewMemo') : t('memo.editMemo') }}
           </DialogTitle>
           <DialogDescription>
-            {{ dialogMode === 'create' ? 'Add a new quick note or thought' : 'Update your memo content and settings' }}
+            {{ dialogMode === 'create' ? t('memo.addNewNote') : t('memo.updateMemoDesc') }}
           </DialogDescription>
         </DialogHeader>
 
@@ -586,16 +590,16 @@ const truncateText = (text: string, maxLength: number = 100) => {
           <!-- 内容输入 -->
           <div class="space-y-2">
             <Label for="content">
-              Content <span class="text-red-500">*</span>
+              {{ t('memo.contentLabel') }} <span class="text-red-500">*</span>
             </Label>
             <Textarea
                 id="content"
                 v-model="formData.content"
-                placeholder="Write your memo here... (Markdown supported)"
+                :placeholder="t('memo.contentPlaceholder')"
                 class="min-h-50 resize-none"
                 :disabled="dialogLoading"
             />
-            <p class="text-xs text-slate-400">{{ formData.content.length }} characters</p>
+            <p class="text-xs text-slate-400">{{ formData.content.length }} {{ t('common.characters') }}</p>
           </div>
 
           <!-- 置顶选项 -->
@@ -610,25 +614,25 @@ const truncateText = (text: string, maxLength: number = 100) => {
                 class="text-sm font-normal cursor-pointer flex items-center gap-1.5"
             >
               <Pin class="w-3.5 h-3.5" />
-              Pin to top <span class="text-red-500">*</span>
+              {{ t('memo.pinToTop') }}
             </Label>
           </div>
 
           <!-- 状态选择 -->
           <div class="space-y-2">
             <Label for="status">
-              Status <span class="text-red-500">*</span>
+              {{ t('memo.statusLabel') }} <span class="text-red-500">*</span>
             </Label>
             <Select
                 v-model="formData.status"
                 :disabled="dialogLoading"
             >
               <SelectTrigger id="status">
-                <SelectValue placeholder="Select status" />
+                <SelectValue :placeholder="t('memo.selectStatus')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem :value="1">Published</SelectItem>
-                <SelectItem :value="0">Draft</SelectItem>
+                <SelectItem :value="1">{{ t('status.published') }}</SelectItem>
+                <SelectItem :value="0">{{ t('status.draft') }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -640,7 +644,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
               variant="outline"
               :disabled="dialogLoading"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </Button>
           <Button
               @click="handleSubmit"
@@ -648,7 +652,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
               class="gap-2"
           >
             <Loader2 v-if="dialogLoading" class="w-4 h-4 animate-spin" />
-            {{ dialogMode === 'create' ? 'Create' : 'Update' }}
+            {{ dialogMode === 'create' ? t('common.create') : t('common.update') }}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -658,24 +662,24 @@ const truncateText = (text: string, maxLength: number = 100) => {
     <AlertDialog v-model:open="deleteDialogVisible">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>{{ t('memo.deleteConfirmTitle') }}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the memo
+            {{ t('memo.deleteConfirmDesc') }}
             <span v-if="deleteTarget" class="font-semibold text-slate-700">
-                  "{{ truncateText(deleteTarget.content, 50) }}"
-                </span>.
-            This action cannot be undone.
+              "{{ truncateText(deleteTarget.content, 50) }}"
+            </span>.
+            {{ t('memo.deleteCannotUndo') }}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel :disabled="deleteLoading">Cancel</AlertDialogCancel>
+          <AlertDialogCancel :disabled="deleteLoading">{{ t('common.cancel') }}</AlertDialogCancel>
           <AlertDialogAction
               @click="handleDelete"
               :disabled="deleteLoading"
               class="bg-red-600 hover:bg-red-700 gap-2"
           >
             <Loader2 v-if="deleteLoading" class="w-4 h-4 animate-spin" />
-            Delete
+            {{ t('common.delete') }}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

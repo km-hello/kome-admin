@@ -16,8 +16,8 @@ export interface SiteStats {
     draftPostCount: number;        // 草稿文章数
     usedTagCount: number;          // 已使用标签数
     unusedTagCount: number;        // 未使用标签数
-    publishedMemoCount: number;    // 已发布备忘录数
-    draftMemoCount: number;        // 草稿备忘录数
+    publishedMemoCount: number;    // 已发布动态数
+    draftMemoCount: number;        // 草稿动态数
     publishedLinkCount: number;    // 已发布友链数
     draftLinkCount: number;        // 草稿友链数
 }

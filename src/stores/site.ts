@@ -66,7 +66,7 @@ export const useSiteStore = defineStore('site', () => {
     );
 
     /**
-     * 备忘录总数
+     * 动态总数
      */
     const totalMemos = computed(() =>
         stats.value.publishedMemoCount + stats.value.draftMemoCount

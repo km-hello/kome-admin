@@ -7,6 +7,7 @@ import { createApp } from 'vue'
 import {createPinia} from "pinia";
 import App from './App.vue'
 import router from "@/router";
+import i18n from "@/i18n";
 
 import './style.css'
 import 'vue-sonner/style.css'
@@ -16,6 +17,7 @@ const pinia = createPinia();
 
 app.use(pinia)  // 状态管理
 app.use(router)  // 路由
+app.use(i18n)   // 国际化
 
 app.mount('#app')
 

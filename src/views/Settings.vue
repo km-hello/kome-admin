@@ -3,6 +3,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
 import { useUserStore } from '@/stores/user';
 import {
   getUserInfoApi,
@@ -15,6 +16,7 @@ import {
 
 import {
   User,
+  UserRound,
   Mail,
   Lock,
   Save,
@@ -64,14 +66,16 @@ const platformOptions = [
   { value: 'rss', label: 'RSS' },
 ];
 
+const { t } = useI18n();
+
 /**
  * 技能等级选项
  */
-const skillLevelOptions = [
-  { value: '1', label: 'Basic' },
-  { value: '2', label: 'Familiar' },
-  { value: '3', label: 'Proficient' },
-];
+const skillLevelOptions = computed(() => [
+  { value: '1', label: t('settings.skillLevel.basic') },
+  { value: '2', label: t('settings.skillLevel.familiar') },
+  { value: '3', label: t('settings.skillLevel.proficient') },
+]);
 
 /**
  * 平台图标映射（用于预览）
@@ -257,50 +261,50 @@ const fetchUserInfo = async () => {
 const validateProfileForm = (): boolean => {
   // 用户名验证
   if (!profileForm.value.username?.trim()) {
-    toast.warning('用户名不能为空');
+    toast.warning(t('settings.validation.usernameRequired'));
     return false;
   }
 
   if (profileForm.value.username.length < 4 || profileForm.value.username.length > 50) {
-    toast.warning('用户名长度需在 4-50 个字符之间');
+    toast.warning(t('settings.validation.usernameLength'));
     return false;
   }
 
   const usernamePattern = /^[a-zA-Z0-9_-]+$/;
   if (!usernamePattern.test(profileForm.value.username)) {
-    toast.warning('用户名只能包含字母、数字、下划线和连字符');
+    toast.warning(t('settings.validation.usernameInvalid'));
     return false;
   }
 
   // 昵称验证
   if (profileForm.value.nickname && profileForm.value.nickname.length > 50) {
-    toast.warning('昵称长度不能超过 50 个字符');
+    toast.warning(t('settings.validation.nicknameTooLong'));
     return false;
   }
 
   // 头像 URL 验证
   if (profileForm.value.avatar && profileForm.value.avatar.length > 255) {
-    toast.warning('头像地址长度不能超过 255 个字符');
+    toast.warning(t('settings.validation.avatarTooLong'));
     return false;
   }
 
   // 邮箱验证
   if (profileForm.value.email) {
     if (profileForm.value.email.length > 100) {
-      toast.warning('邮箱长度不能超过 100 个字符');
+      toast.warning(t('settings.validation.emailTooLong'));
       return false;
     }
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(profileForm.value.email)) {
-      toast.warning('请输入有效的邮箱地址');
+      toast.warning(t('settings.validation.emailInvalid'));
       return false;
     }
   }
 
   // 描述验证
   if (profileForm.value.description && profileForm.value.description.length > 255) {
-    toast.warning('个人简介长度不能超过 255 个字符');
+    toast.warning(t('settings.validation.descriptionTooLong'));
     return false;
   }
 
@@ -335,7 +339,7 @@ const handleSaveProfile = async () => {
       description: data.description || '',
     };
 
-    toast.success('个人资料更新成功');
+    toast.success(t('settings.profileUpdateSuccess'));
   } catch (error) {
     console.error('Failed to update profile:', error);
   } finally {
@@ -349,29 +353,29 @@ const handleSaveProfile = async () => {
  */
 const validatePasswordForm = (): boolean => {
   if (!passwordForm.value.oldPassword) {
-    toast.warning('请输入当前密码');
+    toast.warning(t('settings.validation.currentPasswordRequired'));
     return false;
   }
 
   if (!passwordForm.value.newPassword) {
-    toast.warning('请输入新密码');
+    toast.warning(t('settings.validation.newPasswordRequired'));
     return false;
   }
 
   // 密码格式验证：至少包含字母、数字和特殊字符，长度 8-64
   const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,64}$/;
   if (!passwordPattern.test(passwordForm.value.newPassword)) {
-    toast.warning('新密码需要 8-64 位，且包含字母、数字和特殊字符');
+    toast.warning(t('settings.validation.passwordInvalid'));
     return false;
   }
 
   if (passwordForm.value.newPassword !== confirmPassword.value) {
-    toast.warning('两次输入的新密码不一致');
+    toast.warning(t('settings.validation.passwordMismatch'));
     return false;
   }
 
   if (passwordForm.value.oldPassword === passwordForm.value.newPassword) {
-    toast.warning('新密码不能与当前密码相同');
+    toast.warning(t('settings.validation.passwordSameAsOld'));
     return false;
   }
 
@@ -393,7 +397,7 @@ const handleChangePassword = async () => {
       newPassword: passwordForm.value.newPassword,
     });
 
-    toast.success('密码修改成功，请重新登录');
+    toast.success(t('settings.passwordUpdateSuccess'));
 
     // 跳转到登录页
     await router.push('/login');
@@ -461,7 +465,7 @@ const handleSaveSocialLinks = async () => {
         ? data.socialLinks.map(link => ({ ...link }))
         : [];
 
-    toast.success('社交链接更新成功');
+    toast.success(t('settings.socialLinksUpdateSuccess'));
   } catch (error) {
     console.error('Failed to update social links:', error);
   } finally {
@@ -473,35 +477,35 @@ const handleSaveSocialLinks = async () => {
 /**
  * 技能等级配置（与 blog 端 SkillCard 保持一致）
  */
-const skillLevelConfig = [
+const skillLevelConfig = computed(() => [
   {
     level: 3,
-    label: 'Proficient',
+    label: t('settings.skillLevel.proficient'),
     tagClass: 'bg-slate-500/15 text-slate-700 border border-slate-300',
     editTextClass: 'text-slate-700',
     dotClass: 'bg-slate-500',
   },
   {
     level: 2,
-    label: 'Familiar',
+    label: t('settings.skillLevel.familiar'),
     tagClass: 'bg-slate-400/10 text-slate-500 border border-slate-200',
     editTextClass: 'text-slate-500',
     dotClass: 'bg-slate-300',
   },
   {
     level: 1,
-    label: 'Basic',
+    label: t('settings.skillLevel.basic'),
     tagClass: 'bg-slate-50 text-slate-400 border border-slate-100',
     editTextClass: 'text-slate-400',
     dotClass: 'bg-slate-200',
   },
-];
+]);
 
 /**
  * 按等级分组的技能列表（始终显示全部三组作为拖放目标）
  */
 const skillLevelGroups = computed(() =>
-  skillLevelConfig.map(config => ({
+  skillLevelConfig.value.map(config => ({
     ...config,
     items: skillsForm.value
       .map((skill, index) => ({ skill, index }))
@@ -681,7 +685,7 @@ const handleSaveSkills = async () => {
         ? data.skills.map(skill => ({ ...skill }))
         : [];
 
-    toast.success('技能列表更新成功');
+    toast.success(t('settings.skillsUpdateSuccess'));
   } catch (error) {
     console.error('Failed to update skills:', error);
   } finally {
@@ -695,14 +699,14 @@ const handleSaveSkills = async () => {
   <div class="space-y-6">
     <!-- 页面标题 -->
     <PageHeader
-        title="Settings"
-        description="Manage your account settings and preferences"
+        :title="t('settings.title')"
+        :description="t('settings.description')"
     />
 
     <!-- 加载状态 -->
     <div v-if="loading" class="flex items-center justify-center gap-2 py-20">
       <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
-      <span class="text-sm text-slate-400">Loading...</span>
+      <span class="text-sm text-slate-400">{{ t('settings.loading') }}</span>
     </div>
 
     <div v-else class="grid gap-6 lg:grid-cols-3">
@@ -716,8 +720,8 @@ const handleSaveSkills = async () => {
                 <UserCog class="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <CardTitle class="text-lg font-bold text-slate-800">Profile Settings</CardTitle>
-                <CardDescription>Update your personal information</CardDescription>
+                <CardTitle class="text-lg font-bold text-slate-800">{{ t('settings.profileSettings') }}</CardTitle>
+                <CardDescription>{{ t('settings.profileDescription') }}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -728,28 +732,33 @@ const handleSaveSkills = async () => {
               <Label htmlFor="username">
                 <div class="flex items-center gap-2">
                   <User class="w-4 h-4 text-slate-500" />
-                  Username <span class="text-red-500">*</span>
+                  {{ t('settings.usernameLabel') }} <span class="text-red-500">*</span>
                 </div>
               </Label>
               <Input
                   id="username"
                   v-model="profileForm.username"
-                  placeholder="Enter username (4-50 characters)"
+                  :placeholder="t('settings.usernamePlaceholder')"
                   maxlength="50"
                   :disabled="profileLoading"
               />
               <p class="text-xs text-slate-500">
-                Only letters, numbers, underscores and hyphens allowed
+                {{ t('settings.usernameHint') }}
               </p>
             </div>
 
             <!-- 昵称 -->
             <div class="space-y-2">
-              <Label htmlFor="nickname">Nickname</Label>
+              <Label htmlFor="nickname">
+                <div class="flex items-center gap-2">
+                  <UserRound class="w-4 h-4 text-slate-500" />
+                  {{ t('settings.nicknameLabel') }}
+                </div>
+              </Label>
               <Input
                   id="nickname"
                   v-model="profileForm.nickname"
-                  placeholder="Enter display name"
+                  :placeholder="t('settings.nicknamePlaceholder')"
                   maxlength="50"
                   :disabled="profileLoading"
               />
@@ -760,13 +769,13 @@ const handleSaveSkills = async () => {
               <Label htmlFor="avatar">
                 <div class="flex items-center gap-2">
                   <Image class="w-4 h-4 text-slate-500" />
-                  Avatar URL
+                  {{ t('settings.avatarUrlLabel') }}
                 </div>
               </Label>
               <Input
                   id="avatar"
                   v-model="profileForm.avatar"
-                  placeholder="https://example.com/avatar.jpg"
+                  :placeholder="t('settings.avatarUrlPlaceholder')"
                   maxlength="255"
                   :disabled="profileLoading"
               />
@@ -777,14 +786,14 @@ const handleSaveSkills = async () => {
               <Label htmlFor="email">
                 <div class="flex items-center gap-2">
                   <Mail class="w-4 h-4 text-slate-500" />
-                  Email
+                  {{ t('settings.emailLabel') }}
                 </div>
               </Label>
               <Input
                   id="email"
                   type="email"
                   v-model="profileForm.email"
-                  placeholder="admin@example.com"
+                  :placeholder="t('settings.emailPlaceholder')"
                   maxlength="100"
                   :disabled="profileLoading"
               />
@@ -795,19 +804,19 @@ const handleSaveSkills = async () => {
               <Label htmlFor="description">
                 <div class="flex items-center gap-2">
                   <FileText class="w-4 h-4 text-slate-500" />
-                  Bio
+                  {{ t('settings.bioLabel') }}
                 </div>
               </Label>
               <Textarea
                   id="description"
                   v-model="profileForm.description"
-                  placeholder="Tell us about yourself..."
+                  :placeholder="t('settings.bioPlaceholder')"
                   maxlength="255"
                   rows="3"
                   :disabled="profileLoading"
               />
               <p class="text-xs text-slate-500">
-                {{ profileForm.description?.length || 0 }}/255 characters
+                {{ profileForm.description?.length || 0 }}/255 {{ t('common.characters') }}
               </p>
             </div>
 
@@ -818,7 +827,7 @@ const handleSaveSkills = async () => {
                   @click="resetProfileForm"
                   :disabled="profileLoading || !profileHasChanges"
               >
-                Reset
+                {{ t('settings.reset') }}
               </Button>
               <Button
                   class="bg-slate-900 hover:bg-slate-800 gap-2"
@@ -827,7 +836,7 @@ const handleSaveSkills = async () => {
               >
                 <Loader2 v-if="profileLoading" class="w-4 h-4 animate-spin" />
                 <Save v-else class="w-4 h-4" />
-                Save Changes
+                {{ t('settings.saveChanges') }}
               </Button>
             </div>
           </CardContent>
@@ -841,8 +850,8 @@ const handleSaveSkills = async () => {
                 <Link2 class="w-5 h-5 text-emerald-600" />
               </div>
               <div>
-                <CardTitle class="text-lg font-bold text-slate-800">Social Links</CardTitle>
-                <CardDescription>Manage your social media links</CardDescription>
+                <CardTitle class="text-lg font-bold text-slate-800">{{ t('settings.socialLinks') }}</CardTitle>
+                <CardDescription>{{ t('settings.socialLinksDescription') }}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -874,7 +883,7 @@ const handleSaveSkills = async () => {
                 <!-- URL 输入 -->
                 <Input
                     v-model="link.url"
-                    placeholder="Enter URL or mailto:email@example.com"
+                    :placeholder="t('settings.socialUrlPlaceholder')"
                     class="flex-1"
                     :disabled="socialLinksLoading"
                 />
@@ -894,7 +903,7 @@ const handleSaveSkills = async () => {
 
             <!-- 空状态 -->
             <div v-else class="py-6 text-center text-slate-400 text-sm">
-              No social links configured
+              {{ t('settings.noSocialLinks') }}
             </div>
 
             <!-- 添加按钮 -->
@@ -905,7 +914,7 @@ const handleSaveSkills = async () => {
                 class="gap-2"
             >
               <Plus class="w-4 h-4" />
-              Add Link
+              {{ t('settings.addLink') }}
             </Button>
 
             <!-- 操作按钮 -->
@@ -915,7 +924,7 @@ const handleSaveSkills = async () => {
                   @click="resetSocialLinksForm"
                   :disabled="socialLinksLoading || !socialLinksHasChanges"
               >
-                Reset
+                {{ t('settings.reset') }}
               </Button>
               <Button
                   class="bg-slate-900 hover:bg-slate-800 gap-2"
@@ -924,7 +933,7 @@ const handleSaveSkills = async () => {
               >
                 <Loader2 v-if="socialLinksLoading" class="w-4 h-4 animate-spin" />
                 <Save v-else class="w-4 h-4" />
-                Save Changes
+                {{ t('settings.saveChanges') }}
               </Button>
             </div>
           </CardContent>
@@ -938,8 +947,8 @@ const handleSaveSkills = async () => {
                 <Zap class="w-5 h-5 text-violet-600" />
               </div>
               <div>
-                <CardTitle class="text-lg font-bold text-slate-800">Skills</CardTitle>
-                <CardDescription>Manage your skill tags displayed on the About page</CardDescription>
+                <CardTitle class="text-lg font-bold text-slate-800">{{ t('settings.skills') }}</CardTitle>
+                <CardDescription>{{ t('settings.skillsDescription') }}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -998,9 +1007,9 @@ const handleSaveSkills = async () => {
                       <span
                           class="cursor-pointer select-none"
                           @click="editingSkillIndex = item.index"
-                          :title="'Click to edit · Drag to change level'"
+                          :title="t('settings.clickToEdit')"
                       >
-                        {{ item.skill.name || 'Unnamed' }}
+                        {{ item.skill.name || t('settings.unnamed') }}
                       </span>
                     </template>
                     <!-- 删除按钮 -->
@@ -1023,7 +1032,7 @@ const handleSaveSkills = async () => {
                       v-if="group.items.length === 0"
                       class="text-xs text-slate-300 italic py-0.5"
                   >
-                    {{ draggingSkillIndex !== null ? 'Drop here' : 'No skills' }}
+                    {{ draggingSkillIndex !== null ? t('settings.dropHere') : t('settings.noSkills') }}
                   </span>
                 </div>
               </div>
@@ -1031,14 +1040,14 @@ const handleSaveSkills = async () => {
 
             <!-- 空状态 -->
             <div v-else class="py-6 text-center text-slate-400 text-sm">
-              No skills configured
+              {{ t('settings.noSkillsConfigured') }}
             </div>
 
             <!-- 快速添加技能 -->
             <div class="flex items-center gap-2">
               <Input
                   v-model="newSkillName"
-                  placeholder="New skill name"
+                  :placeholder="t('settings.newSkillPlaceholder')"
                   class="flex-1"
                   :disabled="skillsLoading"
                   @keydown.enter="addSkillQuick"
@@ -1062,7 +1071,7 @@ const handleSaveSkills = async () => {
                   size="icon"
                   @click="addSkillQuick"
                   :disabled="skillsLoading || !newSkillName.trim()"
-                  title="Add Skill"
+                  :title="t('settings.addSkill')"
               >
                 <Plus class="w-4 h-4" />
               </Button>
@@ -1075,7 +1084,7 @@ const handleSaveSkills = async () => {
                   @click="resetSkillsForm"
                   :disabled="skillsLoading || !skillsHasChanges"
               >
-                Reset
+                {{ t('settings.reset') }}
               </Button>
               <Button
                   class="bg-slate-900 hover:bg-slate-800 gap-2"
@@ -1084,7 +1093,7 @@ const handleSaveSkills = async () => {
               >
                 <Loader2 v-if="skillsLoading" class="w-4 h-4 animate-spin" />
                 <Save v-else class="w-4 h-4" />
-                Save Changes
+                {{ t('settings.saveChanges') }}
               </Button>
             </div>
           </CardContent>
@@ -1098,8 +1107,8 @@ const handleSaveSkills = async () => {
                 <ShieldCheck class="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <CardTitle class="text-lg font-bold text-slate-800">Change Password</CardTitle>
-                <CardDescription>Ensure your account is using a strong password</CardDescription>
+                <CardTitle class="text-lg font-bold text-slate-800">{{ t('settings.changePassword') }}</CardTitle>
+                <CardDescription>{{ t('settings.changePasswordDescription') }}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -1110,7 +1119,7 @@ const handleSaveSkills = async () => {
               <Label htmlFor="oldPassword">
                 <div class="flex items-center gap-2">
                   <Lock class="w-4 h-4 text-slate-500" />
-                  Current Password <span class="text-red-500">*</span>
+                  {{ t('settings.currentPassword') }} <span class="text-red-500">*</span>
                 </div>
               </Label>
               <div class="relative">
@@ -1118,7 +1127,7 @@ const handleSaveSkills = async () => {
                     id="oldPassword"
                     :type="showOldPassword ? 'text' : 'password'"
                     v-model="passwordForm.oldPassword"
-                    placeholder="Enter current password"
+                    :placeholder="t('settings.currentPasswordPlaceholder')"
                     :disabled="passwordLoading"
                     class="pr-10"
                 />
@@ -1139,7 +1148,7 @@ const handleSaveSkills = async () => {
               <Label htmlFor="newPassword">
                 <div class="flex items-center gap-2">
                   <Lock class="w-4 h-4 text-slate-500" />
-                  New Password <span class="text-red-500">*</span>
+                  {{ t('settings.newPassword') }} <span class="text-red-500">*</span>
                 </div>
               </Label>
               <div class="relative">
@@ -1147,7 +1156,7 @@ const handleSaveSkills = async () => {
                     id="newPassword"
                     :type="showNewPassword ? 'text' : 'password'"
                     v-model="passwordForm.newPassword"
-                    placeholder="Enter new password"
+                    :placeholder="t('settings.newPasswordPlaceholder')"
                     :disabled="passwordLoading"
                     class="pr-10"
                 />
@@ -1162,7 +1171,7 @@ const handleSaveSkills = async () => {
                 </button>
               </div>
               <p class="text-xs text-slate-500">
-                Password must be 8-64 characters and contain letters, numbers, and special characters
+                {{ t('settings.newPasswordHint') }}
               </p>
             </div>
 
@@ -1171,7 +1180,7 @@ const handleSaveSkills = async () => {
               <Label htmlFor="confirmPassword">
                 <div class="flex items-center gap-2">
                   <Lock class="w-4 h-4 text-slate-500" />
-                  Confirm New Password <span class="text-red-500">*</span>
+                  {{ t('settings.confirmNewPassword') }} <span class="text-red-500">*</span>
                 </div>
               </Label>
               <div class="relative">
@@ -1179,7 +1188,7 @@ const handleSaveSkills = async () => {
                     id="confirmPassword"
                     :type="showConfirmPassword ? 'text' : 'password'"
                     v-model="confirmPassword"
-                    placeholder="Confirm new password"
+                    :placeholder="t('settings.confirmNewPasswordPlaceholder')"
                     :disabled="passwordLoading"
                     class="pr-10"
                 />
@@ -1204,7 +1213,7 @@ const handleSaveSkills = async () => {
               >
                 <Loader2 v-if="passwordLoading" class="w-4 h-4 animate-spin" />
                 <Lock v-else class="w-4 h-4" />
-                Update Password
+                {{ t('settings.updatePassword') }}
               </Button>
             </div>
           </CardContent>
@@ -1249,7 +1258,7 @@ const handleSaveSkills = async () => {
 
               <!-- 社交链接预览 -->
               <div v-if="socialLinksForm.length > 0" class="mt-5 pt-5 border-t border-slate-100 w-full">
-                <p class="text-xs text-slate-400 mb-3">Social Links Preview</p>
+                <p class="text-xs text-slate-400 mb-3">{{ t('settings.socialLinksPreview') }}</p>
                 <div class="grid grid-cols-4 gap-2">
                   <div
                       v-for="(link, index) in socialLinksForm"
@@ -1258,7 +1267,7 @@ const handleSaveSkills = async () => {
                       :class="isClickable(link.url)
                         ? 'bg-slate-50 border-slate-200 text-slate-500'
                         : 'bg-slate-50 border-slate-100 text-slate-300'"
-                      :title="link.platform + (isClickable(link.url) ? ': ' + link.url : ' (not configured)')"
+                      :title="link.platform + (isClickable(link.url) ? ': ' + link.url : ' (' + t('settings.notConfigured') + ')')"
                   >
                     <component :is="getIcon(link.platform)" class="w-4 h-4" />
                   </div>
