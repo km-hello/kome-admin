@@ -4,15 +4,20 @@
     "tagline": "管理系统"
   },
   "nav": {
+    "home": "首页",
     "overview": "概览",
     "content": "内容",
     "system": "系统",
     "dashboard": "仪表盘",
     "posts": "文章",
+    "new post": "新建文章",
+    "edit post": "编辑文章",
     "memos": "动态",
     "tags": "标签",
     "links": "友链",
-    "settings": "设置"
+    "settings": "设置",
+    "login": "登录",
+    "setup": "初始设置"
   },
   "header": {
     "viewSite": "查看站点",

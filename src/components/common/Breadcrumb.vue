@@ -2,10 +2,12 @@
 <script setup lang="ts">
 import {computed} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
+import {useI18n} from 'vue-i18n';
 import {Menu} from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
+const {t} = useI18n();
 
 /**
  * 面包屑项数据结构
@@ -18,23 +20,33 @@ interface BreadcrumbItem {
 }
 
 /**
+ * 将路由 meta.title 翻译为当前语言。
+ * 转为 nav.{title} 翻译键，翻译失败时回退到原始英文值。
+ */
+function translateTitle(title: string): string {
+  const titleKey = `nav.${title.toLowerCase()}`;
+  const translated = t(titleKey);
+  return translated !== titleKey ? translated : title;
+}
+
+/**
  * 根据当前路由动态生成面包屑数据
  */
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [
-    {label: 'Home', path: '/'}
+    {label: t('nav.home'), path: '/'}
   ];
 
   // 获取路由的 matched 数组，生成面包屑路径
   const matched = route.matched.filter(item => item.meta?.breadcrumb !== false);
 
   matched.forEach((routeRecord) => {
-    // 优先使用 meta.title，否则使用路由名称
-    const label = (routeRecord.meta?.title as string) || routeRecord.name?.toString() || '';
+    // 优先使用 meta.title 翻译后的文字，否则使用路由名称
+    const rawTitle = (routeRecord.meta?.title as string) || routeRecord.name?.toString() || '';
 
-    if (label && routeRecord.path !== '/') {
+    if (rawTitle && routeRecord.path !== '/') {
       items.push({
-        label,
+        label: translateTitle(rawTitle),
         path: routeRecord.path
       });
     }

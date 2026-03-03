@@ -4,15 +4,20 @@
     "tagline": "Management System"
   },
   "nav": {
+    "home": "Home",
     "overview": "Overview",
     "content": "Content",
     "system": "System",
     "dashboard": "Dashboard",
     "posts": "Posts",
+    "new post": "New Post",
+    "edit post": "Edit Post",
     "memos": "Memos",
     "tags": "Tags",
     "links": "Links",
-    "settings": "Settings"
+    "settings": "Settings",
+    "login": "Login",
+    "setup": "Setup"
   },
   "header": {
     "viewSite": "View Site",

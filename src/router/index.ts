@@ -1,3 +1,5 @@
+import { watch } from 'vue';
+import type { Ref } from 'vue';
 import { createRouter, createWebHistory, type Router } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
 import { useUserStore } from "@/stores/user.ts";
@@ -123,6 +125,18 @@ const router: Router = createRouter({
 });
 
 /**
+ * 根据路由 meta.title 和当前语言设置页面标题。
+ * 将 meta.title 转为 nav.{title} 翻译键，翻译失败时回退到原始英文值。
+ */
+function updateDocumentTitle(title?: string) {
+    if (title) {
+        const titleKey = `nav.${title.toLowerCase()}`;
+        const translated = i18n.global.t(titleKey);
+        document.title = `${translated !== titleKey ? translated : title} - ${i18n.global.t('brand.name')}`;
+    }
+}
+
+/**
  * 路由前置守卫：处理认证和初始化检查
  */
 router.beforeEach(async (to, _from, next) => {
@@ -159,11 +173,7 @@ router.beforeEach(async (to, _from, next) => {
     }
 
     // 设置页面标题
-    if (to.meta.title) {
-        const titleKey = `nav.${(to.meta.title as string).toLowerCase()}`;
-        const translated = i18n.global.t(titleKey);
-        document.title = `${translated !== titleKey ? translated : to.meta.title} - ${i18n.global.t('brand.name')}`;
-    }
+    updateDocumentTitle(to.meta.title as string);
 
     next();
 });
@@ -183,6 +193,15 @@ router.afterEach((to) => {
             });
         }
     }
+});
+
+/**
+ * 监听语言切换：实时更新当前页面标题（不依赖路由跳转）
+ */
+const localeRef = i18n.global.locale as unknown as Ref<string>;
+watch(localeRef, () => {
+    const currentTitle = router.currentRoute.value.meta.title as string;
+    updateDocumentTitle(currentTitle);
 });
 
 export default router;
