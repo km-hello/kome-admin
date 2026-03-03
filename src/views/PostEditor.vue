@@ -161,26 +161,36 @@ const previewStyle = computed(() => ({
 }));
 
 /**
- * 开始拖动分割条。
- * 阻止默认行为并注册全局鼠标事件监听。
+ * 从 Mouse 或 Touch 事件中提取 clientX
  */
-const startDrag = (e: MouseEvent) => {
+const getClientX = (e: MouseEvent | TouchEvent): number => {
+  return 'touches' in e ? e.touches[0].clientX : e.clientX;
+};
+
+/**
+ * 开始拖动分割条。
+ * 阻止默认行为并注册全局鼠标/触摸事件监听。
+ */
+const startDrag = (e: MouseEvent | TouchEvent) => {
   e.preventDefault();
   isDragging.value = true;
   document.addEventListener('mousemove', onDrag);
   document.addEventListener('mouseup', stopDrag);
+  document.addEventListener('touchmove', onDrag, { passive: false });
+  document.addEventListener('touchend', stopDrag);
 };
 
 /**
  * 拖动中处理。
- * 根据鼠标位置计算编辑区宽度百分比，限制在 20%–80% 之间。
+ * 根据指针位置计算编辑区宽度百分比，限制在 20%–80% 之间。
  */
-const onDrag = (e: MouseEvent) => {
+const onDrag = (e: MouseEvent | TouchEvent) => {
   if (!isDragging.value || !splitContainerRef.value) return;
+  e.preventDefault();
 
   const container = splitContainerRef.value;
   const rect = container.getBoundingClientRect();
-  const offsetX = e.clientX - rect.left;
+  const offsetX = getClientX(e) - rect.left;
   const containerWidth = rect.width;
 
   // 计算百分比，限制在 20% - 80% 之间
@@ -197,11 +207,15 @@ const stopDrag = () => {
   isDragging.value = false;
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchmove', onDrag);
+  document.removeEventListener('touchend', stopDrag);
 };
 
 onUnmounted(() => {
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchmove', onDrag);
+  document.removeEventListener('touchend', stopDrag);
 });
 
 
@@ -656,6 +670,7 @@ const useFirstImageAsCover = () => {
                     v-if="showPreview"
                     class="w-2 shrink-0 bg-slate-100 hover:bg-slate-200 cursor-col-resize transition-colors flex items-center justify-center group"
                     @mousedown="startDrag"
+                    @touchstart="startDrag"
                 >
                   <div class="w-0.5 h-8 bg-slate-300 group-hover:bg-slate-400 rounded-full transition-colors"></div>
                 </div>
