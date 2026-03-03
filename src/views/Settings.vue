@@ -16,6 +16,7 @@ import {
 
 import {
   User,
+  UserRound,
   Mail,
   Lock,
   Save,
@@ -748,7 +749,12 @@ const handleSaveSkills = async () => {
 
             <!-- 昵称 -->
             <div class="space-y-2">
-              <Label htmlFor="nickname">{{ t('settings.nicknameLabel') }}</Label>
+              <Label htmlFor="nickname">
+                <div class="flex items-center gap-2">
+                  <UserRound class="w-4 h-4 text-slate-500" />
+                  {{ t('settings.nicknameLabel') }}
+                </div>
+              </Label>
               <Input
                   id="nickname"
                   v-model="profileForm.nickname"
