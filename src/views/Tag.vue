@@ -81,9 +81,15 @@ const dialogMode = ref<'create' | 'edit'>('create');
 const dialogLoading = ref(false);
 
 /**
+ * 标签表单数据类型
+ * 基于 API 请求类型，增加 id 字段用于编辑模式
+ */
+type TagFormData = TagCreateRequest & { id: number };
+
+/**
  * 表单数据
  */
-const formData = ref({
+const formData = ref<TagFormData>({
   id: 0,
   name: '',
 });
