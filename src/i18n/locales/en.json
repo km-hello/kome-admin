@@ -293,7 +293,7 @@
     "avatarUrlLabel": "Avatar URL",
     "avatarUrlPlaceholder": "https://example.com/avatar.jpg",
     "emailLabel": "Email",
-    "emailPlaceholder": "admin@example.com",
+    "emailPlaceholder": "admin{'@'}example.com",
     "bioLabel": "Bio",
     "bioPlaceholder": "Tell us about yourself...",
     "socialLinks": "Social Links",
@@ -302,7 +302,7 @@
     "addLink": "Add Link",
     "socialLinksPreview": "Social Links Preview",
     "notConfigured": "not configured",
-    "socialUrlPlaceholder": "Enter URL or mailto:email@example.com",
+    "socialUrlPlaceholder": "Enter URL or mailto:email{'@'}example.com",
     "skillLevel": {
       "basic": "Basic",
       "familiar": "Familiar",
