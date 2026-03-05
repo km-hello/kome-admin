@@ -4,9 +4,10 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSiteStore } from '@/stores/site';
 import { useUserStore } from '@/stores/user';
-import { setupAdminApi } from '@/api/site';
+import { setupAdminApi, type SetupRequest } from '@/api/site';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { normalizeStringField } from '@/utils/formNormalizer';
 import { Loader2, User, Lock, Mail, Eye, EyeOff, Check, X, Image, FileText, UserCircle, ChevronDown } from 'lucide-vue-next';
 
 import { Button } from '@/components/ui/button';
@@ -16,39 +17,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-/**
- * 默认头像 URL
- */
-const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/notionists/svg?seed=kome';
-/**
- * 默认昵称
- */
-const DEFAULT_NICKNAME = 'Admin';
-/**
- * 默认简介
- */
-const DEFAULT_BIO = 'Hello World!';
-/**
- * 默认邮箱
- */
-const DEFAULT_EMAIL = 'admin@example.com';
-
 const router = useRouter();
 const siteStore = useSiteStore();
 const userStore = useUserStore();
 const { t } = useI18n();
 
 /**
+ * Setup 表单数据类型（扩展 API 请求类型，增加确认密码字段）
+ */
+type SetupFormData = SetupRequest & { confirmPassword: string };
+
+/**
  * 初始化表单数据
  */
-const form = ref({
+const form = ref<SetupFormData>({
   username: '',
   password: '',
   confirmPassword: '',
-  nickname: '',
-  avatar: '',
-  description: '',
-  email: '',
+  nickname: null,
+  avatar: null,
+  description: null,
+  email: null,
 });
 
 /**
@@ -146,14 +135,15 @@ const handleSetup = async (): Promise<void> => {
   isLoading.value = true;
 
   try {
-    // 发送时使用默认值填充空字段
+    // 从表单数据构建 API 请求（去掉 confirmPassword）
+    const { confirmPassword, ...requestData } = form.value;
+
     await setupAdminApi({
-      username: form.value.username,
-      password: form.value.password,
-      nickname: form.value.nickname || DEFAULT_NICKNAME,
-      avatar: form.value.avatar || DEFAULT_AVATAR,
-      description: form.value.description || DEFAULT_BIO,
-      email: form.value.email || DEFAULT_EMAIL,
+      ...requestData,
+      nickname: normalizeStringField(requestData.nickname),
+      avatar: normalizeStringField(requestData.avatar),
+      description: normalizeStringField(requestData.description),
+      email: normalizeStringField(requestData.email),
     });
 
     // 更新 store 状态
@@ -172,6 +162,7 @@ const handleSetup = async (): Promise<void> => {
     isLoading.value = false;
   }
 };
+
 </script>
 
 <template>
@@ -201,7 +192,7 @@ const handleSetup = async (): Promise<void> => {
             <Input
                 id="username"
                 v-model="form.username"
-                placeholder="admin"
+                :placeholder="t('setup.placeholder.username')"
                 class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 placeholder:text-slate-400"
                 :disabled="isLoading"
             />
@@ -325,8 +316,9 @@ const handleSetup = async (): Promise<void> => {
                 <UserCircle class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                     id="nickname"
-                    v-model="form.nickname"
-                    :placeholder="DEFAULT_NICKNAME"
+                    :model-value="form.nickname ?? ''"
+                    @update:model-value="(val) => form.nickname = val as string"
+                    :placeholder="t('setup.placeholder.nickname')"
                     class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 placeholder:text-slate-400 h-9 text-sm"
                     :disabled="isLoading"
                 />
@@ -340,8 +332,9 @@ const handleSetup = async (): Promise<void> => {
                 <FileText class="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <Textarea
                     id="description"
-                    v-model="form.description"
-                    :placeholder="DEFAULT_BIO"
+                    :model-value="form.description ?? ''"
+                    @update:model-value="(val) => form.description = val as string"
+                    :placeholder="t('setup.placeholder.bio')"
                     rows="2"
                     class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 placeholder:text-slate-400 resize-none text-sm"
                     :disabled="isLoading"
@@ -356,8 +349,9 @@ const handleSetup = async (): Promise<void> => {
                 <Image class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                     id="avatar"
-                    v-model="form.avatar"
-                    :placeholder="DEFAULT_AVATAR"
+                    :model-value="form.avatar ?? ''"
+                    @update:model-value="(val) => form.avatar = val as string"
+                    :placeholder="t('setup.placeholder.avatar')"
                     class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 placeholder:text-slate-400 h-9 text-sm"
                     :disabled="isLoading"
                 />
@@ -372,8 +366,9 @@ const handleSetup = async (): Promise<void> => {
                 <Input
                     id="email"
                     type="email"
-                    v-model="form.email"
-                    :placeholder="DEFAULT_EMAIL"
+                    :model-value="form.email ?? ''"
+                    @update:model-value="(val) => form.email = val as string"
+                    :placeholder="t('setup.placeholder.email')"
                     class="bg-slate-50 border-slate-200 focus:border-slate-400 pl-10 placeholder:text-slate-400 h-9 text-sm"
                     :disabled="isLoading"
                 />
