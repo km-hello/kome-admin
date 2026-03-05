@@ -33,13 +33,12 @@ import {
   Plus,
   Trash2,
   Globe,
-  Rss,
   Home,
   Link as LinkIcon,
   X,
   Zap,
 } from 'lucide-vue-next';
-import { IconGithub, IconX } from '@/components/icons/BrandIcons';
+import { IconGithub, IconX, IconTelegram } from '@/components/icons/BrandIcons';
 
 import PageHeader from '@/components/common/PageHeader.vue';
 
@@ -61,11 +60,11 @@ import {
  */
 const platformOptions = [
   { value: 'github', label: 'GitHub' },
+  { value: 'telegram', label: 'Telegram' },
   { value: 'twitter', label: 'X (Twitter)' },
   { value: 'email', label: 'Email' },
   { value: 'homepage', label: 'Homepage' },
   { value: 'website', label: 'Website' },
-  { value: 'rss', label: 'RSS' },
 ];
 
 const { t } = useI18n();
@@ -88,7 +87,7 @@ const iconMap: Record<string, any> = {
   email: Mail,
   homepage: Home,
   website: Globe,
-  rss: Rss,
+  telegram: IconTelegram,
 };
 
 /**
@@ -333,14 +332,18 @@ const buildRequest = (): UserUpdateRequest => {
   // 技能按数组位置分配排序值
   skillsForm.value.forEach((s, i) => s.order = i);
 
+  // 过滤无效条目：空 URL 的社交链接、空名称的技能
+  const filteredLinks = socialLinksForm.value.filter(link => link.url.trim());
+  const filteredSkills = skillsForm.value.filter(skill => skill.name.trim());
+
   return {
     username: form.value.username.trim(),
     nickname: normalizeStringField(form.value.nickname),
     avatar: normalizeStringField(form.value.avatar),
     email: normalizeStringField(form.value.email),
     description: normalizeStringField(form.value.description),
-    socialLinks: socialLinksForm.value.length > 0 ? socialLinksForm.value : null,
-    skills: skillsForm.value.length > 0 ? skillsForm.value : null,
+    socialLinks: filteredLinks.length > 0 ? filteredLinks : null,
+    skills: filteredSkills.length > 0 ? filteredSkills : null,
   };
 };
 
