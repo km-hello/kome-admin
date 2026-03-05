@@ -69,9 +69,9 @@ const handleLogout = async () => {
     <!-- 桌面端侧边栏（>= md 显示） -->
     <Sidebar
         :nav-groups="navGroups"
-        :user-avatar="userStore.userInfo.avatar"
-        :user-nickname="userStore.userInfo.nickname"
-        :user-email="userStore.userInfo.email"
+        :user-avatar="userStore.userInfo.avatar ?? null"
+        :user-nickname="userStore.userInfo.nickname ?? userStore.userInfo.username ?? ''"
+        :user-email="userStore.userInfo.email ?? null"
         @logout="handleLogout"
     />
 
@@ -80,9 +80,9 @@ const handleLogout = async () => {
       <SheetContent side="left" class="w-64 p-0">
         <Sidebar
             :nav-groups="navGroups"
-            :user-avatar="userStore.userInfo.avatar"
-            :user-nickname="userStore.userInfo.nickname"
-            :user-email="userStore.userInfo.email"
+            :user-avatar="userStore.userInfo.avatar ?? null"
+            :user-nickname="userStore.userInfo.nickname ?? userStore.userInfo.username ?? ''"
+            :user-email="userStore.userInfo.email ?? null"
             mobile
             @logout="handleLogout"
             @navigate="sidebarOpen = false"

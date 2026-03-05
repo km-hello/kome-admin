@@ -23,7 +23,7 @@ export interface SocialLink {
 export interface SkillItem {
     name: string;          // 技能名称
     level: number;         // 技能等级: 1=入门(Basic), 2=熟悉(Familiar), 3=精通(Proficient)
-    order?: number;        // 排序序号（拖拽排序）
+    order: number | null;  // 排序序号（拖拽排序）
 }
 
 /**
@@ -32,21 +32,22 @@ export interface SkillItem {
  */
 export interface UserLoginRequest {
     username: string;      // 用户名
-    password?: string;     // 密码
+    password: string;      // 密码
 }
 
 /**
  * 修改用户信息请求参数。
- * 支持部分更新，可单独修改昵称、头像、社交链接、技能等字段。
+ * All fields must be provided (no partial updates).
+ * Use null to explicitly clear nullable fields.
  */
 export interface UserUpdateRequest {
-    username?: string;             // 用户名
-    nickname?: string;             // 昵称
-    avatar?: string;               // 头像 URL
-    email?: string;                // 邮箱地址
-    description?: string;          // 个人简介
-    socialLinks?: SocialLink[];    // 社交链接列表
-    skills?: SkillItem[];          // 技能列表
+    username: string;                    // 用户名 (required)
+    nickname: string | null;             // 昵称
+    avatar: string | null;               // 头像 URL
+    email: string | null;                // 邮箱地址
+    description: string | null;          // 个人简介
+    socialLinks: SocialLink[] | null;    // 社交链接列表
+    skills: SkillItem[] | null;          // 技能列表
 }
 
 /**
@@ -63,14 +64,14 @@ export interface UserUpdatePasswordRequest {
  * 包含管理员的完整个人资料，用于设置页面回填和 Header 展示。
  */
 export interface UserInfoResponse {
-    id?: number;                   // 用户 ID
-    username: string;              // 用户名
-    nickname: string;              // 昵称
-    avatar: string;                // 头像 URL
-    email: string;                 // 邮箱地址
-    description?: string;          // 个人简介
-    socialLinks?: SocialLink[];    // 社交链接列表
-    skills?: SkillItem[];          // 技能列表
+    id: number;                          // 用户 ID
+    username: string;                    // 用户名
+    nickname: string | null;             // 昵称
+    avatar: string | null;               // 头像 URL
+    email: string | null;                // 邮箱地址
+    description: string | null;          // 个人简介
+    socialLinks: SocialLink[] | null;    // 社交链接列表
+    skills: SkillItem[] | null;          // 技能列表
 }
 
 /**
@@ -108,13 +109,13 @@ export const getUserInfoApi = (): Promise<UserInfoResponse> => {
 /**
  * 更新用户信息的 API 调用函数。
  *
- * @param {Partial<UserUpdateRequest>} req - 包含用户更新信息的部分请求对象。
+ * @param {UserUpdateRequest} req - 包含用户更新信息的请求对象。
  * @returns {Promise<UserInfoResponse>} 返回一个包含用户信息的响应对象的 Promise。
  *
  * 此函数通过 HTTP PUT 请求将用户更新数据发送到后端接口 "/api/admin/user"，
  * 并返回服务器处理后的用户信息。
  */
-export const updateUserInfoApi = (req: Partial<UserUpdateRequest>): Promise<UserInfoResponse> => {
+export const updateUserInfoApi = (req: UserUpdateRequest): Promise<UserInfoResponse> => {
     return request.put<UserInfoResponse>('/api/admin/user', req);
 };
 

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -91,7 +92,11 @@ const handleLogin = async (): Promise<void> => {
     <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] bg-size-[32px_32px] opacity-60"></div>
 
     <!-- 登录卡片 -->
-    <Card class="w-full max-w-md shadow-xl z-10 bg-white/95 backdrop-blur-sm">
+    <Card class="w-full max-w-md shadow-xl z-10 bg-white/95 backdrop-blur-sm relative">
+      <!-- 语言切换 -->
+      <div class="absolute top-3 right-3">
+        <LanguageSwitcher />
+      </div>
       <CardHeader class="text-center space-y-2 pb-4 mt-2">
         <!-- Logo -->
         <div class="mx-auto w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-2 shadow-lg">

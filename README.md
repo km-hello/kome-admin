@@ -29,6 +29,7 @@ The admin dashboard for the Kome blogging platform, built with Vue 3, TypeScript
 | Utilities     | VueUse                                      |
 | Icons         | Lucide Vue                                  |
 | Toasts        | vue-sonner                                  |
+| i18n          | vue-i18n                                    |
 
 ## Features
 
@@ -38,8 +39,10 @@ The admin dashboard for the Kome blogging platform, built with Vue 3, TypeScript
 - **Memo Management** — Create and manage micro-blog entries with status and pin controls
 - **Tag Management** — Create/edit/delete tags, view usage stats (used vs. unused)
 - **Friend Links** — Manage blogroll entries with status tracking
-- **User Settings** — Profile editing (avatar, bio, social links), skills with proficiency levels, password change
+- **User Settings** — Profile editing (avatar, bio, social links), skills with proficiency levels, password change with
+  strength indicator
 - **AI Integration** — AI-assisted summary and slug generation for posts
+- **Internationalization (i18n)** — Full English and Chinese support, switchable from login, setup, and header
 - **First-Run Setup** — Initialization wizard for fresh deployments
 - **JWT Authentication** — Login with "remember me" option, automatic session management
 
@@ -79,7 +82,8 @@ src/
 ├── request/            # Axios wrapper with JWT interceptor
 ├── composables/        # useTableSort
 ├── components/
-│   ├── common/         # PageHeader, Pagination, StatsCard, TagSelector, etc.
+│   ├── common/         # PageHeader, Pagination, StatsCard, TagSelector, LanguageSwitcher, etc.
+│   ├── icons/          # Custom brand icons (GitHub, X, Telegram)
 │   ├── layout/         # Header, Sidebar
 │   └── ui/             # shadcn-vue components (button, card, dialog, table, etc.)
 ├── views/
@@ -95,7 +99,8 @@ src/
 ├── layout/             # AdminLayout wrapper
 ├── router/             # Vue Router config with auth guards
 ├── stores/             # Pinia stores (user auth, site stats)
-├── types/              # API response types
+├── i18n/               # vue-i18n config + locale files (en.json, zh-CN.json)
+├── constants/          # Default avatar, app constants
 ├── lib/                # Utility functions
 ├── style.css           # Global styles
 └── main.ts             # App entry point

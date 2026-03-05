@@ -31,12 +31,12 @@ export interface MemoCreateRequest {
 
 /**
  * 动态更新请求。
- * 支持部分更新，可单独修改内容、置顶状态或发布状态。
+ * 所有字段必须提供（不支持部分更新）。
  */
 export interface MemoUpdateRequest {
-    content?: string;      // 动态内容（Markdown 格式）
-    isPinned?: boolean;    // 是否置顶
-    status?: number;       // 状态: 0=草稿(Draft), 1=已发布(Published)
+    content: string;       // 动态内容（Markdown 格式）
+    isPinned: boolean;     // 是否置顶
+    status: number;        // 状态: 0=草稿(Draft), 1=已发布(Published)
 }
 
 /**
@@ -75,7 +75,7 @@ export const createMemoApi = (data: MemoCreateRequest): Promise<number> => {
 
 /**
  * 更新动态
- * 支持部分更新，可单独修改内容、置顶状态或发布状态
+ * 所有字段必须提供（不支持部分更新）。
  * @param id 动态ID
  * @param data 更新请求数据
  * @returns Promise<void>

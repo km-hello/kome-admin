@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { Component } from 'vue'
 import { LogOut } from 'lucide-vue-next'
+import { DEFAULT_AVATAR } from '@/constants'
 
 /**
  * 导航项配置
@@ -32,23 +33,22 @@ export interface NavGroup {
 /**
  * Props 定义
  * @property navGroups 导航分组列表
- * @property userAvatar 用户头像 URL
- * @property userNickname 用户昵称
- * @property userEmail 用户邮箱
+ * @property userAvatar 用户头像 URL (null = 未设置，使用默认头像)
+ * @property userNickname 用户昵称（必填，由父组件保证有值）
+ * @property userEmail 用户邮箱 (null = 未设置，不显示)
  * @property mobile 移动端模式（始终显示，不受 md:flex 控制）
  */
 interface Props {
   navGroups: NavGroup[]
-  userAvatar?: string
-  userNickname?: string
-  userEmail?: string
+  userAvatar: string | null
+  userNickname: string
+  userEmail: string | null
   mobile?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
-  userAvatar: '',
-  userNickname: '',
-  userEmail: '',
+  userAvatar: null,
+  userEmail: null,
   mobile: false,
 })
 
@@ -130,13 +130,13 @@ const getNavItemClass = (path: string) => {
     <div class="p-4 border-t border-border/50 shrink-0">
       <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
         <img
-            :src="userAvatar"
+            :src="userAvatar || DEFAULT_AVATAR"
             class="w-10 h-10 rounded-full bg-white border-2 border-slate-200"
             alt="User Avatar"
         >
         <div class="flex-1 min-w-0">
           <div class="text-sm font-bold text-slate-800 truncate">{{ userNickname }}</div>
-          <div class="text-xs text-slate-500 truncate">{{ userEmail }}</div>
+          <div v-if="userEmail" class="text-xs text-slate-500 truncate">{{ userEmail }}</div>
         </div>
         <!-- 登出按钮 -->
         <button

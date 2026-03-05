@@ -18,14 +18,14 @@ export interface PostSimpleResponse {
     id: number;                // 文章 ID
     title: string;             // 文章标题
     slug: string;              // URL 友好的文章标识
-    summary?: string;          // 文章摘要
-    coverImage?: string;       // 封面图 URL
+    summary: string | null;    // 文章摘要
+    coverImage: string | null; // 封面图 URL
     views: number;             // 浏览量
-    readTime?: number;         // 预计阅读时间（分钟）
+    readTime: number;          // 预计阅读时间（分钟）
     isPinned: boolean;         // 是否置顶
     status: number;            // 状态: 0=草稿(Draft), 1=已发布(Published)
     createTime: string;        // 创建时间（ISO 格式）
-    tags?: TagResponse[];      // 关联标签列表
+    tags: TagResponse[] | null;// 关联标签列表
 }
 
 /**
@@ -36,16 +36,16 @@ export interface PostDetailResponse {
     id: number;                // 文章 ID
     title: string;             // 文章标题
     slug: string;              // URL 友好的文章标识
-    summary?: string;          // 文章摘要
+    summary: string | null;    // 文章摘要
     content: string;           // 文章正文（Markdown 格式）
-    coverImage?: string;       // 封面图 URL
+    coverImage: string | null; // 封面图 URL
     views: number;             // 浏览量
-    readTime?: number;         // 预计阅读时间（分钟）
+    readTime: number;          // 预计阅读时间（分钟）
     isPinned: boolean;         // 是否置顶
     status: number;            // 状态: 0=草稿(Draft), 1=已发布(Published)
     createTime: string;        // 创建时间（ISO 格式）
     updateTime: string;        // 更新时间（ISO 格式）
-    tags?: TagResponse[];      // 关联标签列表
+    tags: TagResponse[] | null;// 关联标签列表
 }
 
 /**
@@ -65,29 +65,30 @@ export interface PostQuery extends BaseQuery {
  * 提交新文章数据，包含标题、正文、标签等字段，支持草稿保存和直接发布。
  */
 export interface PostCreateRequest {
-    title: string;        // 标题 (max 255)
-    slug: string;         // URL slug (max 255, pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$)
-    summary?: string;     // 摘要 (max 500)
-    content: string;      // 内容 (min 1)
-    coverImage?: string;  // 封面图 (max 255)
-    isPinned: boolean;    // 是否置顶
-    status: number;       // 状态 (0: Draft, 1: Published)
-    tagIds?: number[];    // 标签ID列表
+    title: string;             // 标题 (max 255)
+    slug: string;              // URL slug (max 255, pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$)
+    summary: string | null;    // 摘要 (max 500)
+    content: string;           // 内容 (min 1)
+    coverImage: string | null; // 封面图 (max 255)
+    isPinned: boolean;         // 是否置顶
+    status: number;            // 状态 (0: Draft, 1: Published)
+    tagIds: number[] | null;   // 标签ID列表
 }
 
 /**
  * 文章更新请求。
- * 支持部分更新，可单独修改标题、内容、状态等字段。
+ * 所有字段必须提供（不支持部分更新）。
+ * 使用 null 显式清空可空字段。
  */
 export interface PostUpdateRequest {
-    title?: string;            // 文章标题（max 255）
-    slug?: string;             // URL 友好标识（max 255）
-    summary?: string;          // 文章摘要（max 500）
-    content?: string;          // 文章正文（Markdown 格式）
-    coverImage?: string;       // 封面图 URL（max 255）
-    isPinned?: boolean;        // 是否置顶
-    status?: number;           // 状态: 0=草稿(Draft), 1=已发布(Published)
-    tagIds?: number[];         // 关联标签 ID 列表
+    title: string;                 // 文章标题（max 255, required）
+    slug: string;                  // URL 友好标识（max 255, required）
+    summary: string | null;        // 文章摘要（max 500）
+    content: string;               // 文章正文（Markdown 格式, required）
+    coverImage: string | null;     // 封面图 URL（max 255）
+    isPinned: boolean;             // 是否置顶
+    status: number;                // 状态: 0=草稿(Draft), 1=已发布(Published)
+    tagIds: number[] | null;       // 关联标签 ID 列表
 }
 
 /* ========== API 接口 ========== */
@@ -127,7 +128,7 @@ export const createPostApi = (data: PostCreateRequest): Promise<number> => {
 
 /**
  * 更新文章。
- * 支持部分更新，可单独修改标题、内容、状态等字段。
+ * 所有字段必须提供（不支持部分更新）。
  *
  * @param id 文章 ID。
  * @param data 文章更新请求数据。

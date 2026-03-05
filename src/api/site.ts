@@ -28,9 +28,9 @@ export interface SiteStats {
  * 包含站长的昵称、头像和简介，用于 Dashboard 页面的站长信息展示。
  */
 export interface SiteOwner {
-    nickname: string;      // 站长昵称
-    avatar: string;        // 站长头像 URL
-    description: string;   // 站长个人简介
+    nickname: string;           // 站长昵称
+    avatar: string | null;      // 站长头像 URL
+    description: string | null; // 站长个人简介
 }
 
 /**
@@ -47,12 +47,12 @@ export interface SiteInfoResponse {
  * 系统未初始化时提交的管理员账户创建数据，包含必填的用户名密码和选填的个人资料。
  */
 export interface SetupRequest {
-    username: string;      // 管理员用户名（必填，min 3, max 20）
-    password: string;      // 管理员密码（必填，min 6, max 50）
-    nickname?: string;     // 昵称（选填，默认 "Admin"）
-    avatar?: string;       // 头像 URL（选填，默认 DiceBear 生成）
-    description?: string;  // 个人简介（选填）
-    email?: string;        // 邮箱地址（选填）
+    username: string;           // 管理员用户名（必填，min 3, max 20）
+    password: string;           // 管理员密码（必填，min 6, max 50）
+    nickname: string | null;    // 昵称（选填，默认 "Admin"）
+    avatar: string | null;      // 头像 URL（选填，默认 DiceBear 生成）
+    description: string | null; // 个人简介（选填）
+    email: string | null;       // 邮箱地址（选填）
 }
 
 /* ========== API 接口 ========== */

@@ -83,7 +83,7 @@ export const useUserStore = defineStore('user', () => {
      * @param req 更新请求数据
      * @returns 返回更新后的用户信息
      */
-    const updateProfile = async (req: Partial<UserUpdateRequest>): Promise<UserInfoResponse> => {
+    const updateProfile = async (req: UserUpdateRequest): Promise<UserInfoResponse> => {
         const data = await updateUserInfoApi(req);
 
         // 合并更新后的信息到 userInfo（保留 token 等其他字段）

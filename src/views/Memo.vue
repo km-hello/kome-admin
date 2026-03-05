@@ -94,9 +94,15 @@ const dialogMode = ref<'create' | 'edit'>('create');
 const dialogLoading = ref(false);
 
 /**
+ * 动态表单数据类型
+ * 基于 API 请求类型，增加 id 字段用于编辑模式
+ */
+type MemoFormData = MemoCreateRequest & { id: number };
+
+/**
  * 表单数据
  */
-const formData = ref({
+const formData = ref<MemoFormData>({
   id: 0,
   content: '',
   isPinned: false,

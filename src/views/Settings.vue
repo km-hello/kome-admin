@@ -5,6 +5,8 @@ import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import { useUserStore } from '@/stores/user';
+import { normalizeStringField } from '@/utils/formNormalizer';
+import { DEFAULT_AVATAR } from '@/constants';
 import {
   getUserInfoApi,
   type UserInfoResponse,
@@ -31,13 +33,13 @@ import {
   Plus,
   Trash2,
   Globe,
-  Rss,
   Home,
   Link as LinkIcon,
   X,
+  Check,
   Zap,
 } from 'lucide-vue-next';
-import { IconGithub, IconX } from '@/components/icons/BrandIcons';
+import { IconGithub, IconX, IconTelegram } from '@/components/icons/BrandIcons';
 
 import PageHeader from '@/components/common/PageHeader.vue';
 
@@ -59,11 +61,11 @@ import {
  */
 const platformOptions = [
   { value: 'github', label: 'GitHub' },
+  { value: 'telegram', label: 'Telegram' },
   { value: 'twitter', label: 'X (Twitter)' },
   { value: 'email', label: 'Email' },
   { value: 'homepage', label: 'Homepage' },
   { value: 'website', label: 'Website' },
-  { value: 'rss', label: 'RSS' },
 ];
 
 const { t } = useI18n();
@@ -86,7 +88,7 @@ const iconMap: Record<string, any> = {
   email: Mail,
   homepage: Home,
   website: Globe,
-  rss: Rss,
+  telegram: IconTelegram,
 };
 
 /**
@@ -103,48 +105,52 @@ const isClickable = (url: string) => url && url !== '#';
 const router = useRouter();
 const userStore = useUserStore();
 
-/**
- * 用户信息
- */
-const userInfo = ref<UserInfoResponse>({
+/* ========== 服务端原始数据 ========== */
+
+const serverData = ref<UserInfoResponse>({
   id: 0,
   username: '',
-  nickname: '',
-  avatar: '',
-  email: '',
-  description: '',
-  socialLinks: [],
+  nickname: null,
+  avatar: null,
+  email: null,
+  description: null,
+  socialLinks: null,
+  skills: null,
 });
 
-/**
- * 加载状态
- */
-const loading = ref(true);
-const profileLoading = ref(false);
-const passwordLoading = ref(false);
-const socialLinksLoading = ref(false);
-const skillsLoading = ref(false);
+/* ========== 表单状态 ========== */
 
 /**
- * 个人资料表单
+ * 个人资料表单类型（基于 UserUpdateRequest，排除数组字段）
  */
-const profileForm = ref<UserUpdateRequest>({
+type ProfileFormData = Omit<UserUpdateRequest, 'socialLinks' | 'skills'>;
+
+/**
+ * 个人资料表单（可空字段使用 string | null）
+ */
+const form = ref<ProfileFormData>({
   username: '',
-  nickname: '',
-  avatar: '',
-  email: '',
-  description: '',
+  nickname: null,
+  avatar: null,
+  email: null,
+  description: null,
 });
 
 /**
- * 社交链接表单
+ * 社交链接表单（UI 绑定用数组，提交时空数组转 null）
  */
 const socialLinksForm = ref<SocialLink[]>([]);
 
 /**
- * 技能表单
+ * 技能表单（UI 绑定用数组，提交时空数组转 null）
  */
 const skillsForm = ref<SkillItem[]>([]);
+
+/* ========== 加载状态 ========== */
+
+const loading = ref(true);
+const saving = ref(false);
+const passwordLoading = ref(false);
 
 /**
  * 密码表单
@@ -163,90 +169,110 @@ const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 
 /**
- * 计算属性：检查个人资料是否有变化
+ * 新密码强度检查
  */
-const profileHasChanges = computed(() => {
-  return (
-      profileForm.value.username !== userInfo.value.username ||
-      profileForm.value.nickname !== userInfo.value.nickname ||
-      profileForm.value.avatar !== userInfo.value.avatar ||
-      profileForm.value.email !== userInfo.value.email ||
-      profileForm.value.description !== (userInfo.value.description || '')
-  );
-});
+const passwordChecks = computed(() => ({
+  length: passwordForm.value.newPassword.length >= 8 && passwordForm.value.newPassword.length <= 64,
+  hasLetter: /[a-zA-Z]/.test(passwordForm.value.newPassword),
+  hasNumber: /\d/.test(passwordForm.value.newPassword),
+  hasSpecial: /[\W_]/.test(passwordForm.value.newPassword),
+}));
 
 /**
- * 计算属性：检查社交链接是否有变化
+ * 新密码强度等级
  */
-const socialLinksHasChanges = computed(() => {
-  const original = userInfo.value.socialLinks || [];
-  const current = socialLinksForm.value;
+const passwordStrength = computed(() => {
+  const checks = Object.values(passwordChecks.value).filter(Boolean).length;
+  if (checks === 0) return { level: 0, text: '', color: '' };
+  if (checks <= 2) return { level: 1, text: t('setup.passwordStrength.weak'), color: 'bg-red-500' };
+  if (checks <= 3) return { level: 2, text: t('setup.passwordStrength.medium'), color: 'bg-yellow-500' };
+  return { level: 3, text: t('setup.passwordStrength.strong'), color: 'bg-green-500' };
+});
 
-  if (original.length !== current.length) return true;
+/* ========== 变更检测 ========== */
 
-  for (let i = 0; i < original.length; i++) {
-    const orig = original[i];
-    const curr = current[i];
-    if (orig?.platform !== curr?.platform || orig?.url !== curr?.url) {
-      return true;
-    }
+/**
+ * 统一变更检测：比较当前表单与服务端原始数据
+ * 比较时将空字符串规范化为 null，避免 '' vs null 误判
+ */
+const hasChanges = computed(() => {
+  const d = serverData.value;
+
+  // 文本字段：规范化后比较
+  if (form.value.username.trim() !== d.username) return true;
+  if (normalizeStringField(form.value.nickname) !== d.nickname) return true;
+  if (normalizeStringField(form.value.avatar) !== d.avatar) return true;
+  if (normalizeStringField(form.value.email) !== d.email) return true;
+  if (normalizeStringField(form.value.description) !== d.description) return true;
+
+  // 社交链接
+  const origLinks = d.socialLinks ?? [];
+  if (origLinks.length !== socialLinksForm.value.length) return true;
+  for (let i = 0; i < origLinks.length; i++) {
+    const orig = origLinks[i];
+    const curr = socialLinksForm.value[i];
+    if (!orig || !curr) return true;
+    if (orig.platform !== curr.platform) return true;
+    if (orig.url !== curr.url) return true;
   }
+
+  // 技能列表（比较 name、level 和位置顺序）
+  const origSkills = d.skills ?? [];
+  if (origSkills.length !== skillsForm.value.length) return true;
+  for (let i = 0; i < origSkills.length; i++) {
+    const orig = origSkills[i];
+    const curr = skillsForm.value[i];
+    if (!orig || !curr) return true;
+    if (orig.name !== curr.name) return true;
+    if (orig.level !== curr.level) return true;
+  }
+
   return false;
 });
 
+/* ========== 表单初始化与重置 ========== */
+
 /**
- * 计算属性：检查技能列表是否有变化
+ * 从服务端数据初始化所有表单
  */
-const skillsHasChanges = computed(() => {
-  const original = userInfo.value.skills || [];
-  const current = skillsForm.value;
+const initForm = (data: UserInfoResponse) => {
+  form.value = {
+    username: data.username,
+    nickname: data.nickname,
+    avatar: data.avatar,
+    email: data.email,
+    description: data.description,
+  };
+  socialLinksForm.value = data.socialLinks
+      ? data.socialLinks.map(link => ({ ...link }))
+      : [];
+  skillsForm.value = data.skills
+      ? data.skills.map(skill => ({ ...skill }))
+      : [];
+};
 
-  if (original.length !== current.length) return true;
+/**
+ * 重置所有表单为服务端原始数据
+ */
+const resetForm = () => {
+  initForm(serverData.value);
+};
 
-  for (let i = 0; i < original.length; i++) {
-    const orig = original[i];
-    const curr = current[i];
-    if (orig?.name !== curr?.name || orig?.level !== curr?.level || orig?.order !== curr?.order) {
-      return true;
-    }
-  }
-  return false;
-});
-
+/* ========== 数据获取 ========== */
 
 onMounted(async () => {
   await fetchUserInfo();
 });
 
-
 /**
- * 获取用户信息。
- * 加载用户数据并初始化个人资料、社交链接和技能表单。
+ * 获取用户信息并初始化表单
  */
 const fetchUserInfo = async () => {
   loading.value = true;
   try {
     const data = await getUserInfoApi();
-    userInfo.value = data;
-
-    // 初始化表单数据
-    profileForm.value = {
-      username: data.username,
-      nickname: data.nickname,
-      avatar: data.avatar || '',
-      email: data.email || '',
-      description: data.description || '',
-    };
-
-    // 初始化社交链接表单（深拷贝）
-    socialLinksForm.value = data.socialLinks
-        ? data.socialLinks.map(link => ({ ...link }))
-        : [];
-
-    // 初始化技能表单（深拷贝）
-    skillsForm.value = data.skills
-        ? data.skills.map(skill => ({ ...skill }))
-        : [];
+    serverData.value = data;
+    initForm(data);
   } catch (error) {
     console.error('Failed to fetch user info:', error);
   } finally {
@@ -254,56 +280,61 @@ const fetchUserInfo = async () => {
   }
 };
 
+/* ========== 表单验证 ========== */
+
 /**
- * 验证个人资料表单。
- * 检查用户名、昵称、头像、邮箱和简介的格式与长度要求。
+ * 验证个人资料表单
  */
-const validateProfileForm = (): boolean => {
+const validateForm = (): boolean => {
   // 用户名验证
-  if (!profileForm.value.username?.trim()) {
+  if (!form.value.username.trim()) {
     toast.warning(t('settings.validation.usernameRequired'));
     return false;
   }
 
-  if (profileForm.value.username.length < 4 || profileForm.value.username.length > 50) {
+  if (form.value.username.length < 4 || form.value.username.length > 50) {
     toast.warning(t('settings.validation.usernameLength'));
     return false;
   }
 
   const usernamePattern = /^[a-zA-Z0-9_-]+$/;
-  if (!usernamePattern.test(profileForm.value.username)) {
+  if (!usernamePattern.test(form.value.username)) {
     toast.warning(t('settings.validation.usernameInvalid'));
     return false;
   }
 
   // 昵称验证
-  if (profileForm.value.nickname && profileForm.value.nickname.length > 50) {
+  const nickname = form.value.nickname;
+  if (nickname && nickname.length > 50) {
     toast.warning(t('settings.validation.nicknameTooLong'));
     return false;
   }
 
   // 头像 URL 验证
-  if (profileForm.value.avatar && profileForm.value.avatar.length > 255) {
+  const avatar = form.value.avatar;
+  if (avatar && avatar.length > 255) {
     toast.warning(t('settings.validation.avatarTooLong'));
     return false;
   }
 
   // 邮箱验证
-  if (profileForm.value.email) {
-    if (profileForm.value.email.length > 100) {
+  const email = form.value.email;
+  if (email) {
+    if (email.length > 100) {
       toast.warning(t('settings.validation.emailTooLong'));
       return false;
     }
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(profileForm.value.email)) {
+    if (!emailPattern.test(email)) {
       toast.warning(t('settings.validation.emailInvalid'));
       return false;
     }
   }
 
   // 描述验证
-  if (profileForm.value.description && profileForm.value.description.length > 255) {
+  const description = form.value.description;
+  if (description && description.length > 255) {
     toast.warning(t('settings.validation.descriptionTooLong'));
     return false;
   }
@@ -311,45 +342,61 @@ const validateProfileForm = (): boolean => {
   return true;
 };
 
+/* ========== 构建提交请求 ========== */
+
 /**
- * 保存个人资料。
- * 验证后通过 Store 统一更新用户信息并同步本地数据。
+ * 组装完整的 UserUpdateRequest
+ * 字符串字段：空字符串 → null
+ * 数组字段：空数组 → null
+ * 技能列表：自动按位置分配 order
  */
-const handleSaveProfile = async () => {
-  if (!validateProfileForm()) return;
+const buildRequest = (): UserUpdateRequest => {
+  // 技能按数组位置分配排序值
+  skillsForm.value.forEach((s, i) => s.order = i);
 
-  profileLoading.value = true;
+  // 过滤无效条目：空 URL 的社交链接、空名称的技能
+  const filteredLinks = socialLinksForm.value.filter(link => link.url.trim());
+  const filteredSkills = skillsForm.value.filter(skill => skill.name.trim());
+
+  return {
+    username: form.value.username.trim(),
+    nickname: normalizeStringField(form.value.nickname),
+    avatar: normalizeStringField(form.value.avatar),
+    email: normalizeStringField(form.value.email),
+    description: normalizeStringField(form.value.description),
+    socialLinks: filteredLinks.length > 0 ? filteredLinks : null,
+    skills: filteredSkills.length > 0 ? filteredSkills : null,
+  };
+};
+
+/* ========== 统一保存 ========== */
+
+/**
+ * 保存所有设置（全表单提交）
+ */
+const handleSave = async () => {
+  if (!validateForm()) return;
+
+  saving.value = true;
   try {
-    // 通过 Store 统一更新用户信息
-    const data = await userStore.updateProfile({
-      username: profileForm.value.username?.trim(),
-      nickname: profileForm.value.nickname?.trim() || undefined,
-      avatar: profileForm.value.avatar?.trim() || undefined,
-      email: profileForm.value.email?.trim() || undefined,
-      description: profileForm.value.description?.trim() || undefined,
-    });
+    const data = await userStore.updateProfile(buildRequest());
 
-    // 更新本地页面数据
-    userInfo.value = data;
-    profileForm.value = {
-      username: data.username,
-      nickname: data.nickname,
-      avatar: data.avatar || '',
-      email: data.email || '',
-      description: data.description || '',
-    };
+    // 更新服务端原始数据 & 重新初始化表单
+    serverData.value = data;
+    initForm(data);
 
     toast.success(t('settings.profileUpdateSuccess'));
   } catch (error) {
-    console.error('Failed to update profile:', error);
+    console.error('Failed to update settings:', error);
   } finally {
-    profileLoading.value = false;
+    saving.value = false;
   }
 };
 
+/* ========== 密码修改（独立接口） ========== */
+
 /**
- * 验证密码表单。
- * 检查旧密码、新密码格式（8-64 位含字母数字特殊字符）和两次输入一致性。
+ * 验证密码表单
  */
 const validatePasswordForm = (): boolean => {
   if (!passwordForm.value.oldPassword) {
@@ -408,69 +455,20 @@ const handleChangePassword = async () => {
   }
 };
 
-/**
- * 重置个人资料表单为服务端原始数据
- */
-const resetProfileForm = () => {
-  profileForm.value = {
-    username: userInfo.value.username,
-    nickname: userInfo.value.nickname,
-    avatar: userInfo.value.avatar || '',
-    email: userInfo.value.email || '',
-    description: userInfo.value.description || '',
-  };
-};
-
+/* ========== 社交链接操作 ========== */
 
 /**
- * 添加社交链接。
- * 在表单末尾追加一条默认 GitHub 平台的空链接。
+ * 添加社交链接
  */
 const addSocialLink = () => {
   socialLinksForm.value.push({ platform: 'github', url: '' });
 };
 
 /**
- * 删除社交链接。
- *
- * @param index 待删除的链接索引
+ * 删除社交链接
  */
 const removeSocialLink = (index: number) => {
   socialLinksForm.value.splice(index, 1);
-};
-
-/**
- * 重置社交链接表单为服务端原始数据
- */
-const resetSocialLinksForm = () => {
-  socialLinksForm.value = userInfo.value.socialLinks
-      ? userInfo.value.socialLinks.map(link => ({ ...link }))
-      : [];
-};
-
-/**
- * 保存社交链接。
- * 通过 Store 更新社交链接并同步本地数据。
- */
-const handleSaveSocialLinks = async () => {
-  socialLinksLoading.value = true;
-  try {
-    const data = await userStore.updateProfile({
-      socialLinks: socialLinksForm.value,
-    });
-
-    // 更新本地数据
-    userInfo.value.socialLinks = data.socialLinks;
-    socialLinksForm.value = data.socialLinks
-        ? data.socialLinks.map(link => ({ ...link }))
-        : [];
-
-    toast.success(t('settings.socialLinksUpdateSuccess'));
-  } catch (error) {
-    console.error('Failed to update social links:', error);
-  } finally {
-    socialLinksLoading.value = false;
-  }
 };
 
 
@@ -656,42 +654,6 @@ const removeSkill = (index: number) => {
   skillsForm.value.splice(index, 1);
 };
 
-/**
- * 重置技能表单为服务端原始数据
- */
-const resetSkillsForm = () => {
-  skillsForm.value = userInfo.value.skills
-      ? userInfo.value.skills.map(skill => ({ ...skill }))
-      : [];
-};
-
-/**
- * 保存技能列表。
- * 自动按数组位置分配排序值，通过 Store 更新并同步本地数据。
- */
-const handleSaveSkills = async () => {
-  skillsLoading.value = true;
-  try {
-    // 按数组位置自动分配排序值
-    skillsForm.value.forEach((s, i) => s.order = i);
-
-    const data = await userStore.updateProfile({
-      skills: skillsForm.value,
-    });
-
-    // 更新本地数据
-    userInfo.value.skills = data.skills;
-    skillsForm.value = data.skills
-        ? data.skills.map(skill => ({ ...skill }))
-        : [];
-
-    toast.success(t('settings.skillsUpdateSuccess'));
-  } catch (error) {
-    console.error('Failed to update skills:', error);
-  } finally {
-    skillsLoading.value = false;
-  }
-};
 </script>
 
 
@@ -737,10 +699,10 @@ const handleSaveSkills = async () => {
               </Label>
               <Input
                   id="username"
-                  v-model="profileForm.username"
+                  v-model="form.username"
                   :placeholder="t('settings.usernamePlaceholder')"
                   maxlength="50"
-                  :disabled="profileLoading"
+                  :disabled="saving"
               />
               <p class="text-xs text-slate-500">
                 {{ t('settings.usernameHint') }}
@@ -757,10 +719,11 @@ const handleSaveSkills = async () => {
               </Label>
               <Input
                   id="nickname"
-                  v-model="profileForm.nickname"
+                  :model-value="form.nickname ?? ''"
+                  @update:model-value="(val) => form.nickname = val as string"
                   :placeholder="t('settings.nicknamePlaceholder')"
                   maxlength="50"
-                  :disabled="profileLoading"
+                  :disabled="saving"
               />
             </div>
 
@@ -774,10 +737,11 @@ const handleSaveSkills = async () => {
               </Label>
               <Input
                   id="avatar"
-                  v-model="profileForm.avatar"
+                  :model-value="form.avatar ?? ''"
+                  @update:model-value="(val) => form.avatar = val as string"
                   :placeholder="t('settings.avatarUrlPlaceholder')"
                   maxlength="255"
-                  :disabled="profileLoading"
+                  :disabled="saving"
               />
             </div>
 
@@ -792,10 +756,11 @@ const handleSaveSkills = async () => {
               <Input
                   id="email"
                   type="email"
-                  v-model="profileForm.email"
+                  :model-value="form.email ?? ''"
+                  @update:model-value="(val) => form.email = val as string"
                   :placeholder="t('settings.emailPlaceholder')"
                   maxlength="100"
-                  :disabled="profileLoading"
+                  :disabled="saving"
               />
             </div>
 
@@ -809,35 +774,16 @@ const handleSaveSkills = async () => {
               </Label>
               <Textarea
                   id="description"
-                  v-model="profileForm.description"
+                  :model-value="form.description ?? ''"
+                  @update:model-value="(val) => form.description = val as string"
                   :placeholder="t('settings.bioPlaceholder')"
                   maxlength="255"
                   rows="3"
-                  :disabled="profileLoading"
+                  :disabled="saving"
               />
               <p class="text-xs text-slate-500">
-                {{ profileForm.description?.length || 0 }}/255 {{ t('common.characters') }}
+                {{ form.description?.length ?? 0 }}/255 {{ t('common.characters') }}
               </p>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="flex items-center justify-end gap-3 pt-2">
-              <Button
-                  variant="outline"
-                  @click="resetProfileForm"
-                  :disabled="profileLoading || !profileHasChanges"
-              >
-                {{ t('settings.reset') }}
-              </Button>
-              <Button
-                  class="bg-slate-900 hover:bg-slate-800 gap-2"
-                  @click="handleSaveProfile"
-                  :disabled="profileLoading || !profileHasChanges"
-              >
-                <Loader2 v-if="profileLoading" class="w-4 h-4 animate-spin" />
-                <Save v-else class="w-4 h-4" />
-                {{ t('settings.saveChanges') }}
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -865,7 +811,7 @@ const handleSaveSkills = async () => {
                   class="flex flex-wrap items-center gap-2 sm:gap-3"
               >
                 <!-- 平台选择 -->
-                <Select v-model="link.platform" :disabled="socialLinksLoading">
+                <Select v-model="link.platform" :disabled="saving">
                   <SelectTrigger class="w-full sm:w-36">
                     <SelectValue />
                   </SelectTrigger>
@@ -885,7 +831,7 @@ const handleSaveSkills = async () => {
                     v-model="link.url"
                     :placeholder="t('settings.socialUrlPlaceholder')"
                     class="flex-1"
-                    :disabled="socialLinksLoading"
+                    :disabled="saving"
                 />
 
                 <!-- 删除按钮 -->
@@ -893,7 +839,7 @@ const handleSaveSkills = async () => {
                     variant="ghost"
                     size="icon"
                     @click="removeSocialLink(index)"
-                    :disabled="socialLinksLoading"
+                    :disabled="saving"
                     class="text-slate-400 hover:text-red-500"
                 >
                   <Trash2 class="w-4 h-4" />
@@ -910,32 +856,12 @@ const handleSaveSkills = async () => {
             <Button
                 variant="outline"
                 @click="addSocialLink"
-                :disabled="socialLinksLoading"
+                :disabled="saving"
                 class="gap-2"
             >
               <Plus class="w-4 h-4" />
               {{ t('settings.addLink') }}
             </Button>
-
-            <!-- 操作按钮 -->
-            <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
-              <Button
-                  variant="outline"
-                  @click="resetSocialLinksForm"
-                  :disabled="socialLinksLoading || !socialLinksHasChanges"
-              >
-                {{ t('settings.reset') }}
-              </Button>
-              <Button
-                  class="bg-slate-900 hover:bg-slate-800 gap-2"
-                  @click="handleSaveSocialLinks"
-                  :disabled="socialLinksLoading || !socialLinksHasChanges"
-              >
-                <Loader2 v-if="socialLinksLoading" class="w-4 h-4 animate-spin" />
-                <Save v-else class="w-4 h-4" />
-                {{ t('settings.saveChanges') }}
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
@@ -1016,7 +942,7 @@ const handleSaveSkills = async () => {
                     <button
                         class="opacity-0 group-hover/tag:opacity-100 transition-opacity text-current hover:text-red-500 hover:scale-110"
                         @click="removeSkill(item.index)"
-                        :disabled="skillsLoading"
+                        :disabled="saving"
                     >
                       <X class="w-3 h-3" />
                     </button>
@@ -1049,10 +975,10 @@ const handleSaveSkills = async () => {
                   v-model="newSkillName"
                   :placeholder="t('settings.newSkillPlaceholder')"
                   class="flex-1"
-                  :disabled="skillsLoading"
+                  :disabled="saving"
                   @keydown.enter="addSkillQuick"
               />
-              <Select v-model="newSkillLevel" :disabled="skillsLoading">
+              <Select v-model="newSkillLevel" :disabled="saving">
                 <SelectTrigger class="w-36">
                   <SelectValue />
                 </SelectTrigger>
@@ -1070,34 +996,34 @@ const handleSaveSkills = async () => {
                   variant="outline"
                   size="icon"
                   @click="addSkillQuick"
-                  :disabled="skillsLoading || !newSkillName.trim()"
+                  :disabled="saving || !newSkillName.trim()"
                   :title="t('settings.addSkill')"
               >
                 <Plus class="w-4 h-4" />
               </Button>
             </div>
-
-            <!-- 操作按钮 -->
-            <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
-              <Button
-                  variant="outline"
-                  @click="resetSkillsForm"
-                  :disabled="skillsLoading || !skillsHasChanges"
-              >
-                {{ t('settings.reset') }}
-              </Button>
-              <Button
-                  class="bg-slate-900 hover:bg-slate-800 gap-2"
-                  @click="handleSaveSkills"
-                  :disabled="skillsLoading || !skillsHasChanges"
-              >
-                <Loader2 v-if="skillsLoading" class="w-4 h-4 animate-spin" />
-                <Save v-else class="w-4 h-4" />
-                {{ t('settings.saveChanges') }}
-              </Button>
-            </div>
           </CardContent>
         </Card>
+
+        <!-- 统一保存/重置操作栏 -->
+        <div class="flex items-center justify-end gap-3">
+          <Button
+              variant="outline"
+              @click="resetForm"
+              :disabled="saving || !hasChanges"
+          >
+            {{ t('settings.reset') }}
+          </Button>
+          <Button
+              class="bg-slate-900 hover:bg-slate-800 gap-2"
+              @click="handleSave"
+              :disabled="saving || !hasChanges"
+          >
+            <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
+            <Save v-else class="w-4 h-4" />
+            {{ t('settings.saveChanges') }}
+          </Button>
+        </div>
 
         <!-- 密码设置 -->
         <Card>
@@ -1170,7 +1096,41 @@ const handleSaveSkills = async () => {
                   <EyeOff v-else class="w-4 h-4" />
                 </button>
               </div>
-              <p class="text-xs text-slate-500">
+
+              <!-- 密码强度指示器 -->
+              <div v-if="passwordForm.newPassword" class="space-y-2">
+                <div class="flex gap-1">
+                  <div
+                      v-for="i in 3"
+                      :key="i"
+                      class="h-1 flex-1 rounded-full transition-colors"
+                      :class="i <= passwordStrength.level ? passwordStrength.color : 'bg-slate-200'"
+                  />
+                </div>
+                <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                  <span :class="passwordChecks.length ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
+                    <Check v-if="passwordChecks.length" class="h-3 w-3" />
+                    <X v-else class="h-3 w-3" />
+                    {{ t('setup.passwordStrength.length') }}
+                  </span>
+                  <span :class="passwordChecks.hasLetter ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
+                    <Check v-if="passwordChecks.hasLetter" class="h-3 w-3" />
+                    <X v-else class="h-3 w-3" />
+                    {{ t('setup.passwordStrength.letter') }}
+                  </span>
+                  <span :class="passwordChecks.hasNumber ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
+                    <Check v-if="passwordChecks.hasNumber" class="h-3 w-3" />
+                    <X v-else class="h-3 w-3" />
+                    {{ t('setup.passwordStrength.number') }}
+                  </span>
+                  <span :class="passwordChecks.hasSpecial ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
+                    <Check v-if="passwordChecks.hasSpecial" class="h-3 w-3" />
+                    <X v-else class="h-3 w-3" />
+                    {{ t('setup.passwordStrength.specialChar') }}
+                  </span>
+                </div>
+              </div>
+              <p v-else class="text-xs text-slate-500">
                 {{ t('settings.newPasswordHint') }}
               </p>
             </div>
@@ -1191,6 +1151,7 @@ const handleSaveSkills = async () => {
                     :placeholder="t('settings.confirmNewPasswordPlaceholder')"
                     :disabled="passwordLoading"
                     class="pr-10"
+                    :class="{ 'border-red-300 focus:border-red-400': confirmPassword && passwordForm.newPassword !== confirmPassword }"
                 />
                 <button
                     type="button"
@@ -1202,6 +1163,12 @@ const handleSaveSkills = async () => {
                   <EyeOff v-else class="w-4 h-4" />
                 </button>
               </div>
+              <p
+                  v-if="confirmPassword && passwordForm.newPassword !== confirmPassword"
+                  class="text-xs text-red-500"
+              >
+                {{ t('settings.validation.passwordMismatch') }}
+              </p>
             </div>
 
             <!-- 操作按钮 -->
@@ -1228,8 +1195,8 @@ const handleSaveSkills = async () => {
               <!-- 头像 -->
               <div class="relative group">
                 <img
-                    :src="profileForm.avatar"
-                    :alt="userInfo.nickname"
+                    :src="form.avatar || DEFAULT_AVATAR"
+                    :alt="serverData.nickname ?? serverData.username"
                     class="w-28 h-28 rounded-full bg-slate-100 border-4 border-slate-200 object-cover"
                 />
                 <div
@@ -1240,20 +1207,27 @@ const handleSaveSkills = async () => {
               </div>
 
               <!-- 用户信息 -->
-              <h3 class="mt-4 text-lg font-bold text-slate-900">
-                {{ userInfo.nickname || userInfo.username }}
-              </h3>
-              <p class="text-sm text-slate-500">@{{ userInfo.username }}</p>
+              <template v-if="serverData.nickname">
+                <h3 class="mt-4 text-lg font-bold text-slate-900">
+                  {{ serverData.nickname }}
+                </h3>
+                <p class="text-sm text-slate-500">@{{ serverData.username }}</p>
+              </template>
+              <template v-else>
+                <h3 class="mt-4 text-lg font-bold text-slate-900">
+                  {{ serverData.username }}
+                </h3>
+              </template>
 
               <!-- 邮箱 -->
-              <div v-if="userInfo.email" class="mt-3 flex items-center gap-2 text-sm text-slate-500">
+              <div v-if="serverData.email !== null" class="mt-3 flex items-center gap-2 text-sm text-slate-500">
                 <Mail class="w-4 h-4" />
-                <span>{{ userInfo.email }}</span>
+                <span>{{ serverData.email }}</span>
               </div>
 
               <!-- 简介 -->
-              <p v-if="userInfo.description" class="mt-3 text-sm text-slate-600 px-4">
-                {{ userInfo.description }}
+              <p v-if="serverData.description !== null" class="mt-3 text-sm text-slate-600 px-4">
+                {{ serverData.description }}
               </p>
 
               <!-- 社交链接预览 -->

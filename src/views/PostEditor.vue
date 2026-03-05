@@ -6,6 +6,7 @@ import {useRoute, useRouter} from 'vue-router';
 import {toast} from 'vue-sonner';
 import {useDebounceFn} from '@vueuse/core';
 import {useI18n} from 'vue-i18n';
+import { normalizeStringField } from '@/utils/formNormalizer';
 import {
   createPostApi,
   getPostByIdApi,
@@ -65,17 +66,23 @@ const generatingSlug = ref(false);
 const allTags = ref<TagResponse[]>([]);
 
 /**
+ * 文章表单数据类型
+ * 基于 API 请求类型，增加 tagIds 字段
+ */
+type PostFormData = Omit<PostCreateRequest, 'tagIds'> & { tagIds: number[] };
+
+/**
  * 文章表单数据
  */
-const formData = ref({
+const formData = ref<PostFormData>({
   title: '',
   slug: '',
-  summary: '',
+  summary: null,
   content: '',
-  coverImage: '',
+  coverImage: null,
   isPinned: false,
   status: 0,
-  tagIds: [] as number[],
+  tagIds: [],
 });
 
 /**
@@ -161,26 +168,36 @@ const previewStyle = computed(() => ({
 }));
 
 /**
- * 开始拖动分割条。
- * 阻止默认行为并注册全局鼠标事件监听。
+ * 从 Mouse 或 Touch 事件中提取 clientX
  */
-const startDrag = (e: MouseEvent) => {
+const getClientX = (e: MouseEvent | TouchEvent): number => {
+  return 'touches' in e ? e.touches[0]!.clientX : e.clientX;
+};
+
+/**
+ * 开始拖动分割条。
+ * 阻止默认行为并注册全局鼠标/触摸事件监听。
+ */
+const startDrag = (e: MouseEvent | TouchEvent) => {
   e.preventDefault();
   isDragging.value = true;
   document.addEventListener('mousemove', onDrag);
   document.addEventListener('mouseup', stopDrag);
+  document.addEventListener('touchmove', onDrag, { passive: false });
+  document.addEventListener('touchend', stopDrag);
 };
 
 /**
  * 拖动中处理。
- * 根据鼠标位置计算编辑区宽度百分比，限制在 20%–80% 之间。
+ * 根据指针位置计算编辑区宽度百分比，限制在 20%–80% 之间。
  */
-const onDrag = (e: MouseEvent) => {
+const onDrag = (e: MouseEvent | TouchEvent) => {
   if (!isDragging.value || !splitContainerRef.value) return;
+  e.preventDefault();
 
   const container = splitContainerRef.value;
   const rect = container.getBoundingClientRect();
-  const offsetX = e.clientX - rect.left;
+  const offsetX = getClientX(e) - rect.left;
   const containerWidth = rect.width;
 
   // 计算百分比，限制在 20% - 80% 之间
@@ -197,11 +214,15 @@ const stopDrag = () => {
   isDragging.value = false;
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchmove', onDrag);
+  document.removeEventListener('touchend', stopDrag);
 };
 
 onUnmounted(() => {
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchmove', onDrag);
+  document.removeEventListener('touchend', stopDrag);
 });
 
 
@@ -246,12 +267,12 @@ const loadPost = async () => {
     formData.value = {
       title: detail.title,
       slug: detail.slug,
-      summary: detail.summary || '',
+      summary: detail.summary,
       content: detail.content,
-      coverImage: detail.coverImage || '',
+      coverImage: detail.coverImage,
       isPinned: detail.isPinned,
       status: detail.status,
-      tagIds: detail.tags?.map((t: TagResponse) => t.id) || [],
+      tagIds: detail.tags?.map((t: TagResponse) => t.id) ?? [],
     };
   } catch (error) {
     console.error('Failed to load post:', error);
@@ -296,12 +317,12 @@ const validateForm = (): boolean => {
     return false;
   }
 
-  if (formData.value.summary && formData.value.summary.length > 500) {
+  if (formData.value.summary && formData.value.summary.trim() && formData.value.summary.length > 500) {
     toast.warning(t('postEditor.validation.summaryTooLong'));
     return false;
   }
 
-  if (formData.value.coverImage && formData.value.coverImage.length > 255) {
+  if (formData.value.coverImage && formData.value.coverImage.trim() && formData.value.coverImage.length > 255) {
     toast.warning(t('postEditor.validation.coverTooLong'));
     return false;
   }
@@ -323,12 +344,12 @@ const handleSave = async () => {
       const request: PostUpdateRequest = {
         title: formData.value.title.trim(),
         slug: formData.value.slug.trim(),
-        summary: formData.value.summary.trim() || undefined,
+        summary: normalizeStringField(formData.value.summary),
         content: formData.value.content.trim(),
-        coverImage: formData.value.coverImage.trim() || undefined,
+        coverImage: normalizeStringField(formData.value.coverImage),
         isPinned: formData.value.isPinned,
         status: formData.value.status,
-        tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : undefined,
+        tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : null,
       };
       await updatePostApi(postId.value, request);
       toast.success(t('postEditor.updateSuccess'));
@@ -336,12 +357,12 @@ const handleSave = async () => {
       const request: PostCreateRequest = {
         title: formData.value.title.trim(),
         slug: formData.value.slug.trim(),
-        summary: formData.value.summary.trim() || undefined,
+        summary: normalizeStringField(formData.value.summary),
         content: formData.value.content.trim(),
-        coverImage: formData.value.coverImage.trim() || undefined,
+        coverImage: normalizeStringField(formData.value.coverImage),
         isPinned: formData.value.isPinned,
         status: formData.value.status,
-        tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : undefined,
+        tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : null,
       };
       await createPostApi(request);
       toast.success(t('postEditor.createSuccess'));
@@ -600,14 +621,15 @@ const useFirstImageAsCover = () => {
             </CardHeader>
             <CardContent>
               <Textarea
-                  v-model="formData.summary"
+                  :model-value="formData.summary ?? ''"
+                  @update:model-value="(val) => formData.summary = val as string"
                   :placeholder="t('postEditor.summaryPlaceholder')"
                   rows="4"
                   maxlength="500"
                   class="resize-none"
               />
               <p class="text-xs text-slate-500 mt-2">
-                {{ formData.summary.length }}/500
+                {{ (formData.summary ?? '').length }}/500
               </p>
             </CardContent>
           </Card>
@@ -656,6 +678,7 @@ const useFirstImageAsCover = () => {
                     v-if="showPreview"
                     class="w-2 shrink-0 bg-slate-100 hover:bg-slate-200 cursor-col-resize transition-colors flex items-center justify-center group"
                     @mousedown="startDrag"
+                    @touchstart="startDrag"
                 >
                   <div class="w-0.5 h-8 bg-slate-300 group-hover:bg-slate-400 rounded-full transition-colors"></div>
                 </div>
@@ -748,12 +771,13 @@ const useFirstImageAsCover = () => {
             </CardHeader>
             <CardContent class="space-y-3">
               <Input
-                  v-model="formData.coverImage"
+                  :model-value="formData.coverImage ?? ''"
+                  @update:model-value="(val) => formData.coverImage = val as string"
                   :placeholder="t('postEditor.coverImagePlaceholder')"
                   maxlength="255"
               />
               <p class="text-xs text-slate-500">
-                {{ formData.coverImage.length }}/255
+                {{ (formData.coverImage ?? '').length }}/255
               </p>
               <Button
                   type="button"

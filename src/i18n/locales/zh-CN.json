@@ -60,6 +60,13 @@
     "passwordsDoNotMatch": "两次密码不一致",
     "createStrongPassword": "创建一个强密码",
     "confirmYourPassword": "确认您的密码",
+    "placeholder": {
+      "username": "请输入用户名",
+      "nickname": "您的昵称",
+      "bio": "简单介绍一下您自己",
+      "avatar": "头像 URL",
+      "email": "您的邮箱地址"
+    },
     "passwordStrength": {
       "weak": "弱",
       "medium": "中",
@@ -71,9 +78,9 @@
     },
     "validation": {
       "enterUsername": "请输入用户名",
-      "usernameTooShort": "用户名至少需要 4 个字符",
+      "usernameTooShort": "用户名长度需在4-50个字符之间",
       "usernameInvalid": "用户名只能包含字母、数字、下划线和连字符",
-      "passwordInvalid": "密码需要包含字母、数字和特殊字符，且长度为 8-64 位",
+      "passwordInvalid": "密码需包含字母、数字和特殊字符，长度8-64",
       "passwordMismatch": "两次密码不一致",
       "emailInvalid": "请输入有效的邮箱地址",
       "setupComplete": "设置完成！请使用新账户登录。"
@@ -150,13 +157,13 @@
     "noImageInContent": "内容中未找到图片",
     "validation": {
       "titleRequired": "请输入文章标题",
-      "titleTooLong": "标题过长（最多 255 个字符）",
-      "slugRequired": "请输入文章 Slug",
-      "slugInvalid": "Slug 只能包含小写字母、数字和连字符",
-      "slugTooLong": "Slug 过长（最多 255 个字符）",
+      "titleTooLong": "文章标题不能超过255个字符",
+      "slugRequired": "请输入文章别名",
+      "slugInvalid": "文章别名只能包含小写字母、数字和连字符",
+      "slugTooLong": "文章别名不能超过255个字符",
       "contentRequired": "请输入文章内容",
-      "summaryTooLong": "摘要过长（最多 500 个字符）",
-      "coverTooLong": "封面图片链接过长（最多 255 个字符）",
+      "summaryTooLong": "文章摘要不能超过500个字符",
+      "coverTooLong": "封面图片URL不能超过255个字符",
       "titleFirst": "请先输入文章标题",
       "contentFirst": "请先输入文章内容"
     }
@@ -219,7 +226,7 @@
     "tagUsedInPosts": "该标签被 {count} 篇文章使用。",
     "validation": {
       "nameRequired": "请输入标签名称",
-      "nameTooLong": "标签名称不能超过 50 个字符"
+      "nameTooLong": "标签名称不能超过50个字符"
     }
   },
   "tagSelector": {
@@ -264,12 +271,12 @@
     "deleteCannotUndo": "此操作无法撤销。",
     "validation": {
       "nameRequired": "请输入友链名称",
-      "nameTooLong": "友链名称不能超过 100 个字符",
-      "urlRequired": "请输入友链地址",
-      "urlTooLong": "友链地址不能超过 255 个字符",
-      "urlInvalid": "请输入有效的 URL 地址",
-      "avatarTooLong": "头像地址不能超过 255 个字符",
-      "descriptionTooLong": "描述不能超过 255 个字符"
+      "nameTooLong": "友链名称不能超过100个字符",
+      "urlRequired": "请输入友链URL",
+      "urlTooLong": "友链URL不能超过255个字符",
+      "urlInvalid": "请输入有效的URL地址",
+      "avatarTooLong": "友链头像URL不能超过255个字符",
+      "descriptionTooLong": "友链描述不能超过255个字符"
     }
   },
   "settings": {
@@ -327,17 +334,17 @@
     "skillsUpdateSuccess": "技能列表更新成功",
     "passwordUpdateSuccess": "密码修改成功，请重新登录",
     "validation": {
-      "usernameRequired": "用户名不能为空",
-      "usernameLength": "用户名长度需在 4-50 个字符之间",
+      "usernameRequired": "请输入用户名",
+      "usernameLength": "用户名长度需在4-50个字符之间",
       "usernameInvalid": "用户名只能包含字母、数字、下划线和连字符",
-      "nicknameTooLong": "昵称长度不能超过 50 个字符",
-      "avatarTooLong": "头像地址长度不能超过 255 个字符",
-      "emailTooLong": "邮箱长度不能超过 100 个字符",
+      "nicknameTooLong": "昵称不能超过50个字符",
+      "avatarTooLong": "头像URL不能超过255个字符",
+      "emailTooLong": "邮箱不能超过100个字符",
       "emailInvalid": "请输入有效的邮箱地址",
-      "descriptionTooLong": "个人简介长度不能超过 255 个字符",
+      "descriptionTooLong": "个人简介不能超过255个字符",
       "currentPasswordRequired": "请输入当前密码",
       "newPasswordRequired": "请输入新密码",
-      "passwordInvalid": "新密码需要 8-64 位，且包含字母、数字和特殊字符",
+      "passwordInvalid": "新密码需包含字母、数字和特殊字符，长度8-64",
       "passwordMismatch": "两次输入的新密码不一致",
       "passwordSameAsOld": "新密码不能与当前密码相同"
     }
