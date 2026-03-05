@@ -293,7 +293,7 @@
     "avatarUrlLabel": "头像 URL",
     "avatarUrlPlaceholder": "https://example.com/avatar.jpg",
     "emailLabel": "邮箱",
-    "emailPlaceholder": "admin@example.com",
+    "emailPlaceholder": "admin{'@'}example.com",
     "bioLabel": "个人简介",
     "bioPlaceholder": "介绍一下您自己...",
     "socialLinks": "社交链接",
@@ -302,7 +302,7 @@
     "addLink": "添加链接",
     "socialLinksPreview": "社交链接预览",
     "notConfigured": "未配置",
-    "socialUrlPlaceholder": "输入 URL 或 mailto:email@example.com",
+    "socialUrlPlaceholder": "输入 URL 或 mailto:email{'@'}example.com",
     "skillLevel": {
       "basic": "入门",
       "familiar": "熟悉",
