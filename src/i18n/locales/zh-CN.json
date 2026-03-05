@@ -60,6 +60,13 @@
     "passwordsDoNotMatch": "两次密码不一致",
     "createStrongPassword": "创建一个强密码",
     "confirmYourPassword": "确认您的密码",
+    "placeholder": {
+      "username": "请输入用户名",
+      "nickname": "您的昵称",
+      "bio": "简单介绍一下您自己",
+      "avatar": "头像 URL",
+      "email": "您的邮箱地址"
+    },
     "passwordStrength": {
       "weak": "弱",
       "medium": "中",

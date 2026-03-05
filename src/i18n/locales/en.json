@@ -60,6 +60,13 @@
     "passwordsDoNotMatch": "Passwords do not match",
     "createStrongPassword": "Create a strong password",
     "confirmYourPassword": "Confirm your password",
+    "placeholder": {
+      "username": "Enter your username",
+      "nickname": "Your nickname",
+      "bio": "Brief description about yourself",
+      "avatar": "Avatar URL",
+      "email": "Your email address"
+    },
     "passwordStrength": {
       "weak": "Weak",
       "medium": "Medium",
