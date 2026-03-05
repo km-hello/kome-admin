@@ -8,7 +8,7 @@ import { setupAdminApi, type SetupRequest } from '@/api/site';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import { normalizeStringField } from '@/utils/formNormalizer';
-import { Loader2, User, Lock, Mail, Eye, EyeOff, Check, X, Image, FileText, UserCircle, ChevronDown } from 'lucide-vue-next';
+import { Loader2, User, Lock, Mail, Eye, EyeOff, Check, X, Image, FileText, UserRound, ChevronDown } from 'lucide-vue-next';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -313,7 +313,7 @@ const handleSetup = async (): Promise<void> => {
             <div class="space-y-2">
               <Label htmlFor="nickname" class="text-slate-700 font-medium text-sm">{{ t('setup.nickname') }}</Label>
               <div class="relative">
-                <UserCircle class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <UserRound class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                     id="nickname"
                     :model-value="form.nickname ?? ''"
