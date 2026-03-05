@@ -36,6 +36,7 @@ import {
   Home,
   Link as LinkIcon,
   X,
+  Check,
   Zap,
 } from 'lucide-vue-next';
 import { IconGithub, IconX, IconTelegram } from '@/components/icons/BrandIcons';
@@ -166,6 +167,27 @@ const confirmPassword = ref('');
 const showOldPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
+
+/**
+ * 新密码强度检查
+ */
+const passwordChecks = computed(() => ({
+  length: passwordForm.value.newPassword.length >= 8 && passwordForm.value.newPassword.length <= 64,
+  hasLetter: /[a-zA-Z]/.test(passwordForm.value.newPassword),
+  hasNumber: /\d/.test(passwordForm.value.newPassword),
+  hasSpecial: /[\W_]/.test(passwordForm.value.newPassword),
+}));
+
+/**
+ * 新密码强度等级
+ */
+const passwordStrength = computed(() => {
+  const checks = Object.values(passwordChecks.value).filter(Boolean).length;
+  if (checks === 0) return { level: 0, text: '', color: '' };
+  if (checks <= 2) return { level: 1, text: t('setup.passwordStrength.weak'), color: 'bg-red-500' };
+  if (checks <= 3) return { level: 2, text: t('setup.passwordStrength.medium'), color: 'bg-yellow-500' };
+  return { level: 3, text: t('setup.passwordStrength.strong'), color: 'bg-green-500' };
+});
 
 /* ========== 变更检测 ========== */
 
@@ -1074,7 +1096,41 @@ const removeSkill = (index: number) => {
                   <EyeOff v-else class="w-4 h-4" />
                 </button>
               </div>
-              <p class="text-xs text-slate-500">
+
+              <!-- 密码强度指示器 -->
+              <div v-if="passwordForm.newPassword" class="space-y-2">
+                <div class="flex gap-1">
+                  <div
+                      v-for="i in 3"
+                      :key="i"
+                      class="h-1 flex-1 rounded-full transition-colors"
+                      :class="i <= passwordStrength.level ? passwordStrength.color : 'bg-slate-200'"
+                  />
+                </div>
+                <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                  <span :class="passwordChecks.length ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
+                    <Check v-if="passwordChecks.length" class="h-3 w-3" />
+                    <X v-else class="h-3 w-3" />
+                    {{ t('setup.passwordStrength.length') }}
+                  </span>
+                  <span :class="passwordChecks.hasLetter ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
+                    <Check v-if="passwordChecks.hasLetter" class="h-3 w-3" />
+                    <X v-else class="h-3 w-3" />
+                    {{ t('setup.passwordStrength.letter') }}
+                  </span>
+                  <span :class="passwordChecks.hasNumber ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
+                    <Check v-if="passwordChecks.hasNumber" class="h-3 w-3" />
+                    <X v-else class="h-3 w-3" />
+                    {{ t('setup.passwordStrength.number') }}
+                  </span>
+                  <span :class="passwordChecks.hasSpecial ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
+                    <Check v-if="passwordChecks.hasSpecial" class="h-3 w-3" />
+                    <X v-else class="h-3 w-3" />
+                    {{ t('setup.passwordStrength.specialChar') }}
+                  </span>
+                </div>
+              </div>
+              <p v-else class="text-xs text-slate-500">
                 {{ t('settings.newPasswordHint') }}
               </p>
             </div>
@@ -1095,6 +1151,7 @@ const removeSkill = (index: number) => {
                     :placeholder="t('settings.confirmNewPasswordPlaceholder')"
                     :disabled="passwordLoading"
                     class="pr-10"
+                    :class="{ 'border-red-300 focus:border-red-400': confirmPassword && passwordForm.newPassword !== confirmPassword }"
                 />
                 <button
                     type="button"
@@ -1106,6 +1163,12 @@ const removeSkill = (index: number) => {
                   <EyeOff v-else class="w-4 h-4" />
                 </button>
               </div>
+              <p
+                  v-if="confirmPassword && passwordForm.newPassword !== confirmPassword"
+                  class="text-xs text-red-500"
+              >
+                {{ t('settings.validation.passwordMismatch') }}
+              </p>
             </div>
 
             <!-- 操作按钮 -->
