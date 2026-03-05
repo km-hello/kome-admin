@@ -121,15 +121,14 @@ const serverData = ref<UserInfoResponse>({
 /* ========== 表单状态 ========== */
 
 /**
+ * 个人资料表单类型（基于 UserUpdateRequest，排除数组字段）
+ */
+type ProfileFormData = Omit<UserUpdateRequest, 'socialLinks' | 'skills'>;
+
+/**
  * 个人资料表单（可空字段使用 string | null）
  */
-const form = ref<{
-  username: string;
-  nickname: string | null;
-  avatar: string | null;
-  email: string | null;
-  description: string | null;
-}>({
+const form = ref<ProfileFormData>({
   username: '',
   nickname: null,
   avatar: null,
