@@ -6,6 +6,7 @@ import {useRoute, useRouter} from 'vue-router';
 import {toast} from 'vue-sonner';
 import {useDebounceFn} from '@vueuse/core';
 import {useI18n} from 'vue-i18n';
+import { normalizeStringField } from '@/utils/formNormalizer';
 import {
   createPostApi,
   getPostByIdApi,
@@ -65,17 +66,23 @@ const generatingSlug = ref(false);
 const allTags = ref<TagResponse[]>([]);
 
 /**
+ * 文章表单数据类型
+ * 基于 API 请求类型，增加 tagIds 字段
+ */
+type PostFormData = Omit<PostCreateRequest, 'tagIds'> & { tagIds: number[] };
+
+/**
  * 文章表单数据
  */
-const formData = ref({
+const formData = ref<PostFormData>({
   title: '',
   slug: '',
-  summary: '',
+  summary: null,
   content: '',
-  coverImage: '',
+  coverImage: null,
   isPinned: false,
   status: 0,
-  tagIds: [] as number[],
+  tagIds: [],
 });
 
 /**
@@ -164,7 +171,7 @@ const previewStyle = computed(() => ({
  * 从 Mouse 或 Touch 事件中提取 clientX
  */
 const getClientX = (e: MouseEvent | TouchEvent): number => {
-  return 'touches' in e ? e.touches[0].clientX : e.clientX;
+  return 'touches' in e ? e.touches[0]!.clientX : e.clientX;
 };
 
 /**
@@ -260,12 +267,12 @@ const loadPost = async () => {
     formData.value = {
       title: detail.title,
       slug: detail.slug,
-      summary: detail.summary || '',
+      summary: detail.summary,
       content: detail.content,
-      coverImage: detail.coverImage || '',
+      coverImage: detail.coverImage,
       isPinned: detail.isPinned,
       status: detail.status,
-      tagIds: detail.tags?.map((t: TagResponse) => t.id) || [],
+      tagIds: detail.tags?.map((t: TagResponse) => t.id) ?? [],
     };
   } catch (error) {
     console.error('Failed to load post:', error);
@@ -310,12 +317,12 @@ const validateForm = (): boolean => {
     return false;
   }
 
-  if (formData.value.summary && formData.value.summary.length > 500) {
+  if (formData.value.summary && formData.value.summary.trim() && formData.value.summary.length > 500) {
     toast.warning(t('postEditor.validation.summaryTooLong'));
     return false;
   }
 
-  if (formData.value.coverImage && formData.value.coverImage.length > 255) {
+  if (formData.value.coverImage && formData.value.coverImage.trim() && formData.value.coverImage.length > 255) {
     toast.warning(t('postEditor.validation.coverTooLong'));
     return false;
   }
@@ -337,12 +344,12 @@ const handleSave = async () => {
       const request: PostUpdateRequest = {
         title: formData.value.title.trim(),
         slug: formData.value.slug.trim(),
-        summary: formData.value.summary.trim() || undefined,
+        summary: normalizeStringField(formData.value.summary),
         content: formData.value.content.trim(),
-        coverImage: formData.value.coverImage.trim() || undefined,
+        coverImage: normalizeStringField(formData.value.coverImage),
         isPinned: formData.value.isPinned,
         status: formData.value.status,
-        tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : undefined,
+        tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : null,
       };
       await updatePostApi(postId.value, request);
       toast.success(t('postEditor.updateSuccess'));
@@ -350,12 +357,12 @@ const handleSave = async () => {
       const request: PostCreateRequest = {
         title: formData.value.title.trim(),
         slug: formData.value.slug.trim(),
-        summary: formData.value.summary.trim() || undefined,
+        summary: normalizeStringField(formData.value.summary),
         content: formData.value.content.trim(),
-        coverImage: formData.value.coverImage.trim() || undefined,
+        coverImage: normalizeStringField(formData.value.coverImage),
         isPinned: formData.value.isPinned,
         status: formData.value.status,
-        tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : undefined,
+        tagIds: formData.value.tagIds.length > 0 ? formData.value.tagIds : null,
       };
       await createPostApi(request);
       toast.success(t('postEditor.createSuccess'));
@@ -614,14 +621,15 @@ const useFirstImageAsCover = () => {
             </CardHeader>
             <CardContent>
               <Textarea
-                  v-model="formData.summary"
+                  :model-value="formData.summary ?? ''"
+                  @update:model-value="(val) => formData.summary = val as string"
                   :placeholder="t('postEditor.summaryPlaceholder')"
                   rows="4"
                   maxlength="500"
                   class="resize-none"
               />
               <p class="text-xs text-slate-500 mt-2">
-                {{ formData.summary.length }}/500
+                {{ (formData.summary ?? '').length }}/500
               </p>
             </CardContent>
           </Card>
@@ -763,12 +771,13 @@ const useFirstImageAsCover = () => {
             </CardHeader>
             <CardContent class="space-y-3">
               <Input
-                  v-model="formData.coverImage"
+                  :model-value="formData.coverImage ?? ''"
+                  @update:model-value="(val) => formData.coverImage = val as string"
                   :placeholder="t('postEditor.coverImagePlaceholder')"
                   maxlength="255"
               />
               <p class="text-xs text-slate-500">
-                {{ formData.coverImage.length }}/255
+                {{ (formData.coverImage ?? '').length }}/255
               </p>
               <Button
                   type="button"
