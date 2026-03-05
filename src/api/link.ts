@@ -22,23 +22,24 @@ export interface LinkQuery extends BaseQuery {
  * 提交新友链数据，包含名称、地址、头像等字段，支持草稿保存和直接发布。
  */
 export interface LinkCreateRequest {
-    name: string;         // 友链名称 (max 100)
-    url: string;          // 友链地址 (max 255)
-    avatar?: string;      // 头像地址 (max 255)
-    description?: string; // 描述 (max 255)
-    status: number;       // 状态 (0: 草稿 Draft, 1: 已发布 Published)
+    name: string;              // 友链名称 (max 100)
+    url: string;               // 友链地址 (max 255)
+    avatar: string | null;     // 头像地址 (max 255)
+    description: string | null;// 描述 (max 255)
+    status: number;            // 状态 (0: 草稿 Draft, 1: 已发布 Published)
 }
 
 /**
  * 友链更新请求。
- * 支持部分更新，可单独修改名称、地址、状态等字段。
+ * All fields must be provided (no partial updates).
+ * Use null to explicitly clear nullable fields.
  */
 export interface LinkUpdateRequest {
-    name?: string;         // 友链名称（max 100）
-    url?: string;          // 友链地址（max 255）
-    avatar?: string;       // 头像 URL（max 255）
-    description?: string;  // 友链描述（max 255）
-    status?: number;       // 状态: 0=草稿(Draft), 1=已发布(Published)
+    name: string;              // 友链名称（max 100, required）
+    url: string;               // 友链地址（max 255, required）
+    avatar: string | null;     // 头像 URL（max 255）
+    description: string | null;// 友链描述（max 255）
+    status: number;            // 状态: 0=草稿(Draft), 1=已发布(Published)
 }
 
 /**
@@ -46,13 +47,13 @@ export interface LinkUpdateRequest {
  * 包含友链的完整信息，用于友链管理页面的列表和编辑展示。
  */
 export interface LinkResponse {
-    id: number;            // 友链 ID
-    name: string;          // 友链名称
-    url: string;           // 友链地址
-    avatar?: string;       // 头像 URL
-    description?: string;  // 友链描述
-    status: number;        // 状态: 0=草稿(Draft), 1=已发布(Published)
-    createTime: string;    // 创建时间（ISO 格式）
+    id: number;                // 友链 ID
+    name: string;              // 友链名称
+    url: string;               // 友链地址
+    avatar: string | null;     // 头像 URL
+    description: string | null;// 友链描述
+    status: number;            // 状态: 0=草稿(Draft), 1=已发布(Published)
+    createTime: string;        // 创建时间（ISO 格式）
 }
 
 /* ========== API 接口 ========== */

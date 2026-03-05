@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import i18n from '@/i18n';
 import { useSiteStore } from '@/stores/site';
 import { useTableSort } from '@/composables/useTableSort';
+import { normalizeStringField } from '@/utils/formNormalizer';
 import {
   getAdminLinksApi,
   createLinkApi,
@@ -93,14 +94,20 @@ const dialogMode = ref<'create' | 'edit'>('create');
 const dialogLoading = ref(false);
 
 /**
+ * 友链表单数据类型
+ * 基于 API 请求类型，增加 id 字段用于编辑模式
+ */
+type LinkFormData = LinkCreateRequest & { id: number };
+
+/**
  * 表单数据
  */
-const formData = ref({
+const formData = ref<LinkFormData>({
   id: 0,
   name: '',
   url: '',
-  avatar: '',
-  description: '',
+  avatar: null,
+  description: null,
   status: 1,
 });
 
@@ -187,8 +194,8 @@ const openCreateDialog = () => {
     id: 0,
     name: '',
     url: '',
-    avatar: '',
-    description: '',
+    avatar: null,
+    description: null,
     status: 0,
   };
   dialogVisible.value = true;
@@ -206,8 +213,8 @@ const openEditDialog = (link: LinkResponse) => {
     id: link.id,
     name: link.name,
     url: link.url,
-    avatar: link.avatar || '',
-    description: link.description || '',
+    avatar: link.avatar,
+    description: link.description,
     status: link.status,
   };
   dialogVisible.value = true;
@@ -246,12 +253,12 @@ const validateForm = (): boolean => {
     return false;
   }
 
-  if (formData.value.avatar && formData.value.avatar.length > 255) {
+  if (formData.value.avatar && formData.value.avatar.trim() && formData.value.avatar.length > 255) {
     toast.warning(t('link.validation.avatarTooLong'));
     return false;
   }
 
-  if (formData.value.description && formData.value.description.length > 255) {
+  if (formData.value.description && formData.value.description.trim() && formData.value.description.length > 255) {
     toast.warning(t('link.validation.descriptionTooLong'));
     return false;
   }
@@ -273,8 +280,8 @@ const handleSubmit = async () => {
       const request: LinkCreateRequest = {
         name: formData.value.name.trim(),
         url: formData.value.url.trim(),
-        avatar: formData.value.avatar.trim() || undefined,
-        description: formData.value.description.trim() || undefined,
+        avatar: normalizeStringField(formData.value.avatar),
+        description: normalizeStringField(formData.value.description),
         status: formData.value.status,
       };
       await createLinkApi(request);
@@ -283,8 +290,8 @@ const handleSubmit = async () => {
       const request: LinkUpdateRequest = {
         name: formData.value.name.trim(),
         url: formData.value.url.trim(),
-        avatar: formData.value.avatar.trim() || undefined,
-        description: formData.value.description.trim() || undefined,
+        avatar: normalizeStringField(formData.value.avatar),
+        description: normalizeStringField(formData.value.description),
         status: formData.value.status,
       };
       await updateLinkApi(formData.value.id, request);
@@ -540,7 +547,7 @@ const formatDate = (dateString: string) => {
 
               <!-- 描述列 -->
               <TableCell>
-                <span class="text-sm text-slate-600 truncate block" :title="link.description">
+                <span class="text-sm text-slate-600 truncate block" :title="link.description ?? undefined">
                   {{ link.description || '-' }}
                 </span>
               </TableCell>
@@ -679,13 +686,14 @@ const formatDate = (dateString: string) => {
             <Label htmlFor="link-avatar">{{ t('link.avatarUrlLabel') }}</Label>
             <Input
                 id="link-avatar"
-                v-model="formData.avatar"
+                :model-value="formData.avatar ?? ''"
+                @update:model-value="(val) => formData.avatar = val as string"
                 :placeholder="t('link.avatarUrlPlaceholder')"
                 maxlength="255"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.avatar.length }}/255
+              {{ (formData.avatar ?? '').length }}/255
             </p>
           </div>
 
@@ -694,14 +702,15 @@ const formatDate = (dateString: string) => {
             <Label htmlFor="link-description">{{ t('link.descriptionLabel') }}</Label>
             <Textarea
                 id="link-description"
-                v-model="formData.description"
+                :model-value="formData.description ?? ''"
+                @update:model-value="(val) => formData.description = val as string"
                 :placeholder="t('link.descriptionPlaceholder')"
                 maxlength="255"
                 rows="3"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-500">
-              {{ formData.description.length }}/255
+              {{ (formData.description ?? '').length }}/255
             </p>
           </div>
 
