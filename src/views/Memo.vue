@@ -21,6 +21,7 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import StatsCard from '@/components/common/StatsCard.vue';
 import SortableHead from '@/components/common/SortableHead.vue';
 import MarkdownToolbar from '@/components/common/MarkdownToolbar.vue';
+import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 
 import { Plus, Search, Edit, Trash2, Activity, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
 
@@ -29,7 +30,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -61,16 +61,14 @@ const siteStore = useSiteStore();
 const { t } = useI18n();
 
 /**
- * 内容 Textarea 引用，用于工具栏操作光标定位
+ * MarkdownEditor 组件引用，用于获取 CodeMirror EditorView
  */
-const contentTextareaRef = ref<InstanceType<typeof Textarea> | null>(null);
+const markdownEditorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
 
 /**
- * 获取原生 textarea DOM 元素供 MarkdownToolbar 使用
+ * 获取 CodeMirror EditorView 实例供 MarkdownToolbar 使用
  */
-const textareaEl = computed<HTMLTextAreaElement | null>(
-  () => contentTextareaRef.value?.$el as HTMLTextAreaElement ?? null,
-);
+const editorView = computed(() => markdownEditorRef.value?.editorView ?? null);
 
 /**
  * 动态列表数据
@@ -612,16 +610,14 @@ const truncateText = (text: string, maxLength: number = 100) => {
               {{ t('memo.contentLabel') }} <span class="text-red-500">*</span>
             </Label>
             <MarkdownToolbar
-                v-model="formData.content"
-                :textarea-el="textareaEl"
+                :editor-view="editorView"
                 class="mb-2"
             />
-            <Textarea
-                id="content"
-                ref="contentTextareaRef"
+            <MarkdownEditor
+                ref="markdownEditorRef"
                 v-model="formData.content"
                 :placeholder="t('memo.contentPlaceholder')"
-                class="min-h-50 resize-none"
+                max-height="40vh"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-400">{{ formData.content.length }} {{ t('common.characters') }}</p>

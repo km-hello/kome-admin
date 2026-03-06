@@ -28,6 +28,7 @@ import {Checkbox} from '@/components/ui/checkbox';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 import TagSelector from '@/components/common/TagSelector.vue';
 import MarkdownToolbar from '@/components/common/MarkdownToolbar.vue';
+import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 import {useSiteStore} from "@/stores/site.ts";
 
 
@@ -37,16 +38,14 @@ const siteStore = useSiteStore();
 const { t } = useI18n();
 
 /**
- * 内容 Textarea 引用，用于工具栏操作光标定位
+ * MarkdownEditor 组件引用，用于获取 CodeMirror EditorView
  */
-const contentTextareaRef = ref<InstanceType<typeof Textarea> | null>(null);
+const markdownEditorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
 
 /**
- * 获取原生 textarea DOM 元素供 MarkdownToolbar 使用
+ * 获取 CodeMirror EditorView 实例供 MarkdownToolbar 使用
  */
-const textareaEl = computed<HTMLTextAreaElement | null>(
-  () => contentTextareaRef.value?.$el as HTMLTextAreaElement ?? null,
-);
+const editorView = computed(() => markdownEditorRef.value?.editorView ?? null);
 
 /**
  * 是否为编辑模式（路由含 id 参数时为 true）
@@ -672,8 +671,7 @@ const useFirstImageAsCover = () => {
             <CardContent>
               <!-- Markdown 工具栏 -->
               <MarkdownToolbar
-                  v-model="formData.content"
-                  :textarea-el="textareaEl"
+                  :editor-view="editorView"
                   class="mb-2"
               />
               <div
@@ -686,13 +684,12 @@ const useFirstImageAsCover = () => {
               >
                 <!-- 编辑区 -->
                 <div :style="editorStyle">
-                  <Textarea
-                      ref="contentTextareaRef"
+                  <MarkdownEditor
+                      ref="markdownEditorRef"
                       v-model="formData.content"
                       :placeholder="t('postEditor.contentPlaceholder')"
-                      :rows="showPreview ? undefined : 20"
-                      class="font-mono text-sm resize-none scrollbar-thin"
-                      :class="showPreview ? 'h-full' : 'max-h-[60vh]'"
+                      :max-height="showPreview ? undefined : '60vh'"
+                      :full-height="showPreview"
                   />
                 </div>
                 <!-- 拖动分割条 -->
