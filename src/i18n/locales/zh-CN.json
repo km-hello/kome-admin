@@ -17,7 +17,8 @@
     "links": "友链",
     "settings": "设置",
     "login": "登录",
-    "setup": "初始设置"
+    "setup": "初始设置",
+    "preview": "预览"
   },
   "header": {
     "viewSite": "查看站点",
@@ -427,6 +428,41 @@
     "totalFriendshipLinks": "全部友情链接",
     "activeOnWebsite": "网站展示中",
     "pendingLinks": "待审核链接"
+  },
+  "emojiPicker": {
+    "title": "表情"
+  },
+  "symbolPicker": {
+    "title": "特殊符号",
+    "categories": {
+      "arrows": "箭头",
+      "math": "数学",
+      "greek": "希腊字母",
+      "currency": "货币",
+      "punctuation": "标点符号",
+      "shapes": "形状",
+      "stars": "星号与装饰",
+      "misc": "其他"
+    }
+  },
+  "markdownToolbar": {
+    "h1": "一级标题",
+    "h2": "二级标题",
+    "h3": "三级标题",
+    "bold": "粗体 (Ctrl+B)",
+    "italic": "斜体 (Ctrl+I)",
+    "strikethrough": "删除线 (Ctrl+Shift+X)",
+    "code": "行内代码 (Ctrl+E)",
+    "codeBlock": "代码块 (Ctrl+Shift+C)",
+    "link": "链接 (Ctrl+K)",
+    "image": "图片",
+    "ul": "无序列表",
+    "ol": "有序列表",
+    "quote": "引用",
+    "table": "表格",
+    "hr": "分割线",
+    "mathInline": "行内公式 (Ctrl+Shift+M)",
+    "mathBlock": "公式块"
   },
   "logout": {
     "success": "已退出登录"
