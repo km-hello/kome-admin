@@ -1,7 +1,8 @@
 <!-- MarkdownToolbar.vue - Markdown 编辑工具栏 -->
 <script setup lang="ts">
-import { onBeforeUnmount, watch, nextTick } from 'vue';
+import { onBeforeUnmount, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { EditorView } from '@codemirror/view';
 import {
   Heading1, Heading2, Heading3,
   Bold, Italic, Strikethrough,
@@ -16,21 +17,13 @@ import SymbolPicker from '@/components/common/SymbolPicker.vue';
 
 /**
  * Props 定义
- * @property modelValue 绑定的文本内容（v-model）
- * @property textareaEl 关联的原生 textarea 元素，用于光标定位
+ * @property editorView CodeMirror EditorView 实例
  */
-const props = defineProps<{
-  modelValue: string
-  textareaEl: HTMLTextAreaElement | null
-}>();
-
-/**
- * 事件定义
- * @event update:modelValue 文本内容变化时触发
- */
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>();
+const props = withDefaults(defineProps<{
+  editorView?: EditorView | null
+}>(), {
+  editorView: null,
+});
 
 const { t } = useI18n();
 
@@ -121,51 +114,43 @@ const toolbarGroups = [
 /* ========== 核心插入逻辑 ========== */
 
 /**
- * 执行工具栏操作：将 Markdown 语法插入 textarea 光标位置或包裹选中文本
+ * 执行工具栏操作，通过 CodeMirror dispatch 插入 Markdown 语法
  */
 const execute = (key: string) => {
   const action = actions[key];
-  const textarea = props.textareaEl;
-  if (!action || !textarea) return;
+  const view = props.editorView;
+  if (!action || !view) return;
 
-  const content = props.modelValue;
-  const start = textarea.selectionStart;  // 光标起始位置
-  const end = textarea.selectionEnd;      // 光标结束位置
-  const selected = content.slice(start, end); // 当前选中的文本
-
-  let newContent: string;
-  let cursorStart: number;
-  let cursorEnd: number;
+  const { from, to } = view.state.selection.main; // 当前选区
+  const selected = view.state.sliceDoc(from, to);  // 选中文本
+  const content = view.state.doc.toString();
 
   if (action.type === 'wrap') {
-    // 包裹模式：在选中文本前后插入语法标记（如 **text**）
-    const wrapped = `${action.prefix}${selected}${action.suffix}`;
-    newContent = content.slice(0, start) + wrapped + content.slice(end);
-    if (selected) {
-      // 有选中文本时，光标选中包裹后的原始文本
-      cursorStart = start + action.prefix.length;
-      cursorEnd = cursorStart + selected.length;
-    } else {
-      // 无选中文本时，光标定位到前缀后等待输入
-      cursorStart = cursorEnd = start + action.prefix.length;
-    }
+    // 包裹模式：在选区前后添加语法标记
+    const insert = `${action.prefix}${selected}${action.suffix}`;
+    const selectionFrom = from + action.prefix.length;
+    const selectionTo = selected ? selectionFrom + selected.length : selectionFrom;
+    // 通过 dispatch 一次性完成替换和光标定位
+    view.dispatch({
+      changes: { from, to, insert },
+      selection: { anchor: selectionFrom, head: selectionTo },
+    });
   } else if (action.type === 'prefix') {
-    // 前缀模式：在当前行首插入语法标记（如 # ）
-    const lineStart = content.lastIndexOf('\n', start - 1) + 1; // 定位当前行首
-    newContent = content.slice(0, lineStart) + action.prefix + content.slice(lineStart);
-    cursorStart = cursorEnd = start + action.prefix.length;
+    // 前缀模式：在当前行首插入标记
+    const lineStart = content.lastIndexOf('\n', from - 1) + 1;
+    view.dispatch({
+      changes: { from: lineStart, to: lineStart, insert: action.prefix },
+      selection: { anchor: from + action.prefix.length },
+    });
   } else {
-    // 块模式：在光标处插入多行模板（如代码块、表格）
-    newContent = content.slice(0, start) + action.template + content.slice(end);
-    cursorStart = cursorEnd = start + action.cursorOffset; // 光标移到模板内的编辑位置
+    // 块模式：插入多行模板并定位光标到编辑位置
+    view.dispatch({
+      changes: { from, to, insert: action.template },
+      selection: { anchor: from + action.cursorOffset },
+    });
   }
 
-  emit('update:modelValue', newContent);
-  // 等待 DOM 更新后恢复光标位置并聚焦
-  nextTick(() => {
-    textarea.setSelectionRange(cursorStart, cursorEnd);
-    textarea.focus();
-  });
+  view.focus();
 };
 
 /**
@@ -174,26 +159,15 @@ const execute = (key: string) => {
  * @param text 待插入的文本
  */
 const insertText = (text: string) => {
-  const textarea = props.textareaEl;
-  if (!textarea) {
-    // 无 textarea 引用时，追加到末尾
-    emit('update:modelValue', props.modelValue + text);
-    return;
-  }
+  const view = props.editorView;
+  if (!view) return;
 
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const content = props.modelValue;
-  // 替换选区或在光标处插入文本
-  const newContent = content.slice(0, start) + text + content.slice(end);
-
-  emit('update:modelValue', newContent);
-  // 等待 DOM 更新后将光标移到插入文本之后
-  nextTick(() => {
-    const pos = start + text.length;
-    textarea.setSelectionRange(pos, pos);
-    textarea.focus();
+  const { from, to } = view.state.selection.main;
+  view.dispatch({
+    changes: { from, to, insert: text },
+    selection: { anchor: from + text.length },
   });
+  view.focus();
 };
 
 /* ========== 键盘快捷键 ========== */
@@ -232,27 +206,30 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 };
 
-/** 当前绑定快捷键的 textarea 元素 */
-let currentTextarea: HTMLTextAreaElement | null = null;
+/** 当前绑定快捷键的 DOM 元素（CodeMirror contentDOM） */
+let currentTarget: HTMLElement | null = null;
 
 /**
- * 绑定/解绑键盘监听器到 textarea 元素
+ * 绑定/解绑键盘监听器到目标元素
  */
-const attachListener = (el: HTMLTextAreaElement | null) => {
-  if (currentTextarea) {
-    currentTextarea.removeEventListener('keydown', handleKeydown);
+const attachListener = (el: HTMLElement | null) => {
+  if (currentTarget) {
+    currentTarget.removeEventListener('keydown', handleKeydown);
   }
-  currentTextarea = el;
+  currentTarget = el;
   if (el) {
     el.addEventListener('keydown', handleKeydown);
   }
 };
 
-watch(() => props.textareaEl, (el) => attachListener(el), { immediate: true });
+// 监听 EditorView 变化，绑定到 CodeMirror 的 contentDOM
+watch(() => props.editorView, (view) => {
+  if (view) attachListener(view.contentDOM);
+}, { immediate: true });
 
 onBeforeUnmount(() => {
-  if (currentTextarea) {
-    currentTextarea.removeEventListener('keydown', handleKeydown);
+  if (currentTarget) {
+    currentTarget.removeEventListener('keydown', handleKeydown);
   }
 });
 </script>
