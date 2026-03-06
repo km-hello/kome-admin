@@ -15,7 +15,8 @@ import {
 } from 'lucide-vue-next';
 import Sidebar, { type NavGroup } from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { VisuallyHidden } from 'reka-ui';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -78,6 +79,10 @@ const handleLogout = async () => {
     <!-- 移动端侧边栏抽屉（< md 显示） -->
     <Sheet v-model:open="sidebarOpen">
       <SheetContent side="left" class="w-64 p-0">
+        <VisuallyHidden>
+          <SheetTitle>{{ t('nav.content') }}</SheetTitle>
+          <SheetDescription>{{ t('nav.content') }}</SheetDescription>
+        </VisuallyHidden>
         <Sidebar
             :nav-groups="navGroups"
             :user-avatar="userStore.userInfo.avatar ?? null"

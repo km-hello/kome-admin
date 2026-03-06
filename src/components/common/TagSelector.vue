@@ -59,7 +59,7 @@ const creating = ref(false);
 /**
  * 输入框引用
  */
-const inputRef = ref<HTMLInputElement | null>(null);
+const inputRef = ref<InstanceType<typeof Input> | null>(null);
 
 /**
  * 已选中的标签对象列表
@@ -164,7 +164,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 watch(popoverOpen, (open) => {
   if (open) {
     nextTick(() => {
-      inputRef.value?.focus();
+      (inputRef.value?.$el as HTMLInputElement)?.focus();
     });
   } else {
     searchQuery.value = '';
