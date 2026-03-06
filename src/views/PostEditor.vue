@@ -27,6 +27,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 import TagSelector from '@/components/common/TagSelector.vue';
+import MarkdownToolbar from '@/components/common/MarkdownToolbar.vue';
 import {useSiteStore} from "@/stores/site.ts";
 
 
@@ -34,6 +35,18 @@ const route = useRoute();
 const router = useRouter();
 const siteStore = useSiteStore();
 const { t } = useI18n();
+
+/**
+ * 内容 Textarea 引用，用于工具栏操作光标定位
+ */
+const contentTextareaRef = ref<InstanceType<typeof Textarea> | null>(null);
+
+/**
+ * 获取原生 textarea DOM 元素供 MarkdownToolbar 使用
+ */
+const textareaEl = computed<HTMLTextAreaElement | null>(
+  () => contentTextareaRef.value?.$el as HTMLTextAreaElement ?? null,
+);
 
 /**
  * 是否为编辑模式（路由含 id 参数时为 true）
@@ -642,19 +655,27 @@ const useFirstImageAsCover = () => {
                   <FileText class="w-4 h-4" />
                   {{ t('postEditor.contentLabel') }} <span class="text-red-500">*</span>
                 </CardTitle>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    @click="togglePreview"
-                    class="gap-2"
-                >
-                  <Eye v-if="!showPreview" class="w-4 h-4" />
-                  <EyeOff v-else class="w-4 h-4" />
-                  {{ showPreview ? t('postEditor.hidePreview') : t('postEditor.preview') }}
-                </Button>
+                <div class="flex items-center gap-1">
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      @click="togglePreview"
+                      class="gap-2"
+                  >
+                    <Eye v-if="!showPreview" class="w-4 h-4" />
+                    <EyeOff v-else class="w-4 h-4" />
+                    {{ showPreview ? t('postEditor.hidePreview') : t('postEditor.preview') }}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
+              <!-- Markdown 工具栏 -->
+              <MarkdownToolbar
+                  v-model="formData.content"
+                  :textarea-el="textareaEl"
+                  class="mb-2"
+              />
               <div
                   ref="splitContainerRef"
                   class="flex"
@@ -666,6 +687,7 @@ const useFirstImageAsCover = () => {
                 <!-- 编辑区 -->
                 <div :style="editorStyle">
                   <Textarea
+                      ref="contentTextareaRef"
                       v-model="formData.content"
                       :placeholder="t('postEditor.contentPlaceholder')"
                       :rows="showPreview ? undefined : 20"

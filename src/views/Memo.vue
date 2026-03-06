@@ -1,6 +1,6 @@
 <!-- Memo.vue - 动态管理页面 -->
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import i18n from '@/i18n';
@@ -20,6 +20,7 @@ import Pagination from '@/components/common/Pagination.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatsCard from '@/components/common/StatsCard.vue';
 import SortableHead from '@/components/common/SortableHead.vue';
+import MarkdownToolbar from '@/components/common/MarkdownToolbar.vue';
 
 import { Plus, Search, Edit, Trash2, Activity, Loader2, Pin, Calendar, Globe, FileEdit } from 'lucide-vue-next';
 
@@ -58,6 +59,18 @@ import {
 
 const siteStore = useSiteStore();
 const { t } = useI18n();
+
+/**
+ * 内容 Textarea 引用，用于工具栏操作光标定位
+ */
+const contentTextareaRef = ref<InstanceType<typeof Textarea> | null>(null);
+
+/**
+ * 获取原生 textarea DOM 元素供 MarkdownToolbar 使用
+ */
+const textareaEl = computed<HTMLTextAreaElement | null>(
+  () => contentTextareaRef.value?.$el as HTMLTextAreaElement ?? null,
+);
 
 /**
  * 动态列表数据
@@ -582,7 +595,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
 
     <!-- 创建/编辑对话框 -->
     <Dialog v-model:open="dialogVisible">
-      <DialogContent class="sm:max-w-150">
+      <DialogContent class="sm:max-w-200">
         <DialogHeader>
           <DialogTitle>
             {{ dialogMode === 'create' ? t('memo.createNewMemo') : t('memo.editMemo') }}
@@ -598,8 +611,14 @@ const truncateText = (text: string, maxLength: number = 100) => {
             <Label for="content">
               {{ t('memo.contentLabel') }} <span class="text-red-500">*</span>
             </Label>
+            <MarkdownToolbar
+                v-model="formData.content"
+                :textarea-el="textareaEl"
+                class="mb-2"
+            />
             <Textarea
                 id="content"
+                ref="contentTextareaRef"
                 v-model="formData.content"
                 :placeholder="t('memo.contentPlaceholder')"
                 class="min-h-50 resize-none"
