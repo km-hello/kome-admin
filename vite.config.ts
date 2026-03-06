@@ -6,7 +6,16 @@ import path from 'node:path'
 // https://vite.dev/config/
 export default defineConfig({
   base: '/admin',
-  plugins: [vue(), tailwindcss()],
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag === 'emoji-picker',
+        },
+      },
+    }),
+    tailwindcss(),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
