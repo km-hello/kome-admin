@@ -27,6 +27,8 @@ import {Textarea} from '@/components/ui/textarea';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 import TagSelector from '@/components/common/TagSelector.vue';
+import MarkdownToolbar from '@/components/common/MarkdownToolbar.vue';
+import MarkdownEditor from '@/components/common/MarkdownEditor.vue';
 import {useSiteStore} from "@/stores/site.ts";
 
 
@@ -34,6 +36,16 @@ const route = useRoute();
 const router = useRouter();
 const siteStore = useSiteStore();
 const { t } = useI18n();
+
+/**
+ * MarkdownEditor 组件引用，用于获取 CodeMirror EditorView
+ */
+const markdownEditorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
+
+/**
+ * 获取 CodeMirror EditorView 实例供 MarkdownToolbar 使用
+ */
+const editorView = computed(() => markdownEditorRef.value?.editorView ?? null);
 
 /**
  * 是否为编辑模式（路由含 id 参数时为 true）
@@ -558,7 +570,7 @@ const useFirstImageAsCover = () => {
                       id="title"
                       v-model="formData.title"
                       :placeholder="t('postEditor.titlePlaceholder')"
-                      class="text-2xl font-bold border-0 px-0 focus-visible:ring-0 placeholder:text-slate-300"
+                      class="text-xl font-semibold border-0 px-0 focus-visible:ring-0 placeholder:text-slate-400"
                       maxlength="255"
                   />
                   <p class="text-xs text-slate-500">
@@ -642,19 +654,26 @@ const useFirstImageAsCover = () => {
                   <FileText class="w-4 h-4" />
                   {{ t('postEditor.contentLabel') }} <span class="text-red-500">*</span>
                 </CardTitle>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    @click="togglePreview"
-                    class="gap-2"
-                >
-                  <Eye v-if="!showPreview" class="w-4 h-4" />
-                  <EyeOff v-else class="w-4 h-4" />
-                  {{ showPreview ? t('postEditor.hidePreview') : t('postEditor.preview') }}
-                </Button>
+                <div class="flex items-center gap-1">
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      @click="togglePreview"
+                      class="gap-2"
+                  >
+                    <Eye v-if="!showPreview" class="w-4 h-4" />
+                    <EyeOff v-else class="w-4 h-4" />
+                    {{ showPreview ? t('postEditor.hidePreview') : t('postEditor.preview') }}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
+              <!-- Markdown 工具栏 -->
+              <MarkdownToolbar
+                  :editor-view="editorView"
+                  class="mb-2"
+              />
               <div
                   ref="splitContainerRef"
                   class="flex"
@@ -665,12 +684,12 @@ const useFirstImageAsCover = () => {
               >
                 <!-- 编辑区 -->
                 <div :style="editorStyle">
-                  <Textarea
+                  <MarkdownEditor
+                      ref="markdownEditorRef"
                       v-model="formData.content"
                       :placeholder="t('postEditor.contentPlaceholder')"
-                      :rows="showPreview ? undefined : 20"
-                      class="font-mono text-sm resize-none scrollbar-thin"
-                      :class="showPreview ? 'h-full' : 'max-h-[60vh]'"
+                      :max-height="showPreview ? undefined : '60vh'"
+                      :full-height="showPreview"
                   />
                 </div>
                 <!-- 拖动分割条 -->

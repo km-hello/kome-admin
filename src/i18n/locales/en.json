@@ -17,7 +17,8 @@
     "links": "Links",
     "settings": "Settings",
     "login": "Login",
-    "setup": "Setup"
+    "setup": "Setup",
+    "preview": "Preview"
   },
   "header": {
     "viewSite": "View Site",
@@ -427,6 +428,41 @@
     "totalFriendshipLinks": "Total friendship links",
     "activeOnWebsite": "Active on website",
     "pendingLinks": "Pending links"
+  },
+  "emojiPicker": {
+    "title": "Emoji"
+  },
+  "symbolPicker": {
+    "title": "Symbols",
+    "categories": {
+      "arrows": "Arrows",
+      "math": "Math",
+      "greek": "Greek",
+      "currency": "Currency",
+      "punctuation": "Punctuation",
+      "shapes": "Shapes",
+      "stars": "Stars & Ornaments",
+      "misc": "Miscellaneous"
+    }
+  },
+  "markdownToolbar": {
+    "h1": "Heading 1",
+    "h2": "Heading 2",
+    "h3": "Heading 3",
+    "bold": "Bold (Ctrl+B)",
+    "italic": "Italic (Ctrl+I)",
+    "strikethrough": "Strikethrough (Ctrl+Shift+X)",
+    "code": "Inline Code (Ctrl+E)",
+    "codeBlock": "Code Block (Ctrl+Shift+C)",
+    "link": "Link (Ctrl+K)",
+    "image": "Image",
+    "ul": "Unordered List",
+    "ol": "Ordered List",
+    "quote": "Blockquote",
+    "table": "Table",
+    "hr": "Horizontal Rule",
+    "mathInline": "Inline Math (Ctrl+Shift+M)",
+    "mathBlock": "Math Block"
   },
   "logout": {
     "success": "Logged out successfully"

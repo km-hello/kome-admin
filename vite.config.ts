@@ -6,11 +6,42 @@ import path from 'node:path'
 // https://vite.dev/config/
 export default defineConfig({
   base: '/admin',
-  plugins: [vue(), tailwindcss()],
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag === 'emoji-picker',
+        },
+      },
+    }),
+    tailwindcss(),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     }
+  },
+
+  // ========== 构建配置 ==========
+  build: {
+    chunkSizeWarningLimit: 800, // CodeMirror + 语言包约 700KB，按需加载
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // 将 CodeMirror 相关依赖拆分为独立 chunk，按需加载
+          codemirror: [
+            '@codemirror/lang-markdown',
+            '@codemirror/language-data',
+            '@codemirror/view',
+            '@codemirror/state',
+            '@codemirror/commands',
+            '@codemirror/language',
+            '@lezer/highlight',
+            '@lezer/markdown',
+          ],
+        },
+      },
+    },
   },
 
   // ========== 开发服务器配置 ==========
