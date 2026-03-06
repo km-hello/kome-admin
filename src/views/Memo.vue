@@ -617,7 +617,7 @@ const truncateText = (text: string, maxLength: number = 100) => {
                 ref="markdownEditorRef"
                 v-model="formData.content"
                 :placeholder="t('memo.contentPlaceholder')"
-                max-height="40vh"
+                max-height="30vh"
                 :disabled="dialogLoading"
             />
             <p class="text-xs text-slate-400">{{ formData.content.length }} {{ t('common.characters') }}</p>

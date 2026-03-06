@@ -349,7 +349,7 @@ defineExpose({
 <template>
   <div
       ref="containerRef"
-      class="border border-input rounded-md bg-white focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]"
+      class="border border-input rounded-md bg-white focus-within:border-ring focus-within:ring-ring/20 focus-within:ring-[3px] transition-[color,box-shadow]"
       :style="containerStyle"
   />
 </template>

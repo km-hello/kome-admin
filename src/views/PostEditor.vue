@@ -570,7 +570,7 @@ const useFirstImageAsCover = () => {
                       id="title"
                       v-model="formData.title"
                       :placeholder="t('postEditor.titlePlaceholder')"
-                      class="text-2xl font-bold border-0 px-0 focus-visible:ring-0 placeholder:text-slate-300"
+                      class="text-xl font-semibold border-0 px-0 focus-visible:ring-0 placeholder:text-slate-400"
                       maxlength="255"
                   />
                   <p class="text-xs text-slate-500">
