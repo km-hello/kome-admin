@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import {
@@ -19,7 +19,7 @@ import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/
 import { VisuallyHidden } from 'reka-ui';
 
 const router = useRouter();
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const { t } = useI18n();
 
 /**
@@ -59,7 +59,7 @@ const navGroups = computed<NavGroup[]>(() => [
  * 清除用户状态并跳转到登录页
  */
 const handleLogout = async () => {
-  userStore.logout();
+  authStore.logout();
   toast.success(t('logout.success'));
   await router.push('/login');
 };
@@ -70,9 +70,9 @@ const handleLogout = async () => {
     <!-- 桌面端侧边栏（>= md 显示） -->
     <Sidebar
         :nav-groups="navGroups"
-        :user-avatar="userStore.userInfo.avatar ?? null"
-        :user-nickname="userStore.userInfo.nickname ?? userStore.userInfo.username ?? ''"
-        :user-email="userStore.userInfo.email ?? null"
+        :user-avatar="authStore.currentUser?.avatar ?? null"
+        :user-nickname="authStore.currentUser?.nickname ?? authStore.currentUser?.username ?? ''"
+        :user-email="authStore.currentUser?.email ?? null"
         @logout="handleLogout"
     />
 
@@ -85,9 +85,9 @@ const handleLogout = async () => {
         </VisuallyHidden>
         <Sidebar
             :nav-groups="navGroups"
-            :user-avatar="userStore.userInfo.avatar ?? null"
-            :user-nickname="userStore.userInfo.nickname ?? userStore.userInfo.username ?? ''"
-            :user-email="userStore.userInfo.email ?? null"
+            :user-avatar="authStore.currentUser?.avatar ?? null"
+            :user-nickname="authStore.currentUser?.nickname ?? authStore.currentUser?.username ?? ''"
+            :user-email="authStore.currentUser?.email ?? null"
             mobile
             @logout="handleLogout"
             @navigate="sidebarOpen = false"
