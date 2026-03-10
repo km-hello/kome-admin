@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import { Loader2, User, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-vue-next';
@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 
 const router = useRouter();
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const { t } = useI18n();
 
 /**
@@ -65,7 +65,7 @@ const handleLogin = async (): Promise<void> => {
 
   try {
     // 调用 store 的 login 方法，传入 remember 参数
-    await userStore.login(
+    await authStore.login(
         {
           username: form.value.username,
           password: form.value.password

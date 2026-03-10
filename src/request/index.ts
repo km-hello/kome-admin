@@ -1,8 +1,56 @@
-import axios, { type AxiosInstance, type AxiosResponse, type AxiosError } from 'axios';
+import axios, {
+    type AxiosInstance,
+    type AxiosResponse,
+    type AxiosError,
+    type AxiosRequestConfig,
+    type InternalAxiosRequestConfig,
+} from 'axios';
 import { toast } from 'vue-sonner';
 import type { Result } from '@/types/api.ts';
 import { getAcceptLanguage } from '@/i18n';
 import i18n from '@/i18n';
+
+/**
+ * 自定义请求配置。
+ * 扩展 Axios 配置，增加业务层控制选项。
+ */
+export interface RequestConfig extends AxiosRequestConfig {
+    /** 跳过错误 Toast 提示（用于静默校验） */
+    skipErrorToast?: boolean;
+    /** 跳过 401 自动跳转登录页（用于静默校验） */
+    skipAuthRedirect?: boolean;
+}
+
+/** 认证会话在本地存储中的键名 */
+const STORAGE_KEY = 'authInfo';
+
+/**
+ * 从本地存储中读取认证信息。
+ * 优先读取 localStorage（记住登录），其次 sessionStorage（会话级）。
+ *
+ * @returns 包含 accessToken 的认证对象，或 null
+ */
+const readStoredAuth = () => {
+    const raw = localStorage.getItem(STORAGE_KEY)
+        || sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+
+    try {
+        const parsed = JSON.parse(raw);
+        return parsed.accessToken ? parsed : null;
+    } catch (e) {
+        console.error('Failed to parse authInfo:', e);
+        return null;
+    }
+};
+
+/**
+ * 清除所有本地存储中的认证信息。
+ */
+const clearStoredAuth = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
+};
 
 /**
  * 定义 Axios 服务实例，用于执行 HTTP 请求。
@@ -28,18 +76,10 @@ const service: AxiosInstance = axios.create({
  * @returns 处理后的请求配置对象或提交异常
  */
 service.interceptors.request.use(
-    (config) => {
-        // 直接从 storage 读取 userInfo，避免循环依赖
-        const userInfoStr = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
-        if(userInfoStr) {
-            try{
-                const userInfo = JSON.parse(userInfoStr);
-                if(userInfo.token) {
-                    config.headers.Authorization = `Bearer ${userInfo.token}`;
-                }
-            } catch (e) {
-                console.error('Failed to parse userInfo:', e);
-            }
+    (config: InternalAxiosRequestConfig & RequestConfig) => {
+        const authInfo = readStoredAuth();
+        if (authInfo?.accessToken) {
+            config.headers.Authorization = `Bearer ${authInfo.accessToken}`;
         }
         config.headers['Accept-Language'] = getAcceptLanguage();
         return config;
@@ -78,6 +118,7 @@ service.interceptors.response.use(
         return Promise.reject(new Error(errorMessage));
     },
     (error: AxiosError) => {
+        const requestConfig = error.config as RequestConfig | undefined;
         let message = i18n.global.t('error.requestFailed');
 
         if (error.response?.data) {
@@ -86,13 +127,11 @@ service.interceptors.response.use(
 
             // 401 未授权处理
             if (res.code === 401 || error.response.status === 401) {
-                // 清除所有可能的 token
-                localStorage.removeItem('userInfo');
-                sessionStorage.removeItem('userInfo');
+                clearStoredAuth();
 
                 // 强制跳转登录页（避免路由守卫死循环）
                 const loginPath = `${import.meta.env.BASE_URL}login`;
-                if (!window.location.pathname.endsWith('/login')) {
+                if (!requestConfig?.skipAuthRedirect && !window.location.pathname.endsWith('/login')) {
                     setTimeout(() => window.location.href = loginPath, 500);
                 }
             }
@@ -102,7 +141,9 @@ service.interceptors.response.use(
             else if (error.code === 'ECONNABORTED') message = i18n.global.t('error.requestTimeout');
         }
 
-        toast.error(message);
+        if (!requestConfig?.skipErrorToast) {
+            toast.error(message);
+        }
         return Promise.reject(error);
     }
 );
@@ -112,24 +153,20 @@ service.interceptors.response.use(
  * 提供了对 GET、POST、PUT、DELETE 和 PATCH 方法的支持，均基于服务实例 service 实现。
  */
 class Request {
-    get<T = any>(url: string, config?: any): Promise<T> {
+    get<T = any>(url: string, config?: RequestConfig): Promise<T> {
         return service.get(url, config);
     }
 
-    post<T = any>(url: string, data?: any, config?: any): Promise<T> {
+    post<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
         return service.post(url, data, config);
     }
 
-    put<T = any>(url: string, data?: any, config?: any): Promise<T> {
+    put<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
         return service.put(url, data, config);
     }
 
-    delete<T = any>(url: string, config?: any): Promise<T> {
+    delete<T = any>(url: string, config?: RequestConfig): Promise<T> {
         return service.delete(url, config);
-    }
-
-    patch<T = any>(url: string, data?: any, config?: any): Promise<T> {
-        return service.patch(url, data, config);
     }
 }
 

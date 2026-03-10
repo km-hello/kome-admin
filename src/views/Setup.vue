@@ -3,7 +3,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useSiteStore } from '@/stores/site';
-import { useUserStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
 import { setupAdminApi, type SetupRequest } from '@/api/site';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
@@ -20,7 +20,7 @@ import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 
 const router = useRouter();
 const siteStore = useSiteStore();
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const { t } = useI18n();
 
 /**
@@ -151,7 +151,7 @@ const handleSetup = async (): Promise<void> => {
     siteStore.setInitialized();
 
     // 清除任何残留的登录状态，确保用户必须使用新账户登录
-    userStore.logout();
+    authStore.logout();
 
     toast.success(t('setup.validation.setupComplete'));
 

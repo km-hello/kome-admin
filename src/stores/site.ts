@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { getAdminSiteInfoApi, checkInitializedApi, type SiteStats } from '@/api/site';
+import { getAdminSiteInfoApi, checkInitializedApi, type AdminSiteInfoResponse } from '@/api/site';
 
 /**
- * 站点统计数据 Store
- * 用于全局共享站点统计信息，避免重复请求
+ * 站点信息 Store
+ * 管理后台站点统计数据与系统初始化状态，提供缓存、失效标记和防并发机制。
  */
 export const useSiteStore = defineStore('site', () => {
     /* ========== State ========== */
@@ -21,9 +21,9 @@ export const useSiteStore = defineStore('site', () => {
     const checking = ref(false);
 
     /**
-     * 站点统计数据
+     * 后台站点统计数据
      */
-    const stats = ref<SiteStats>({
+    const stats = ref<AdminSiteInfoResponse>({
         publishedPostCount: 0,
         draftPostCount: 0,
         usedTagCount: 0,
@@ -90,6 +90,9 @@ export const useSiteStore = defineStore('site', () => {
 
     /* ========== Actions ========== */
 
+    /** 防并发：正在进行的请求 Promise，避免 afterEach 和 onMounted 同时触发重复请求 */
+    let fetchPromise: Promise<void> | null = null;
+
     /**
      * 获取站点统计数据
      * @param forceRefresh 是否强制刷新（忽略缓存）
@@ -100,18 +103,27 @@ export const useSiteStore = defineStore('site', () => {
             return;
         }
 
-        loading.value = true;
-        try {
-            const siteInfo = await getAdminSiteInfoApi();
-            stats.value = siteInfo.stats;
-            lastUpdated.value = Date.now();
-            isStale.value = false; // 重置失效标记
-        } catch (error) {
-            console.error('Failed to fetch site stats:', error);
-            throw error;
-        } finally {
-            loading.value = false;
+        // 复用正在进行的请求，避免并发重复调用
+        if (fetchPromise && !forceRefresh) {
+            return fetchPromise;
         }
+
+        fetchPromise = (async () => {
+            loading.value = true;
+            try {
+                stats.value = await getAdminSiteInfoApi();
+                lastUpdated.value = Date.now();
+                isStale.value = false;
+            } catch (error) {
+                console.error('Failed to fetch site stats:', error);
+                throw error;
+            } finally {
+                loading.value = false;
+                fetchPromise = null;
+            }
+        })();
+
+        return fetchPromise;
     };
 
     /**

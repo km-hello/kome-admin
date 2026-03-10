@@ -1,7 +1,7 @@
 /**
- * api/site.ts - 站点信息接口
+ * api/site.ts - 后台站点接口
  *
- * 提供站点信息获取、初始化状态检查及初始化设置，供仪表盘与设置页面使用。
+ * 提供后台统计信息获取、初始化状态检查及初始化设置。
  */
 import request from '@/request';
 
@@ -11,7 +11,7 @@ import request from '@/request';
  * 站点统计数据。
  * 包含文章、标签、动态、友链各维度的已发布和草稿数量统计，用于 Dashboard 展示。
  */
-export interface SiteStats {
+export interface AdminSiteInfoResponse {
     publishedPostCount: number;    // 已发布文章数
     draftPostCount: number;        // 草稿文章数
     usedTagCount: number;          // 已使用标签数
@@ -22,25 +22,6 @@ export interface SiteStats {
     draftLinkCount: number;        // 草稿友链数
 }
 
-
-/**
- * 站点所有者信息。
- * 包含站长的昵称、头像和简介，用于 Dashboard 页面的站长信息展示。
- */
-export interface SiteOwner {
-    nickname: string;           // 站长昵称
-    avatar: string | null;      // 站长头像 URL
-    description: string | null; // 站长个人简介
-}
-
-/**
- * 站点信息响应。
- * 聚合站点统计数据和所有者信息，作为站点概览接口的响应结构。
- */
-export interface SiteInfoResponse {
-    stats: SiteStats;      // 站点统计数据
-    owner: SiteOwner;      // 站点所有者信息
-}
 
 /**
  * 首次设置管理员请求。
@@ -60,10 +41,10 @@ export interface SetupRequest {
 /**
  * 获取站点概览信息
  * 用于 Dashboard 页面展示统计数据
- * @returns Promise<SiteInfoResponse> 站点信息包括统计数据和所有者信息
+ * @returns Promise<AdminSiteInfoResponse> 后台站点统计数据
  */
 export const getAdminSiteInfoApi = () => {
-    return request.get<SiteInfoResponse>('/api/admin/site/info');
+    return request.get<AdminSiteInfoResponse>('/api/admin/site/info');
 };
 
 /**
