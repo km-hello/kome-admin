@@ -2,7 +2,7 @@ import { watch } from 'vue';
 import type { Ref } from 'vue';
 import { createRouter, createWebHistory, type Router } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
-import { useUserStore } from "@/stores/user.ts";
+import { useAuthStore } from "@/stores/auth.ts";
 import { useSiteStore } from "@/stores/site.ts";
 import i18n from "@/i18n";
 
@@ -140,7 +140,7 @@ function updateDocumentTitle(title?: string) {
  * 路由前置守卫：处理认证和初始化检查
  */
 router.beforeEach(async (to, _from, next) => {
-    const userStore = useUserStore();
+    const authStore = useAuthStore();
     const siteStore = useSiteStore();
 
     // 首次加载时检查初始化状态（跳过 /setup 页面避免死循环）
@@ -160,16 +160,27 @@ router.beforeEach(async (to, _from, next) => {
         return;
     }
 
-    // 需要登录但未登录 → 去登录页
-    if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-        next('/login');
-        return;
+    // 需要登录的页面在放行前做一次静默会话校验，避免过期 token 先渲染后台页
+    if (to.meta.requiresAuth) {
+        if (!authStore.hasToken) {
+            next('/login');
+            return;
+        }
+
+        const isValidSession = await authStore.validateSession();
+        if (!isValidSession) {
+            next('/login');
+            return;
+        }
     }
 
-    // 已登录但访问登录页 → 去首页
-    if (to.path === '/login' && userStore.isLoggedIn) {
-        next('/');
-        return;
+    // 有 token 时访问登录页，先验证会话；有效则回首页，无效则留在登录页
+    if (to.path === '/login' && authStore.hasToken) {
+        const isValidSession = await authStore.validateSession();
+        if (isValidSession) {
+            next('/');
+            return;
+        }
     }
 
     // 设置页面标题
