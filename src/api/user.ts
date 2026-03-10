@@ -1,7 +1,7 @@
 /**
- * api/user.ts - 用户管理接口
+ * api/user.ts - 用户资料接口
  *
- * 提供用户登录、信息获取、资料更新及密码修改，供登录与设置页面使用。
+ * 提供用户资料获取、更新及密码修改，供设置页面使用。
  */
 import request from '@/request';
 
@@ -24,15 +24,6 @@ export interface SkillItem {
     name: string;          // 技能名称
     level: number;         // 技能等级: 1=入门(Basic), 2=熟悉(Familiar), 3=精通(Proficient)
     order: number | null;  // 排序序号（拖拽排序）
-}
-
-/**
- * 登录请求参数。
- * 提交用户名和密码进行身份验证。
- */
-export interface UserLoginRequest {
-    username: string;      // 用户名
-    password: string;      // 密码
 }
 
 /**
@@ -74,26 +65,7 @@ export interface UserInfoResponse {
     skills: SkillItem[] | null;          // 技能列表
 }
 
-/**
- * 登录响应数据。
- * 继承用户信息，额外包含 JWT Token 和过期时间，用于客户端鉴权。
- */
-export interface UserLoginResponse extends UserInfoResponse {
-    token: string;        // JWT Token
-    expiresIn: number;    // 过期时间（秒）
-}
-
 /* ========== API 接口 ========== */
-
-/**
- * 执行用户登录请求的函数。
- *
- * @param {UserLoginRequest} req 包含用户登录所需的请求数据。
- * @returns {Promise<UserLoginResponse>} 返回一个包含用户登录结果的 Promise。
- */
-export const loginApi = (req: UserLoginRequest): Promise<UserLoginResponse> => {
-    return request.post<UserLoginResponse>('/api/user/login', req);
-};
 
 /**
  * 获取用户信息的 API 请求方法。
