@@ -4,11 +4,13 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
-import { useUserStore } from '@/stores/user';
+import { useAuthStore } from '@/stores/auth';
 import { normalizeStringField } from '@/utils/formNormalizer';
 import { DEFAULT_AVATAR } from '@/constants';
 import {
   getUserInfoApi,
+  updateUserInfoApi,
+  updatePasswordApi,
   type UserInfoResponse,
   type UserUpdateRequest,
   type UserUpdatePasswordRequest,
@@ -103,7 +105,7 @@ const isClickable = (url: string) => url && url !== '#';
 
 
 const router = useRouter();
-const userStore = useUserStore();
+const authStore = useAuthStore();
 
 /* ========== 服务端原始数据 ========== */
 
@@ -379,11 +381,18 @@ const handleSave = async () => {
 
   saving.value = true;
   try {
-    const data = await userStore.updateProfile(buildRequest());
+    const data = await updateUserInfoApi(buildRequest());
 
     // 更新服务端原始数据 & 重新初始化表单
     serverData.value = data;
     initForm(data);
+    authStore.updateAuthInfo({
+      id: data.id,
+      username: data.username,
+      nickname: data.nickname,
+      avatar: data.avatar,
+      email: data.email,
+    });
 
     toast.success(t('settings.profileUpdateSuccess'));
   } catch (error) {
@@ -431,18 +440,18 @@ const validatePasswordForm = (): boolean => {
 
 /**
  * 修改密码。
- * 通过 Store 修改密码（自动清除登录状态），成功后跳转到登录页。
+ * 成功后清除认证状态并跳转到登录页。
  */
 const handleChangePassword = async () => {
   if (!validatePasswordForm()) return;
 
   passwordLoading.value = true;
   try {
-    // 通过 Store 修改密码（会自动清除登录状态）
-    await userStore.updatePassword({
+    await updatePasswordApi({
       oldPassword: passwordForm.value.oldPassword,
       newPassword: passwordForm.value.newPassword,
     });
+    authStore.logout();
 
     toast.success(t('settings.passwordUpdateSuccess'));
 
