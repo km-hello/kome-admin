@@ -95,7 +95,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "description": "View blog overview",
+    "description": "Overview of content and site activity",
     "recentPosts": "Recent Posts",
     "recentMemos": "Recent Memos",
     "viewAll": "View All →",
@@ -106,7 +106,7 @@
   },
   "post": {
     "title": "Posts",
-    "description": "Manage blog articles and content",
+    "description": "Create and manage blog posts",
     "newPost": "New Post",
     "allPosts": "All Posts",
     "searchPlaceholder": "Search posts...",
@@ -177,7 +177,7 @@
   },
   "memo": {
     "title": "Memos",
-    "description": "Manage memo content",
+    "description": "Create and manage memos",
     "newMemo": "New Memo",
     "allMemos": "All Memos",
     "searchPlaceholder": "Search memos...",
@@ -209,7 +209,7 @@
   },
   "tag": {
     "title": "Tags",
-    "description": "Manage content tags",
+    "description": "Create and manage tags",
     "newTag": "New Tag",
     "allTags": "All Tags",
     "searchPlaceholder": "Search tags...",
@@ -247,7 +247,7 @@
   },
   "link": {
     "title": "Friend Links",
-    "description": "Manage friend links for the blog",
+    "description": "Create and manage friend links",
     "newLink": "New Link",
     "allLinks": "All Links",
     "searchPlaceholder": "Search links...",
@@ -289,7 +289,7 @@
   },
   "settings": {
     "title": "Settings",
-    "description": "Manage account settings and preferences",
+    "description": "Manage profile and account settings",
     "loading": "Loading...",
     "profileSettings": "Profile",
     "profileDescription": "Update basic profile info",
