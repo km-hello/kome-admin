@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
+import { usePasswordStrength } from '@/composables/usePasswordStrength';
 import { normalizeStringField } from '@/utils/formNormalizer';
 import { DEFAULT_AVATAR } from '@/constants';
 import {
@@ -38,12 +39,12 @@ import {
   Home,
   Link as LinkIcon,
   X,
-  Check,
   Zap,
 } from 'lucide-vue-next';
 import { IconGithub, IconX, IconTelegram } from '@/components/icons/BrandIcons';
 
 import PageHeader from '@/components/common/PageHeader.vue';
+import PasswordStrengthIndicator from '@/components/common/PasswordStrengthIndicator.vue';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -153,7 +154,25 @@ const skillsForm = ref<SkillItem[]>([]);
 const loading = ref(true);
 const saving = ref(false);
 const passwordLoading = ref(false);
+/**
+ * 是否已触发过个人资料保存。
+ * 用于控制资料字段错误提示和错误态的显示时机。
+ */
+const profileSubmitAttempted = ref(false);
+/**
+ * 是否已触发过密码修改提交。
+ * 用于控制密码字段错误提示和密码规则红色提示的显示时机。
+ */
+const passwordSubmitAttempted = ref(false);
 
+/**
+ * 用户名格式校验规则
+ */
+const usernamePattern = /^[a-zA-Z0-9_-]+$/;
+/**
+ * 邮箱格式校验规则
+ */
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /**
  * 密码表单
  */
@@ -171,25 +190,188 @@ const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 
 /**
- * 新密码强度检查
+ * 新密码强度状态。
+ * 统一计算密码规则检查结果和强度等级，供页面校验与指示器复用。
  */
-const passwordChecks = computed(() => ({
-  length: passwordForm.value.newPassword.length >= 8 && passwordForm.value.newPassword.length <= 64,
-  hasLetter: /[a-zA-Z]/.test(passwordForm.value.newPassword),
-  hasNumber: /\d/.test(passwordForm.value.newPassword),
-  hasSpecial: /[\W_]/.test(passwordForm.value.newPassword),
-}));
+const {
+  checks: passwordChecks,
+  strength: passwordStrength,
+  isValid: isNewPasswordValid,
+} = usePasswordStrength(() => passwordForm.value.newPassword);
 
 /**
- * 新密码强度等级
+ * 校验用户名并返回错误信息；无错误时返回空字符串
  */
-const passwordStrength = computed(() => {
-  const checks = Object.values(passwordChecks.value).filter(Boolean).length;
-  if (checks === 0) return { level: 0, text: '', color: '' };
-  if (checks <= 2) return { level: 1, text: t('setup.passwordStrength.weak'), color: 'bg-red-500' };
-  if (checks <= 3) return { level: 2, text: t('setup.passwordStrength.medium'), color: 'bg-yellow-500' };
-  return { level: 3, text: t('setup.passwordStrength.strong'), color: 'bg-green-500' };
+const validateUsernameField = (): string => {
+  if (!form.value.username.trim()) return t('settings.validation.usernameRequired');
+  if (form.value.username.length < 4 || form.value.username.length > 50) {
+    return t('settings.validation.usernameLength');
+  }
+  if (!usernamePattern.test(form.value.username)) return t('settings.validation.usernameInvalid');
+  return '';
+};
+
+/**
+ * 校验昵称并返回错误信息；无错误时返回空字符串
+ */
+const validateNicknameField = (): string => {
+  const nickname = form.value.nickname;
+  if (nickname && nickname.length > 50) return t('settings.validation.nicknameTooLong');
+  return '';
+};
+
+/**
+ * 校验头像 URL 并返回错误信息；无错误时返回空字符串
+ */
+const validateAvatarField = (): string => {
+  const avatar = form.value.avatar;
+  if (avatar && avatar.length > 255) return t('settings.validation.avatarTooLong');
+  return '';
+};
+
+/**
+ * 校验邮箱并返回错误信息；无错误时返回空字符串
+ */
+const validateEmailField = (): string => {
+  const email = form.value.email;
+  if (!email) return '';
+  if (email.length > 100) return t('settings.validation.emailTooLong');
+  if (!emailPattern.test(email)) return t('settings.validation.emailInvalid');
+  return '';
+};
+
+/**
+ * 校验个人简介并返回错误信息；无错误时返回空字符串
+ */
+const validateDescriptionField = (): string => {
+  const description = form.value.description;
+  if (description && description.length > 255) return t('settings.validation.descriptionTooLong');
+  return '';
+};
+
+/**
+ * 用户名字段错误信息
+ */
+const usernameErrorMessage = computed(() =>
+  !profileSubmitAttempted.value ? '' : validateUsernameField()
+);
+
+/**
+ * 昵称字段错误信息
+ */
+const nicknameErrorMessage = computed(() =>
+  !profileSubmitAttempted.value ? '' : validateNicknameField()
+);
+
+/**
+ * 头像 URL 字段错误信息
+ */
+const avatarErrorMessage = computed(() =>
+  !profileSubmitAttempted.value ? '' : validateAvatarField()
+);
+
+/**
+ * 邮箱字段错误信息
+ */
+const emailErrorMessage = computed(() =>
+  !profileSubmitAttempted.value ? '' : validateEmailField()
+);
+
+/**
+ * 个人简介字段错误信息
+ */
+const descriptionErrorMessage = computed(() =>
+  !profileSubmitAttempted.value ? '' : validateDescriptionField()
+);
+
+/**
+ * 当前个人资料表单的首个错误信息。
+ * 用于保存时统一提示，并保持校验顺序稳定。
+ */
+const firstProfileValidationError = computed(() =>
+  validateUsernameField() ||
+  validateNicknameField() ||
+  validateAvatarField() ||
+  validateEmailField() ||
+  validateDescriptionField()
+);
+
+/**
+ * 校验当前密码并返回错误信息；无错误时返回空字符串
+ */
+const validateOldPasswordField = (): string => {
+  if (!passwordForm.value.oldPassword) return t('settings.validation.currentPasswordRequired');
+  return '';
+};
+
+/**
+ * 校验新密码基础条件并返回错误信息；无错误时返回空字符串
+ */
+const validateNewPasswordField = (): string => {
+  if (!passwordForm.value.newPassword) return t('settings.validation.newPasswordRequired');
+  if (passwordForm.value.oldPassword === passwordForm.value.newPassword) {
+    return t('settings.validation.passwordSameAsOld');
+  }
+  return '';
+};
+
+/**
+ * 校验确认新密码并返回错误信息；无错误时返回空字符串
+ */
+const validateConfirmNewPasswordField = (): string => {
+  if (!confirmPassword.value) return t('settings.validation.confirmNewPasswordRequired');
+  if (passwordForm.value.newPassword !== confirmPassword.value) {
+    return t('settings.validation.passwordMismatch');
+  }
+  return '';
+};
+
+/**
+ * 当前密码字段错误信息
+ */
+const oldPasswordErrorMessage = computed(() =>
+  !passwordSubmitAttempted.value ? '' : validateOldPasswordField()
+);
+
+/**
+ * 新密码字段错误信息（不包含格式规则清单）
+ */
+const newPasswordErrorMessage = computed(() => {
+  if (!passwordSubmitAttempted.value) return '';
+  return validateNewPasswordField();
 });
+
+/**
+ * 新密码格式是否无效。
+ * 用于控制密码输入框错误态和规则提示器的颜色显示。
+ */
+const isNewPasswordFormatInvalid = computed(() =>
+  passwordSubmitAttempted.value &&
+  Boolean(passwordForm.value.newPassword) &&
+  !isNewPasswordValid.value
+);
+
+/**
+ * 确认新密码字段错误信息
+ */
+const confirmNewPasswordErrorMessage = computed(() =>
+  confirmPassword.value
+    ? validateConfirmNewPasswordField()
+    : (passwordSubmitAttempted.value ? validateConfirmNewPasswordField() : '')
+);
+
+/**
+ * 当前密码表单的首个错误信息。
+ * 用于提交时统一提示，并保持校验顺序稳定。
+ */
+const firstPasswordValidationError = computed(() =>
+  validateOldPasswordField() ||
+  validateNewPasswordField() ||
+  (!isNewPasswordValid.value && passwordForm.value.newPassword
+    ? t('settings.validation.passwordInvalid')
+    : '') ||
+  validateConfirmNewPasswordField()
+);
 
 /* ========== 变更检测 ========== */
 
@@ -251,6 +433,8 @@ const initForm = (data: UserInfoResponse) => {
   skillsForm.value = data.skills
       ? data.skills.map(skill => ({ ...skill }))
       : [];
+  // 成功初始化后清除资料表单的提交态错误提示
+  profileSubmitAttempted.value = false;
 };
 
 /**
@@ -288,56 +472,9 @@ const fetchUserInfo = async () => {
  * 验证个人资料表单
  */
 const validateForm = (): boolean => {
-  // 用户名验证
-  if (!form.value.username.trim()) {
-    toast.warning(t('settings.validation.usernameRequired'));
-    return false;
-  }
-
-  if (form.value.username.length < 4 || form.value.username.length > 50) {
-    toast.warning(t('settings.validation.usernameLength'));
-    return false;
-  }
-
-  const usernamePattern = /^[a-zA-Z0-9_-]+$/;
-  if (!usernamePattern.test(form.value.username)) {
-    toast.warning(t('settings.validation.usernameInvalid'));
-    return false;
-  }
-
-  // 昵称验证
-  const nickname = form.value.nickname;
-  if (nickname && nickname.length > 50) {
-    toast.warning(t('settings.validation.nicknameTooLong'));
-    return false;
-  }
-
-  // 头像 URL 验证
-  const avatar = form.value.avatar;
-  if (avatar && avatar.length > 255) {
-    toast.warning(t('settings.validation.avatarTooLong'));
-    return false;
-  }
-
-  // 邮箱验证
-  const email = form.value.email;
-  if (email) {
-    if (email.length > 100) {
-      toast.warning(t('settings.validation.emailTooLong'));
-      return false;
-    }
-
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-      toast.warning(t('settings.validation.emailInvalid'));
-      return false;
-    }
-  }
-
-  // 描述验证
-  const description = form.value.description;
-  if (description && description.length > 255) {
-    toast.warning(t('settings.validation.descriptionTooLong'));
+  // 资料区校验失败时，toast 仅提示首个错误，具体定位由字段级提示负责
+  if (firstProfileValidationError.value) {
+    toast.warning(firstProfileValidationError.value);
     return false;
   }
 
@@ -377,6 +514,8 @@ const buildRequest = (): UserUpdateRequest => {
  * 保存所有设置（全表单提交）
  */
 const handleSave = async () => {
+  // 触发资料字段级错误提示
+  profileSubmitAttempted.value = true;
   if (!validateForm()) return;
 
   saving.value = true;
@@ -408,30 +547,9 @@ const handleSave = async () => {
  * 验证密码表单
  */
 const validatePasswordForm = (): boolean => {
-  if (!passwordForm.value.oldPassword) {
-    toast.warning(t('settings.validation.currentPasswordRequired'));
-    return false;
-  }
-
-  if (!passwordForm.value.newPassword) {
-    toast.warning(t('settings.validation.newPasswordRequired'));
-    return false;
-  }
-
-  // 密码格式验证：至少包含字母、数字和特殊字符，长度 8-64
-  const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,64}$/;
-  if (!passwordPattern.test(passwordForm.value.newPassword)) {
-    toast.warning(t('settings.validation.passwordInvalid'));
-    return false;
-  }
-
-  if (passwordForm.value.newPassword !== confirmPassword.value) {
-    toast.warning(t('settings.validation.passwordMismatch'));
-    return false;
-  }
-
-  if (passwordForm.value.oldPassword === passwordForm.value.newPassword) {
-    toast.warning(t('settings.validation.passwordSameAsOld'));
+  // 密码区校验失败时，toast 仅提示首个错误，具体定位由字段级提示负责
+  if (firstPasswordValidationError.value) {
+    toast.warning(firstPasswordValidationError.value);
     return false;
   }
 
@@ -443,6 +561,8 @@ const validatePasswordForm = (): boolean => {
  * 成功后清除认证状态并跳转到登录页。
  */
 const handleChangePassword = async () => {
+  // 触发密码字段级错误提示和规则清单红色提示
+  passwordSubmitAttempted.value = true;
   if (!validatePasswordForm()) return;
 
   passwordLoading.value = true;
@@ -710,11 +830,15 @@ const removeSkill = (index: number) => {
                   id="username"
                   v-model="form.username"
                   :placeholder="t('settings.usernamePlaceholder')"
+                  :class="{ 'border-red-300 focus:border-red-400': Boolean(usernameErrorMessage) }"
                   maxlength="50"
                   :disabled="saving"
               />
               <p class="text-xs text-slate-500">
                 {{ t('settings.usernameHint') }}
+              </p>
+              <p v-if="usernameErrorMessage" class="text-xs text-red-500">
+                {{ usernameErrorMessage }}
               </p>
             </div>
 
@@ -731,27 +855,13 @@ const removeSkill = (index: number) => {
                   :model-value="form.nickname ?? ''"
                   @update:model-value="(val) => form.nickname = val as string"
                   :placeholder="t('settings.nicknamePlaceholder')"
+                  :class="{ 'border-red-300 focus:border-red-400': Boolean(nicknameErrorMessage) }"
                   maxlength="50"
                   :disabled="saving"
               />
-            </div>
-
-            <!-- 头像 URL -->
-            <div class="space-y-2">
-              <Label htmlFor="avatar">
-                <div class="flex items-center gap-2">
-                  <Image class="w-4 h-4 text-slate-500" />
-                  {{ t('settings.avatarUrlLabel') }}
-                </div>
-              </Label>
-              <Input
-                  id="avatar"
-                  :model-value="form.avatar ?? ''"
-                  @update:model-value="(val) => form.avatar = val as string"
-                  :placeholder="t('settings.avatarUrlPlaceholder')"
-                  maxlength="255"
-                  :disabled="saving"
-              />
+              <p v-if="nicknameErrorMessage" class="text-xs text-red-500">
+                {{ nicknameErrorMessage }}
+              </p>
             </div>
 
             <!-- 邮箱 -->
@@ -768,9 +878,35 @@ const removeSkill = (index: number) => {
                   :model-value="form.email ?? ''"
                   @update:model-value="(val) => form.email = val as string"
                   :placeholder="t('settings.emailPlaceholder')"
+                  :class="{ 'border-red-300 focus:border-red-400': Boolean(emailErrorMessage) }"
                   maxlength="100"
                   :disabled="saving"
               />
+              <p v-if="emailErrorMessage" class="text-xs text-red-500">
+                {{ emailErrorMessage }}
+              </p>
+            </div>
+
+            <!-- 头像 URL -->
+            <div class="space-y-2">
+              <Label htmlFor="avatar">
+                <div class="flex items-center gap-2">
+                  <Image class="w-4 h-4 text-slate-500" />
+                  {{ t('settings.avatarUrlLabel') }}
+                </div>
+              </Label>
+              <Input
+                  id="avatar"
+                  :model-value="form.avatar ?? ''"
+                  @update:model-value="(val) => form.avatar = val as string"
+                  :placeholder="t('settings.avatarUrlPlaceholder')"
+                  :class="{ 'border-red-300 focus:border-red-400': Boolean(avatarErrorMessage) }"
+                  maxlength="255"
+                  :disabled="saving"
+              />
+              <p v-if="avatarErrorMessage" class="text-xs text-red-500">
+                {{ avatarErrorMessage }}
+              </p>
             </div>
 
             <!-- 个人简介 -->
@@ -786,10 +922,14 @@ const removeSkill = (index: number) => {
                   :model-value="form.description ?? ''"
                   @update:model-value="(val) => form.description = val as string"
                   :placeholder="t('settings.bioPlaceholder')"
+                  :class="{ 'border-red-300 focus:border-red-400': Boolean(descriptionErrorMessage) }"
                   maxlength="255"
                   rows="3"
                   :disabled="saving"
               />
+              <p v-if="descriptionErrorMessage" class="text-xs text-red-500">
+                {{ descriptionErrorMessage }}
+              </p>
               <p class="text-xs text-slate-500">
                 {{ form.description?.length ?? 0 }}/255 {{ t('common.characters') }}
               </p>
@@ -1065,6 +1205,7 @@ const removeSkill = (index: number) => {
                     :placeholder="t('settings.currentPasswordPlaceholder')"
                     :disabled="passwordLoading"
                     class="pr-10"
+                    :class="{ 'border-red-300 focus:border-red-400': Boolean(oldPasswordErrorMessage) }"
                 />
                 <button
                     type="button"
@@ -1076,6 +1217,9 @@ const removeSkill = (index: number) => {
                   <EyeOff v-else class="w-4 h-4" />
                 </button>
               </div>
+              <p v-if="oldPasswordErrorMessage" class="text-xs text-red-500">
+                {{ oldPasswordErrorMessage }}
+              </p>
             </div>
 
             <!-- 新密码 -->
@@ -1094,6 +1238,7 @@ const removeSkill = (index: number) => {
                     :placeholder="t('settings.newPasswordPlaceholder')"
                     :disabled="passwordLoading"
                     class="pr-10"
+                    :class="{ 'border-red-300 focus:border-red-400': Boolean(newPasswordErrorMessage) || isNewPasswordFormatInvalid }"
                 />
                 <button
                     type="button"
@@ -1107,40 +1252,19 @@ const removeSkill = (index: number) => {
               </div>
 
               <!-- 密码强度指示器 -->
-              <div v-if="passwordForm.newPassword" class="space-y-2">
-                <div class="flex gap-1">
-                  <div
-                      v-for="i in 3"
-                      :key="i"
-                      class="h-1 flex-1 rounded-full transition-colors"
-                      :class="i <= passwordStrength.level ? passwordStrength.color : 'bg-slate-200'"
-                  />
-                </div>
-                <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                  <span :class="passwordChecks.length ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
-                    <Check v-if="passwordChecks.length" class="h-3 w-3" />
-                    <X v-else class="h-3 w-3" />
-                    {{ t('setup.passwordStrength.length') }}
-                  </span>
-                  <span :class="passwordChecks.hasLetter ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
-                    <Check v-if="passwordChecks.hasLetter" class="h-3 w-3" />
-                    <X v-else class="h-3 w-3" />
-                    {{ t('setup.passwordStrength.letter') }}
-                  </span>
-                  <span :class="passwordChecks.hasNumber ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
-                    <Check v-if="passwordChecks.hasNumber" class="h-3 w-3" />
-                    <X v-else class="h-3 w-3" />
-                    {{ t('setup.passwordStrength.number') }}
-                  </span>
-                  <span :class="passwordChecks.hasSpecial ? 'text-green-600' : 'text-slate-400'" class="flex items-center gap-1">
-                    <Check v-if="passwordChecks.hasSpecial" class="h-3 w-3" />
-                    <X v-else class="h-3 w-3" />
-                    {{ t('setup.passwordStrength.specialChar') }}
-                  </span>
-                </div>
-              </div>
-              <p v-else class="text-xs text-slate-500">
-                {{ t('settings.newPasswordHint') }}
+              <PasswordStrengthIndicator
+                  :password="passwordForm.newPassword"
+                  :submit-attempted="passwordSubmitAttempted"
+                  :checks="passwordChecks"
+                  :strength="passwordStrength"
+                  i18n-key-prefix="settings.passwordStrength"
+                  :empty-hint="t('settings.newPasswordHint')"
+              />
+              <p v-if="newPasswordErrorMessage" class="text-xs text-red-500">
+                {{ newPasswordErrorMessage }}
+              </p>
+              <p v-else-if="isNewPasswordFormatInvalid" class="text-xs text-red-500">
+                {{ t('settings.validation.passwordInvalid') }}
               </p>
             </div>
 
@@ -1160,7 +1284,7 @@ const removeSkill = (index: number) => {
                     :placeholder="t('settings.confirmNewPasswordPlaceholder')"
                     :disabled="passwordLoading"
                     class="pr-10"
-                    :class="{ 'border-red-300 focus:border-red-400': confirmPassword && passwordForm.newPassword !== confirmPassword }"
+                    :class="{ 'border-red-300 focus:border-red-400': Boolean(confirmNewPasswordErrorMessage) }"
                 />
                 <button
                     type="button"
@@ -1172,11 +1296,8 @@ const removeSkill = (index: number) => {
                   <EyeOff v-else class="w-4 h-4" />
                 </button>
               </div>
-              <p
-                  v-if="confirmPassword && passwordForm.newPassword !== confirmPassword"
-                  class="text-xs text-red-500"
-              >
-                {{ t('settings.validation.passwordMismatch') }}
+              <p v-if="confirmNewPasswordErrorMessage" class="text-xs text-red-500">
+                {{ confirmNewPasswordErrorMessage }}
               </p>
             </div>
 

@@ -103,6 +103,11 @@ const pagination = ref({
 const dialogVisible = ref(false);
 const dialogMode = ref<'create' | 'edit'>('create');
 const dialogLoading = ref(false);
+/**
+ * 是否已触发过提交。
+ * 用于控制字段级错误提示和错误态的显示时机。
+ */
+const submitAttempted = ref(false);
 
 /**
  * 动态表单数据类型
@@ -126,6 +131,22 @@ const formData = ref<MemoFormData>({
 const deleteDialogVisible = ref(false);
 const deleteTarget = ref<MemoResponse | null>(null);
 const deleteLoading = ref(false);
+
+/**
+ * 校验动态内容并返回错误信息；无错误时返回空字符串
+ */
+const validateContentField = (): string => {
+  if (!formData.value.content.trim()) return t('memo.validation.contentRequired');
+  if (formData.value.content.length > 2147483647) return t('memo.validation.contentTooLong');
+  return '';
+};
+
+/**
+ * 动态内容字段错误信息
+ */
+const contentErrorMessage = computed(() =>
+  !submitAttempted.value ? '' : validateContentField()
+);
 
 
 onMounted(async () => {
@@ -204,6 +225,7 @@ const openCreateDialog = () => {
     isPinned: false,
     status: 0,
   };
+  submitAttempted.value = false;
   dialogVisible.value = true;
 };
 
@@ -218,6 +240,7 @@ const openEditDialog = (memo: MemoResponse) => {
     isPinned: memo.isPinned,
     status: memo.status,
   };
+  submitAttempted.value = false;
   dialogVisible.value = true;
 };
 
@@ -225,13 +248,9 @@ const openEditDialog = (memo: MemoResponse) => {
  * 表单验证
  */
 const validateForm = (): boolean => {
-  if (!formData.value.content.trim()) {
-    toast.warning(t('memo.validation.contentRequired'));
-    return false;
-  }
-
-  if (formData.value.content.length > 2147483647) {
-    toast.warning(t('memo.validation.contentTooLong'));
+  const validationError = validateContentField();
+  if (validationError) {
+    toast.warning(validationError);
     return false;
   }
 
@@ -243,6 +262,7 @@ const validateForm = (): boolean => {
  * 验证后根据对话框模式执行创建或更新操作，成功后刷新列表和统计。
  */
 const handleSubmit = async () => {
+  submitAttempted.value = true;
   if (!validateForm()) return;
 
   dialogLoading.value = true;
@@ -267,6 +287,7 @@ const handleSubmit = async () => {
     }
 
     dialogVisible.value = false;
+    submitAttempted.value = false;
 
     // 刷新列表和统计数据
     await Promise.all([
@@ -613,13 +634,19 @@ const truncateText = (text: string, maxLength: number = 100) => {
                 :editor-view="editorView"
                 class="mb-2"
             />
-            <MarkdownEditor
-                ref="markdownEditorRef"
-                v-model="formData.content"
-                :placeholder="t('memo.contentPlaceholder')"
-                max-height="30vh"
-                :disabled="dialogLoading"
-            />
+            <div
+                class="rounded-md transition-[color,box-shadow]"
+                :class="{ 'ring-1 ring-red-300 rounded-md': Boolean(contentErrorMessage) }"
+            >
+              <MarkdownEditor
+                  ref="markdownEditorRef"
+                  v-model="formData.content"
+                  :placeholder="t('memo.contentPlaceholder')"
+                  max-height="30vh"
+                  :disabled="dialogLoading"
+              />
+            </div>
+            <p v-if="contentErrorMessage" class="text-xs text-red-500">{{ contentErrorMessage }}</p>
             <p class="text-xs text-slate-400">{{ formData.content.length }} {{ t('common.characters') }}</p>
           </div>
 
