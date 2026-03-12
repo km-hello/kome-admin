@@ -143,8 +143,8 @@ router.beforeEach(async (to, _from, next) => {
     const authStore = useAuthStore();
     const siteStore = useSiteStore();
 
-    // 首次加载时检查初始化状态（跳过 /setup 页面避免死循环）
-    if (siteStore.initialized === null && to.path !== '/setup') {
+    // 首次加载时先检查初始化状态，避免冷启动直达 /setup 时绕过判断
+    if (siteStore.initialized === null) {
         await siteStore.checkInitialized();
     }
 
