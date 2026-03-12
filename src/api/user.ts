@@ -43,11 +43,11 @@ export interface UserUpdateRequest {
 
 /**
  * 修改密码请求参数。
- * 需验证当前密码后才可设置新密码。
+ * 需验证当前密码后才可设置新密码，格式与初始化密码一致：8-64 位，至少包含字母、数字和特殊字符。
  */
 export interface UserUpdatePasswordRequest {
     oldPassword: string;   // 当前密码
-    newPassword: string;   // 新密码（min 6, max 50）
+    newPassword: string;   // 新密码（8-64 位，至少包含字母、数字和特殊字符）
 }
 
 /**

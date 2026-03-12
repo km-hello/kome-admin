@@ -28,12 +28,12 @@ export interface AdminSiteInfoResponse {
  * 系统未初始化时提交的管理员账户创建数据，包含必填的用户名密码和选填的个人资料。
  */
 export interface SetupRequest {
-    username: string;           // 管理员用户名（必填，min 3, max 20）
-    password: string;           // 管理员密码（必填，min 6, max 50）
-    nickname: string | null;    // 昵称（选填，默认 "Admin"）
-    avatar: string | null;      // 头像 URL（选填，默认 DiceBear 生成）
+    username: string;           // 管理员用户名（必填，4-50 位，仅允许字母、数字、下划线和连字符）
+    password: string;           // 管理员密码（必填，8-64 位，至少包含字母、数字和特殊字符）
+    nickname: string | null;    // 昵称（选填，最大 50 位）
+    avatar: string | null;      // 头像 URL（选填，最大 255 位）
     description: string | null; // 个人简介（选填）
-    email: string | null;       // 邮箱地址（选填）
+    email: string | null;       // 邮箱地址（选填，最大 100 位）
 }
 
 /* ========== API 接口 ========== */
