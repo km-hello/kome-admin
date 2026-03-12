@@ -283,6 +283,7 @@
       "urlTooLong": "Link URL cannot exceed 255 characters",
       "urlInvalid": "Please enter a valid URL",
       "avatarTooLong": "Link avatar URL cannot exceed 255 characters",
+      "avatarInvalid": "Please enter a valid avatar URL",
       "descriptionTooLong": "Link description cannot exceed 255 characters"
     }
   },

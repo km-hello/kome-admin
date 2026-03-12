@@ -283,6 +283,7 @@
       "urlTooLong": "友链 URL 不能超过255个字符",
       "urlInvalid": "请输入有效的 URL",
       "avatarTooLong": "友链头像 URL 不能超过255个字符",
+      "avatarInvalid": "请输入有效的头像 URL",
       "descriptionTooLong": "友链描述不能超过255个字符"
     }
   },
