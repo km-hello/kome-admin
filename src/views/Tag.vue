@@ -1,6 +1,6 @@
 <!-- Tag.vue - 标签管理页面 -->
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import i18n from '@/i18n';
@@ -79,6 +79,11 @@ const pagination = ref({
 const dialogVisible = ref(false);
 const dialogMode = ref<'create' | 'edit'>('create');
 const dialogLoading = ref(false);
+/**
+ * 是否已触发过提交。
+ * 用于控制字段级错误提示和错误态的显示时机。
+ */
+const submitAttempted = ref(false);
 
 /**
  * 标签表单数据类型
@@ -100,6 +105,22 @@ const formData = ref<TagFormData>({
 const deleteDialogVisible = ref(false);
 const deleteTarget = ref<TagPostCountResponse | null>(null);
 const deleteLoading = ref(false);
+
+/**
+ * 校验标签名称并返回错误信息；无错误时返回空字符串
+ */
+const validateNameField = (): string => {
+  if (!formData.value.name.trim()) return t('tag.validation.nameRequired');
+  if (formData.value.name.length > 50) return t('tag.validation.nameTooLong');
+  return '';
+};
+
+/**
+ * 标签名称字段错误信息
+ */
+const nameErrorMessage = computed(() =>
+  !submitAttempted.value ? '' : validateNameField()
+);
 
 
 onMounted(async () => {
@@ -153,6 +174,7 @@ const handleSearch = () => {
 const openCreateDialog = () => {
   dialogMode.value = 'create';
   formData.value = { id: 0, name: '' };
+  submitAttempted.value = false;
   dialogVisible.value = true;
 };
 
@@ -162,6 +184,7 @@ const openCreateDialog = () => {
 const openEditDialog = (tag: TagPostCountResponse) => {
   dialogMode.value = 'edit';
   formData.value = { id: tag.id, name: tag.name };
+  submitAttempted.value = false;
   dialogVisible.value = true;
 };
 
@@ -170,14 +193,11 @@ const openEditDialog = (tag: TagPostCountResponse) => {
  * 验证后根据对话框模式执行创建或更新操作，成功后刷新列表和统计。
  */
 const handleSubmit = async () => {
-  // 表单验证
-  if (!formData.value.name.trim()) {
-    toast.warning(t('tag.validation.nameRequired'));
-    return;
-  }
+  submitAttempted.value = true;
 
-  if (formData.value.name.length > 50) {
-    toast.warning(t('tag.validation.nameTooLong'));
+  const validationError = validateNameField();
+  if (validationError) {
+    toast.warning(validationError);
     return;
   }
 
@@ -195,6 +215,7 @@ const handleSubmit = async () => {
     }
 
     dialogVisible.value = false;
+    submitAttempted.value = false;
 
     // 刷新列表和统计数据
     await Promise.all([
@@ -495,10 +516,14 @@ const formatDate = (dateString: string) => {
                 id="tag-name"
                 v-model="formData.name"
                 :placeholder="t('tag.tagNamePlaceholder')"
+                :class="{ 'border-red-300 focus:border-red-400': Boolean(nameErrorMessage) }"
                 maxlength="50"
                 :disabled="dialogLoading"
                 @keyup.enter="handleSubmit"
             />
+            <p v-if="nameErrorMessage" class="text-xs text-red-500">
+              {{ nameErrorMessage }}
+            </p>
             <p class="text-xs text-slate-500">
               {{ formData.name.length }}/50
             </p>

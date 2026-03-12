@@ -1,6 +1,6 @@
 <!-- Link.vue - 友链管理页面 -->
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import i18n from '@/i18n';
@@ -92,6 +92,11 @@ const pagination = ref({
 const dialogVisible = ref(false);
 const dialogMode = ref<'create' | 'edit'>('create');
 const dialogLoading = ref(false);
+/**
+ * 是否已触发过提交。
+ * 用于控制字段级错误提示和错误态的显示时机。
+ */
+const submitAttempted = ref(false);
 
 /**
  * 友链表单数据类型
@@ -117,6 +122,103 @@ const formData = ref<LinkFormData>({
 const deleteDialogVisible = ref(false);
 const deleteTarget = ref<LinkResponse | null>(null);
 const deleteLoading = ref(false);
+
+/**
+ * 校验友链名称并返回错误信息；无错误时返回空字符串
+ */
+const validateNameField = (): string => {
+  if (!formData.value.name.trim()) return t('link.validation.nameRequired');
+  if (formData.value.name.length > 100) return t('link.validation.nameTooLong');
+  return '';
+};
+
+/**
+ * 判断 URL 是否为允许的 http/https 协议
+ */
+const isAllowedHttpUrl = (value: string): boolean => {
+  try {
+    const parsedUrl = new URL(value);
+    return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * 校验友链地址并返回错误信息；无错误时返回空字符串
+ */
+const validateUrlField = (): string => {
+  if (!formData.value.url.trim()) return t('link.validation.urlRequired');
+  if (formData.value.url.length > 255) return t('link.validation.urlTooLong');
+  if (!isAllowedHttpUrl(formData.value.url)) {
+    return t('link.validation.urlInvalid');
+  }
+  return '';
+};
+
+/**
+ * 校验头像 URL 并返回错误信息；无错误时返回空字符串
+ */
+const validateAvatarField = (): string => {
+  if (formData.value.avatar && formData.value.avatar.trim()) {
+    if (formData.value.avatar.length > 255) {
+      return t('link.validation.avatarTooLong');
+    }
+    if (!isAllowedHttpUrl(formData.value.avatar)) {
+      return t('link.validation.avatarInvalid');
+    }
+  }
+  return '';
+};
+
+/**
+ * 校验描述并返回错误信息；无错误时返回空字符串
+ */
+const validateDescriptionField = (): string => {
+  if (formData.value.description && formData.value.description.trim() && formData.value.description.length > 255) {
+    return t('link.validation.descriptionTooLong');
+  }
+  return '';
+};
+
+/**
+ * 名称字段错误信息
+ */
+const nameErrorMessage = computed(() =>
+  !submitAttempted.value ? '' : validateNameField()
+);
+
+/**
+ * 地址字段错误信息
+ */
+const urlErrorMessage = computed(() =>
+  !submitAttempted.value ? '' : validateUrlField()
+);
+
+/**
+ * 头像 URL 字段错误信息
+ */
+const avatarErrorMessage = computed(() =>
+  !submitAttempted.value ? '' : validateAvatarField()
+);
+
+/**
+ * 描述字段错误信息
+ */
+const descriptionErrorMessage = computed(() =>
+  !submitAttempted.value ? '' : validateDescriptionField()
+);
+
+/**
+ * 当前表单的首个错误信息。
+ * 用于提交时统一提示，并保持校验顺序稳定。
+ */
+const firstValidationError = computed(() =>
+  validateNameField() ||
+  validateUrlField() ||
+  validateAvatarField() ||
+  validateDescriptionField()
+);
 
 
 onMounted(async () => {
@@ -198,6 +300,7 @@ const openCreateDialog = () => {
     description: null,
     status: 0,
   };
+  submitAttempted.value = false;
   dialogVisible.value = true;
 };
 
@@ -217,6 +320,7 @@ const openEditDialog = (link: LinkResponse) => {
     description: link.description,
     status: link.status,
   };
+  submitAttempted.value = false;
   dialogVisible.value = true;
 };
 
@@ -225,41 +329,8 @@ const openEditDialog = (link: LinkResponse) => {
  * 验证名称、URL、头像和描述的长度与格式要求。
  */
 const validateForm = (): boolean => {
-  if (!formData.value.name.trim()) {
-    toast.warning(t('link.validation.nameRequired'));
-    return false;
-  }
-
-  if (formData.value.name.length > 100) {
-    toast.warning(t('link.validation.nameTooLong'));
-    return false;
-  }
-
-  if (!formData.value.url.trim()) {
-    toast.warning(t('link.validation.urlRequired'));
-    return false;
-  }
-
-  if (formData.value.url.length > 255) {
-    toast.warning(t('link.validation.urlTooLong'));
-    return false;
-  }
-
-  // 简单的 URL 格式验证
-  try {
-    new URL(formData.value.url);
-  } catch {
-    toast.warning(t('link.validation.urlInvalid'));
-    return false;
-  }
-
-  if (formData.value.avatar && formData.value.avatar.trim() && formData.value.avatar.length > 255) {
-    toast.warning(t('link.validation.avatarTooLong'));
-    return false;
-  }
-
-  if (formData.value.description && formData.value.description.trim() && formData.value.description.length > 255) {
-    toast.warning(t('link.validation.descriptionTooLong'));
+  if (firstValidationError.value) {
+    toast.warning(firstValidationError.value);
     return false;
   }
 
@@ -271,6 +342,7 @@ const validateForm = (): boolean => {
  * 验证后根据对话框模式执行创建或更新操作，成功后刷新列表和统计。
  */
 const handleSubmit = async () => {
+  submitAttempted.value = true;
   if (!validateForm()) return;
 
   dialogLoading.value = true;
@@ -299,6 +371,7 @@ const handleSubmit = async () => {
     }
 
     dialogVisible.value = false;
+    submitAttempted.value = false;
 
     // 刷新列表和统计数据
     await Promise.all([
@@ -656,9 +729,13 @@ const formatDate = (dateString: string) => {
                 id="link-name"
                 v-model="formData.name"
                 :placeholder="t('link.namePlaceholder')"
+                :class="{ 'border-red-300 focus:border-red-400': Boolean(nameErrorMessage) }"
                 maxlength="100"
                 :disabled="dialogLoading"
             />
+            <p v-if="nameErrorMessage" class="text-xs text-red-500">
+              {{ nameErrorMessage }}
+            </p>
             <p class="text-xs text-slate-500">
               {{ formData.name.length }}/100
             </p>
@@ -673,9 +750,13 @@ const formatDate = (dateString: string) => {
                 id="link-url"
                 v-model="formData.url"
                 :placeholder="t('link.urlPlaceholder')"
+                :class="{ 'border-red-300 focus:border-red-400': Boolean(urlErrorMessage) }"
                 maxlength="255"
                 :disabled="dialogLoading"
             />
+            <p v-if="urlErrorMessage" class="text-xs text-red-500">
+              {{ urlErrorMessage }}
+            </p>
             <p class="text-xs text-slate-500">
               {{ formData.url.length }}/255
             </p>
@@ -689,9 +770,13 @@ const formatDate = (dateString: string) => {
                 :model-value="formData.avatar ?? ''"
                 @update:model-value="(val) => formData.avatar = val as string"
                 :placeholder="t('link.avatarUrlPlaceholder')"
+                :class="{ 'border-red-300 focus:border-red-400': Boolean(avatarErrorMessage) }"
                 maxlength="255"
                 :disabled="dialogLoading"
             />
+            <p v-if="avatarErrorMessage" class="text-xs text-red-500">
+              {{ avatarErrorMessage }}
+            </p>
             <p class="text-xs text-slate-500">
               {{ (formData.avatar ?? '').length }}/255
             </p>
@@ -705,10 +790,14 @@ const formatDate = (dateString: string) => {
                 :model-value="formData.description ?? ''"
                 @update:model-value="(val) => formData.description = val as string"
                 :placeholder="t('link.descriptionPlaceholder')"
+                :class="{ 'border-red-300 focus:border-red-400': Boolean(descriptionErrorMessage) }"
                 maxlength="255"
                 rows="3"
                 :disabled="dialogLoading"
             />
+            <p v-if="descriptionErrorMessage" class="text-xs text-red-500">
+              {{ descriptionErrorMessage }}
+            </p>
             <p class="text-xs text-slate-500">
               {{ (formData.description ?? '').length }}/255
             </p>
