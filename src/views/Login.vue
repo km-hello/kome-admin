@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
+import WanderingLinesBackground from '@/components/common/WanderingLinesBackground.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -88,11 +89,10 @@ const handleLogin = async (): Promise<void> => {
 
 <template>
   <div class="h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-5">
-    <!-- 装饰背景 -->
-    <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] bg-size-[32px_32px] opacity-60"></div>
+    <WanderingLinesBackground />
 
     <!-- 登录卡片 -->
-    <Card class="w-full max-w-md shadow-xl z-10 bg-white/95 backdrop-blur-sm relative">
+    <Card class="w-full max-w-md z-10 bg-white/88 border-white/60 backdrop-blur-md shadow-[0_28px_80px_rgba(15,23,42,0.16)] relative">
       <!-- 语言切换 -->
       <div class="absolute top-3 right-3">
         <LanguageSwitcher />
