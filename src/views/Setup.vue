@@ -19,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 import PasswordStrengthIndicator from '@/components/common/PasswordStrengthIndicator.vue';
+import WanderingLinesBackground from '@/components/common/WanderingLinesBackground.vue';
 
 const router = useRouter();
 const siteStore = useSiteStore();
@@ -266,11 +267,10 @@ const handleSetup = async (): Promise<void> => {
 
 <template>
   <div class="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden py-8">
-    <!-- 装饰背景 -->
-    <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] bg-size-[32px_32px] opacity-60"></div>
+    <WanderingLinesBackground />
 
     <!-- 设置卡片 -->
-    <Card class="w-full max-w-md shadow-xl z-10 bg-white/95 backdrop-blur-sm mx-4 relative">
+    <Card class="w-full max-w-md z-10 bg-white/88 border-white/60 backdrop-blur-md shadow-[0_28px_80px_rgba(15,23,42,0.16)] mx-4 relative">
       <!-- 语言切换 -->
       <div class="absolute top-3 right-3">
         <LanguageSwitcher />
