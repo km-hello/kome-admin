@@ -15,6 +15,11 @@ type BackgroundNode = {
   turnVelocity: number;
   turnTarget: number;
   turnCooldown: number;
+  interactionOffsetX: number;
+  interactionOffsetY: number;
+  interactionVelocityX: number;
+  interactionVelocityY: number;
+  interactionStrength: number;
 };
 
 /**
@@ -46,6 +51,7 @@ let canvasContext: CanvasRenderingContext2D | null = null;
 let sceneWidth = 0;
 let sceneHeight = 0;
 let lastFrameTime = 0;
+let lastPaintTime = 0;
 let backgroundNodes: BackgroundNode[] = [];
 
 /**
@@ -79,24 +85,30 @@ const randomBetween = (min: number, max: number): number => min + Math.random() 
  * 根据容器宽度决定节点数量。
  * 宽屏增加更多节点，避免背景在大分辨率下被拉得过于稀疏。
  */
-const getNodeCount = (width: number): number => {
-  if (width < 640) {
-    return 26;
+const getNodeCount = (width: number, height: number): number => {
+  const area = width * height;
+
+  if (area < 420000) {
+    return 28;
   }
 
-  if (width < 1024) {
-    return 40;
+  if (area < 820000) {
+    return 42;
   }
 
-  if (width < 1440) {
-    return 62;
+  if (area < 1280000) {
+    return 58;
   }
 
-  if (width < 1920) {
-    return 78;
+  if (area < 1880000) {
+    return 76;
   }
 
-  return 92;
+  if (area < 2600000) {
+    return 96;
+  }
+
+  return 112;
 };
 
 /**
@@ -105,14 +117,14 @@ const getNodeCount = (width: number): number => {
  */
 const getConnectionDistance = (width: number): number => {
   if (width < 640) {
-    return 136;
+    return 144;
   }
 
   if (width < 1024) {
-    return 164;
+    return 174;
   }
 
-  return 190;
+  return 202;
 };
 
 /**
@@ -132,6 +144,13 @@ const getPointerInfluenceDistance = (width: number): number => {
 };
 
 /**
+ * 动画帧间隔控制。
+ * 鼠标活跃时维持满帧响应，空闲时降到较低帧率以减少持续重绘开销。
+ */
+const getTargetFrameInterval = (): number =>
+  (pointerActive > 0.06 || pointerTargetActive > 0.06) ? 1000 / 60 : 1000 / 42;
+
+/**
  * 创建单个节点。
  * 节点尺寸基础差异很小，主要视觉差异由连接数量和鼠标响应带出。
  */
@@ -144,6 +163,11 @@ const createBackgroundNode = (): BackgroundNode => ({
   turnVelocity: randomBetween(-0.3, 0.3),
   turnTarget: randomBetween(-0.85, 0.85),
   turnCooldown: randomBetween(0.6, 2.4),
+  interactionOffsetX: 0,
+  interactionOffsetY: 0,
+  interactionVelocityX: 0,
+  interactionVelocityY: 0,
+  interactionStrength: 0,
 });
 
 /**
@@ -151,7 +175,7 @@ const createBackgroundNode = (): BackgroundNode => ({
  * 在尺寸变化后直接重建，比逐个迁移旧节点更稳定，也更容易控制密度策略。
  */
 const rebuildBackgroundNodes = (): void => {
-  backgroundNodes = Array.from({ length: getNodeCount(sceneWidth) }, createBackgroundNode);
+  backgroundNodes = Array.from({ length: getNodeCount(sceneWidth, sceneHeight) }, createBackgroundNode);
 };
 
 /**
@@ -227,6 +251,65 @@ const updatePointerState = (deltaSeconds: number): void => {
 };
 
 /**
+ * 更新节点的鼠标交互偏移。
+ * 节点不会瞬间跳到鼠标附近，而是通过弹性偏移逐步靠近，离开后再平滑回弹。
+ */
+const updateNodeInteractionOffsets = (deltaSeconds: number): void => {
+  const pointerDistance = getPointerInfluenceDistance(sceneWidth);
+  const pointerDistanceSquared = pointerDistance * pointerDistance;
+  const springStrength = 22;
+  const damping = Math.max(0, 1 - deltaSeconds * 10);
+  const maxOffset = 24;
+
+  for (const node of backgroundNodes) {
+    let targetOffsetX = 0;
+    let targetOffsetY = 0;
+    let targetStrength = 0;
+
+    if (pointerActive > 0.01) {
+      const dx = pointerX - node.x;
+      const dy = pointerY - node.y;
+      const distanceSquared = dx * dx + dy * dy;
+
+      if (distanceSquared < pointerDistanceSquared) {
+        const distance = Math.max(1, Math.sqrt(distanceSquared));
+
+        targetStrength = (1 - distance / pointerDistance) * pointerActive;
+
+        const attractionOffset = 20 * targetStrength;
+
+        targetOffsetX = (dx / distance) * attractionOffset;
+        targetOffsetY = (dy / distance) * attractionOffset;
+      }
+    }
+
+    node.interactionVelocityX += (targetOffsetX - node.interactionOffsetX) * springStrength * deltaSeconds;
+    node.interactionVelocityY += (targetOffsetY - node.interactionOffsetY) * springStrength * deltaSeconds;
+    node.interactionVelocityX *= damping;
+    node.interactionVelocityY *= damping;
+    node.interactionOffsetX += node.interactionVelocityX * deltaSeconds;
+    node.interactionOffsetY += node.interactionVelocityY * deltaSeconds;
+    node.interactionOffsetX = Math.max(-maxOffset, Math.min(maxOffset, node.interactionOffsetX));
+    node.interactionOffsetY = Math.max(-maxOffset, Math.min(maxOffset, node.interactionOffsetY));
+    node.interactionStrength += (targetStrength - node.interactionStrength) * Math.min(1, deltaSeconds * 9);
+  }
+};
+
+/**
+ * 重置节点交互偏移。
+ * 在降低动态效果或重建背景时清空鼠标残留状态，避免停留在半吸附位置。
+ */
+const resetNodeInteractionState = (): void => {
+  for (const node of backgroundNodes) {
+    node.interactionOffsetX = 0;
+    node.interactionOffsetY = 0;
+    node.interactionVelocityX = 0;
+    node.interactionVelocityY = 0;
+    node.interactionStrength = 0;
+  }
+};
+
+/**
  * 绘制整帧背景。
  *
  * 绘制流程：
@@ -246,6 +329,7 @@ const drawBackground = (timestamp: number): void => {
   if (!isReducedMotion) {
     updateBackgroundNodes(deltaSeconds);
     updatePointerState(deltaSeconds);
+    updateNodeInteractionOffsets(deltaSeconds);
   }
 
   const connectionDistance = getConnectionDistance(sceneWidth);
@@ -254,14 +338,11 @@ const drawBackground = (timestamp: number): void => {
   const renderXs = new Float32Array(backgroundNodes.length);
   const renderYs = new Float32Array(backgroundNodes.length);
   const pointerInfluences = new Float32Array(backgroundNodes.length);
-  const pointerDistance = getPointerInfluenceDistance(sceneWidth);
-  const pointerDistanceSquared = pointerDistance * pointerDistance;
-
   canvasContext.clearRect(0, 0, sceneWidth, sceneHeight);
   canvasContext.lineCap = 'round';
   canvasContext.lineJoin = 'round';
 
-  // 先为每个节点计算本帧渲染坐标，避免在连线和节点绘制时重复计算鼠标偏移。
+  // 先读取节点本帧的实际渲染位置，交互偏移已在前一步统一更新。
   for (let index = 0; index < backgroundNodes.length; index += 1) {
     const node = backgroundNodes[index];
 
@@ -269,28 +350,9 @@ const drawBackground = (timestamp: number): void => {
       continue;
     }
 
-    let renderX = node.x;
-    let renderY = node.y;
-    let influence = 0;
-
-    if (pointerActive > 0.01) {
-      const dx = node.x - pointerX;
-      const dy = node.y - pointerY;
-      const distanceSquared = dx * dx + dy * dy;
-
-      if (distanceSquared < pointerDistanceSquared) {
-        const distance = Math.max(1, Math.sqrt(distanceSquared));
-        influence = (1 - distance / pointerDistance) * pointerActive;
-        const offset = 18 * influence;
-
-        renderX -= (dx / distance) * offset;
-        renderY -= (dy / distance) * offset;
-      }
-    }
-
-    renderXs[index] = renderX;
-    renderYs[index] = renderY;
-    pointerInfluences[index] = influence;
+    renderXs[index] = node.x + node.interactionOffsetX;
+    renderYs[index] = node.y + node.interactionOffsetY;
+    pointerInfluences[index] = node.interactionStrength;
   }
 
   // 两两检查距离，距离足够近时绘制连线，并同步累计连接数供节点大小微调使用。
@@ -453,6 +515,8 @@ const resizeCanvas = (): void => {
 
   readPalette();
   rebuildBackgroundNodes();
+  lastFrameTime = 0;
+  lastPaintTime = 0;
   drawBackground(performance.now());
 };
 
@@ -474,7 +538,11 @@ const stopAnimation = (): void => {
  */
 const animationLoop = (timestamp: number): void => {
   animationFrameId = 0;
-  drawBackground(timestamp);
+
+  if (!lastPaintTime || timestamp - lastPaintTime >= getTargetFrameInterval()) {
+    drawBackground(timestamp);
+    lastPaintTime = timestamp;
+  }
 
   if (!isReducedMotion && !document.hidden) {
     animationFrameId = requestAnimationFrame(animationLoop);
@@ -500,6 +568,7 @@ const startAnimation = (): void => {
   }
 
   lastFrameTime = 0;
+  lastPaintTime = 0;
   animationFrameId = requestAnimationFrame(animationLoop);
 };
 
@@ -522,6 +591,7 @@ const handleReducedMotionChange = (event: MediaQueryListEvent): void => {
   isReducedMotion = event.matches;
   pointerTargetActive = 0;
   pointerActive = 0;
+  resetNodeInteractionState();
 
   if (isReducedMotion) {
     stopAnimation();
