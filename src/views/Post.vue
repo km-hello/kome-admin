@@ -53,6 +53,7 @@ import type {AcceptableValue} from "reka-ui";
 const router = useRouter();
 const siteStore = useSiteStore();
 const { t } = useI18n();
+const blogBaseUrl = import.meta.env.DEV ? 'http://localhost:5174' : '';
 
 /**
  *  文章列表数据
@@ -201,6 +202,16 @@ const goToCreate = () => {
  */
 const goToEdit = (post: PostSimpleResponse) => {
   router.push(`/posts/edit/${post.id}`);
+};
+
+/**
+ * 获取文章在 blog 端的访问地址。
+ *
+ * @param slug 文章 slug
+ */
+const getPostUrl = (slug: string) => {
+  const normalizedSlug = slug.replace(/^\/+/, '');
+  return `${blogBaseUrl}/post/${normalizedSlug}`;
 };
 
 /**
@@ -467,12 +478,24 @@ const truncateText = (text: string, maxLength: number = 60) => {
               <!-- 标题和 Slug 融合列 -->
               <TableCell>
                 <div class="flex flex-col gap-1">
-                  <span class="block font-semibold text-slate-900 truncate" :title="post.title">
+                  <a
+                    :href="getPostUrl(post.slug)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="block w-fit max-w-full font-semibold text-slate-900 truncate transition-colors hover:text-blue-600"
+                    :title="post.title"
+                  >
                     {{ post.title }}
-                  </span>
-                  <span class="block text-xs text-slate-400 font-mono truncate" :title="post.slug">
+                  </a>
+                  <a
+                    :href="getPostUrl(post.slug)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="block w-fit max-w-full text-xs text-slate-400 font-mono truncate transition-colors hover:text-blue-500"
+                    :title="post.slug"
+                  >
                     /{{ post.slug }}
-                  </span>
+                  </a>
                 </div>
               </TableCell>
 
